@@ -1,0 +1,8 @@
+# Pinned to the versions already present in the committed venv/, which was
+# built on Windows and cannot be used on macOS/Linux. Recreate locally with:
+#   python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+fastapi==0.140.7
+uvicorn==0.51.0
+pydantic==2.13.4
+jdatetime==6.0.1
+fastapi-swagger==0.4.55
