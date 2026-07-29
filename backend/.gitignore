@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+
+# Local environments. The checked-in venv/ was built on Windows and does not
+# work on macOS/Linux — recreate from requirements.txt as .venv/ instead.
+venv/
+.venv/

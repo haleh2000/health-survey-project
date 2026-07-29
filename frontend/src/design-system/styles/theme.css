@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+/* Class-based dark mode, so the user's toggle can override the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Primitive tokens — the raw palette. Never referenced directly by a
+   component; components use the semantic tokens defined further down.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-brand-50: #eef5ff;
+  --color-brand-100: #d9e8ff;
+  --color-brand-200: #bcd7ff;
+  --color-brand-300: #8ebeff;
+  --color-brand-400: #599bff;
+  --color-brand-500: #2f7bf6;
+  --color-brand-600: #175fe0;
+  --color-brand-700: #1249b4;
+  --color-brand-800: #143f8e;
+  --color-brand-900: #163870;
+  --color-brand-950: #0f2347;
+
+  /* One hue per risk tier, matching the four levels in backend/config.py. */
+  --color-risk-low: #0d9488;
+  --color-risk-moderate: #ca8a04;
+  --color-risk-elevated: #ea580c;
+  --color-risk-critical: #dc2626;
+
+  --font-sans: "Vazirmatn", "Segoe UI", Tahoma, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+
+  --shadow-card: 0 1px 2px rgb(15 35 71 / 0.04), 0 8px 24px -12px rgb(15 35 71 / 0.12);
+  --shadow-raised: 0 2px 4px rgb(15 35 71 / 0.06), 0 16px 32px -16px rgb(15 35 71 / 0.24);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Semantic tokens — what components actually use. Declared with `inline` so
+   they resolve through the CSS variables below and therefore flip with the
+   theme instead of being frozen at build time.
+   --------------------------------------------------------------------------- */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-head: var(--head);
+  --color-day-red: var(--day-red);
+  --color-day-primary: var(--day-primary);
+  --color-day-second : var(--day-second);
+}
+
+:root {
+  --canvas: #f2f6fb;
+  --head: #003a40;
+  --surface: #ffffff;
+  --surface-muted: #f7fafd;
+  --line: #e3eaf3;
+  --line-strong: #cbd8e8;
+  --ink: #0f2347;
+  --ink-muted: #4a5f7d;
+  --ink-subtle: #7c8da6;
+  --accent: #175fe0;
+  --accent-hover: #1249b4;
+  --accent-soft: #eef5ff;
+  --on-accent: #ffffff;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --day-red : #cb1a51;
+  --day-primary : #0099a8;
+  --day-second : #003a40a8;
+  color-scheme: light;
+}
+
+.dark {
+  /* --canvas: #070d1a; */
+  --surface: #101a2d;
+  --surface-muted: #16233a;
+  --line: #22314b;
+  --line-strong: #33456470;
+  --ink: #eaf1fb;
+  --ink-muted: #9db0cc;
+  --ink-subtle: #6b7f9d;
+  --accent: #599bff;
+  --accent-hover: #8ebeff;
+  --accent-soft: #16233a;
+  --on-accent: #071122;
+  --danger: #f87171;
+  --danger-soft: #2a1416;
+
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------------
+   Base layer
+   --------------------------------------------------------------------------- */
+@layer base {
+  html {
+    direction: rtl;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    /* Persian text needs a little more leading than the Latin default. */
+    line-height: 1.85;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* A single, consistent focus ring across every interactive element. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 0.35rem;
+  }
+
+  /* Persian digits read better than Latin ones inside body copy, but form
+     inputs must keep ASCII digits so their values stay parseable. */
+  input,
+  select,
+  textarea {
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+   ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f3f4f6;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--head);
+    border-radius: 9999px;
+  }
+
+  
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  /* Persian numerals for display-only text (headings, counters, results). */
+  .num-fa {
+    font-variant-numeric: normal;
+    -moz-font-feature-settings: "ss01";
+    font-feature-settings: "ss01";
+  }
+
+  @keyframes step-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-step-in {
+    animation: step-in 320ms var(--ease-out-soft) both;
+  }
+}
