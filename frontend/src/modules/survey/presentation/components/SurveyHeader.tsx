@@ -12,6 +12,18 @@ export interface SurveyHeaderProps {
   totalCount: number;
 }
 
+const CheckIcon = () => (
+  <svg viewBox="0 0 16 16" className="size-3.5" fill="none" aria-hidden>
+    <path
+      d="M3.5 8.5l3 3 6-6.5"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 /**
  * Sticky progress header.
  *
@@ -44,26 +56,56 @@ export function SurveyHeader({
           label={`${persianInteger(answeredCount)} پرسش از ${persianInteger(totalCount)} پاسخ داده شده`}
         />
 
-        <ol className="mt-4 flex items-center gap-1.5 overflow-x-auto pb-0.5">
-          {steps.map((step, index) => {
+        <ol className="mt-4 flex items-center">
+          {steps.flatMap((step, index) => {
             const done = index < stepIndex;
             const current = index === stepIndex;
+            const nodes = [];
 
-            return (
-              <li key={step.id} className="shrink-0">
+            if (index > 0) {
+              const connectorActive = index <= stepIndex;
+              nodes.push(
+                <li key={`connector-${step.id}`} aria-hidden className="flex-1 px-1">
+                  <span
+                    className={cn(
+                      "block h-0.5 rounded-full transition-colors duration-300",
+                      connectorActive ? "bg-day-primary" : "bg-white/25",
+                    )}
+                  />
+                </li>,
+              );
+            }
+
+            nodes.push(
+              <li key={step.id} className="flex shrink-0 flex-col items-center gap-1.5">
                 <span
                   aria-current={current ? "step" : undefined}
+                  title={step.title}
                   className={cn(
-                    "rounded-full text-white px-3 py-1 text-[0.7rem] whitespace-nowrap transition-colors",
-                    current && "bg-day-primary text-white",
-                    done && "bg-accent-soft text-white",
-                    !current && !done && "text-ink-subtle",
+                    "num-fa flex size-7 items-center justify-center rounded-full border text-[0.7rem] font-semibold transition-all duration-300",
+                    done && "border-day-primary bg-day-primary text-white",
+                    current &&
+                      "border-day-primary bg-white text-day-primary shadow-[0_0_0_4px_rgba(0,153,168,0.25)]",
+                    !done && !current && "border-white/30 text-white/60",
                   )}
+                >
+                  {done ? <CheckIcon /> : persianInteger(index + 1)}
+                </span>
+                <span
+                  className={cn(
+                  "text-center text-[0.65rem] leading-tight transition-colors whitespace-nowrap",
+                  current && "font-semibold text-white",
+                  done && "text-white/80",
+                  !done && !current && "text-white/50",
+                )}
+
                 >
                   {step.title}
                 </span>
-              </li>
+              </li>,
             );
+
+            return nodes;
           })}
         </ol>
       </div>

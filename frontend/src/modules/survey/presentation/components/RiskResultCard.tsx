@@ -1,127 +1,170 @@
+// src/modules/survey/presentation/components/RiskResultCard.tsx
 import { Button } from "@ds/components/Button";
 import { Card } from "@ds/components/Card";
 import { cn } from "@ds/lib/cn";
-
 import {
-  RISK_TIER_ORDER,
-  RiskTier,
   adviceFor,
   summaryFor,
   type RiskAssessment,
 } from "@survey/domain/entities/risk-assessment.entity";
+
 import type { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
-import { persianDecimal, persianInteger } from "@survey/presentation/format/persian";
+
+import {
+  persianDecimal,
+  persianInteger,
+} from "@survey/presentation/format/persian";
+import { Group1Advice } from "@survey/presentation/components/advice/Group1Advice";
 
 export interface RiskResultCardProps {
   assessment: RiskAssessment;
-  /** Derived locally; the backend scores BMI but does not return it. */
   bodyMetrics: BodyMetrics | null;
   onRestart: () => void;
 }
 
-const TIER_STYLES: Record<RiskTier, { dot: string; badge: string; bar: string }> = {
-  low: {
-    dot: "bg-risk-low",
-    badge: "bg-risk-low/10 text-risk-low",
-    bar: "bg-risk-low",
-  },
-  moderate: {
-    dot: "bg-risk-moderate",
-    badge: "bg-risk-moderate/10 text-risk-moderate",
-    bar: "bg-risk-moderate",
-  },
-  elevated: {
-    dot: "bg-risk-elevated",
-    badge: "bg-risk-elevated/10 text-risk-elevated",
-    bar: "bg-risk-elevated",
-  },
-  critical: {
-    dot: "bg-risk-critical",
-    badge: "bg-risk-critical/10 text-risk-critical",
-    bar: "bg-risk-critical",
-  },
+const TIER_STEPS = ["low", "moderate", "elevated", "critical"] as const;
+
+const TIER_LABELS: Record<string, string> = {
+  low: "کم",
+  moderate: "متوسط",
+  elevated: "بالا",
+  critical: "بحرانی",
 };
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-control bg-surface-muted px-4 py-3">
-    <p className="text-xs text-ink-subtle">{label}</p>
-    <p className="num-fa mt-1 text-lg font-semibold text-ink">{value}</p>
-  </div>
-);
+const TIER_COLORS: Record<string, string> = {
+  low: "bg-risk-low",
+  moderate: "bg-risk-moderate",
+  elevated: "bg-risk-elevated",
+  critical: "bg-risk-critical",
+};
 
 export function RiskResultCard({
   assessment,
   bodyMetrics,
   onRestart,
 }: RiskResultCardProps) {
-  const style = TIER_STYLES[assessment.tier];
-  const reachedIndex = RISK_TIER_ORDER.indexOf(assessment.tier);
+  const tierIndex = TIER_STEPS.indexOf(
+    assessment.tier as (typeof TIER_STEPS)[number],
+  );
+
+  const handlePrint = () => window.print();
+
+  const handleShare = async () => {
+    const text = `نتیجه ارزیابی سلامت ${assessment.fullName}: ${assessment.levelLabel}`;
+    if (navigator.share) {
+      await navigator.share({ title: "نتیجه ارزیابی", text });
+    } else {
+      await navigator.clipboard.writeText(text);
+    }
+  };
 
   return (
-    <div className="animate-step-in space-y-4">
-      <Card padding="lg">
-        <div className={cn("mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1", style.badge)}>
-          <span className={cn("size-2 rounded-full", style.dot)} aria-hidden />
-          <span className="text-xs font-medium">نتیجه ارزیابی</span>
+    <div className="flex flex-col gap-6 pb-10">
+      {/* هدر نتیجه */}
+      <Card className="text-center">
+        <div
+          className={cn(
+            "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-white text-2xl font-bold",
+            TIER_COLORS[assessment.tier] ?? "bg-gray-400",
+          )}
+        >
+          {persianInteger(assessment.score)}
         </div>
-
-        <h2 className="text-xl leading-relaxed font-semibold text-ink">
-          {assessment.levelLabel}
-        </h2>
-
+        <h2 className="text-lg font-bold text-ink">{assessment.levelLabel}</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-subtle">
           {summaryFor(assessment)}
         </p>
+      </Card>
 
-        {/* Four segments, one per tier, filled up to the one reached. */}
-        <div
-          className="mt-5 flex gap-1.5"
-          role="img"
-          aria-label={`سطح ریسک: ${assessment.levelLabel}`}
-        >
-          {RISK_TIER_ORDER.map((tier, index) => (
-            <span
-              key={tier}
+      {/* نوار چهارمرحله‌ای */}
+      <div className="flex gap-1">
+        {TIER_STEPS.map((step, i) => (
+          <div key={step} className="flex flex-1 flex-col items-center gap-1">
+            <div
               className={cn(
-                "h-2 flex-1 rounded-full transition-colors",
-                index <= reachedIndex ? style.bar : "bg-line",
+                "h-2 w-full rounded-full transition-colors",
+                i <= tierIndex
+                  ? (TIER_COLORS[step] ?? "bg-gray-300")
+                  : "bg-surface-muted",
               )}
             />
-          ))}
-        </div>
+            <span className="text-xs text-ink-subtle">{TIER_LABELS[step]}</span>
+          </div>
+        ))}
+      </div>
 
-        <dl className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-          <Stat label="نمره ریسک" value={persianDecimal(assessment.score)} />
-          <Stat label="سن" value={`${persianInteger(assessment.ageYears)} سال`} />
-          {bodyMetrics && (
-            <>
-              <Stat label="شاخص توده بدنی" value={persianDecimal(bodyMetrics.rounded)} />
-              <Stat label="وضعیت وزن" value={bodyMetrics.categoryLabel} />
-            </>
-          )}
-        </dl>
-      </Card>
+      {/* آمار */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="text-center">
+          <p className="text-xs text-ink-subtle">نمره</p>
+          <p className="text-xl font-bold text-ink">
+            {persianInteger(assessment.score)}
+          </p>
+        </Card>
+        <Card className="text-center">
+          <p className="text-xs text-ink-subtle">سن</p>
+          <p className="text-xl font-bold text-ink">
+            {persianInteger(assessment.ageYears)}
+          </p>
+        </Card>
+        {bodyMetrics ? (
+          <Card className="text-center">
+            <p className="text-xs text-ink-subtle">BMI</p>
+            <p className="text-xl font-bold text-ink">
+              {persianDecimal(bodyMetrics.rounded)}
+            </p>
+            <p className="text-xs text-ink-subtle">{bodyMetrics.categoryLabel}</p>
+          </Card>
+        ) : (
+          <Card className="text-center">
+            <p className="text-xs text-ink-subtle">BMI</p>
+            <p className="text-xl font-bold text-ink-subtle">—</p>
+          </Card>
+        )}
+      </div>
 
-      <Card>
-        <h3 className="mb-2 text-sm font-semibold text-ink">توصیه</h3>
-        <p className="text-sm leading-relaxed text-ink-subtle">{adviceFor(assessment)}</p>
-      </Card>
+      {/* توصیه */}
+      {assessment.tier === "critical" ? (
+        <Group1Advice onPrint={handlePrint} onShare={handleShare} />
+      ) : (
+        <Card>
+          <h3 className="mb-2 text-sm font-semibold text-ink">توصیه</h3>
+          <p className="text-sm leading-relaxed text-ink-subtle">
+            {adviceFor(assessment)}
+          </p>
+        </Card>
+      )}
 
-      <Card padding="sm" className="bg-surface-muted">
-        <p className="text-xs leading-relaxed text-ink-subtle">
-          این ارزیابی بر پایه پاسخ‌های خوداظهاری شماست و جایگزین معاینه، تشخیص یا
-          درمان پزشکی نیست. برای هرگونه تصمیم درمانی با پزشک مشورت کنید.
-        </p>
-      </Card>
+      {/* disclaimer */}
+      <p className="text-center text-xs leading-6 text-ink-subtle">
+        این نتیجه جنبه اطلاع‌رسانی دارد و جایگزین مشاوره پزشکی نمی‌شود.
+      </p>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-ink-subtle">
-          ثبت‌شده برای {assessment.fullName}
-        </p>
-        <Button variant="secondary" onClick={onRestart}>
-          پر کردن پرسشنامه جدید
+      {/* نام و شروع مجدد */}
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-sm text-ink-subtle">{assessment.fullName}</p>
+        <Button variant="ghost" onClick={onRestart}>
+          شروع مجدد
         </Button>
       </div>
+
+      {/* دکمه‌های پرینت/اشتراک — فقط برای tierهای غیر critical */}
+      {assessment.tier !== "critical" && (
+        <div className="flex gap-3">
+          <button
+            onClick={handleShare}
+            className="flex-1 rounded-xl border-2 border-cyan-400 bg-white px-6 py-3 text-sm font-semibold text-cyan-700 hover:bg-cyan-50"
+          >
+            اشتراک‌گذاری
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex-1 rounded-xl bg-cyan-500 px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
+          >
+            پرینت
+          </button>
+        </div>
+      )}
     </div>
   );
 }
