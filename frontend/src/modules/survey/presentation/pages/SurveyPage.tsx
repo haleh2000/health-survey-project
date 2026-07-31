@@ -12,14 +12,6 @@ import { SurveyHeader } from "@survey/presentation/components/SurveyHeader";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 import { useSurveyWizard } from "@survey/presentation/state/useSurveyWizard";
 
-/**
- * The survey screen.
- *
- * Deliberately thin: it decides what to show, and delegates every decision
- * about *what is true* to `useSurveyWizard`, which in turn delegates to the
- * use cases. Nothing here knows the questionnaire content, the validation
- * rules, or the backend.
- */
 export function SurveyPage() {
   const { definition } = useSurveyDependencies();
   const wizard = useSurveyWizard();

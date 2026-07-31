@@ -13,9 +13,9 @@ export default defineConfig({
   resolve: {
     // Must stay in sync with `compilerOptions.paths` in tsconfig.app.json.
     alias: {
-      "@core": fromSrc("core"),
-      "@ds": fromSrc("design-system"),
-      "@survey": fromSrc("modules/survey"),
+    "@ds": path.resolve(__dirname, "src/design-system"),
+    "@core": path.resolve(__dirname, "src/core"),
+    "@survey": path.resolve(__dirname, "src/modules/survey"),
       "@app": fromSrc("app"),
       "@utils": path.resolve(__dirname, "./utils"),
       "@": path.resolve(__dirname, "./src"),

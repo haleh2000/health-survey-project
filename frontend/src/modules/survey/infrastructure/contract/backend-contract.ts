@@ -1,18 +1,4 @@
-/**
- * The literal wire contract of `POST /calculate_risk`.
- *
- * Every string below is copied verbatim from the backend source — request
- * keys from `Field(alias=...)` in models.py, response keys from
- * `serialization_alias`, and accepted values from enums.py / config.py.
- * They are lookup keys, not prose: the backend resolves options with
- * `dict.get(value, 0)`, so a single changed space or a Persian digit where
- * an ASCII one is expected scores as zero without raising anything.
- *
- * Nothing here is for display. The UI wording lives in
- * `definition/survey-definition.data.ts`, and `mappers/survey-request.mapper.ts`
- * translates between the two. Regenerate/verify with:
- *   python3 backend/tools/check_contract.py
- */
+
 
 import type { QuestionId } from "@survey/domain/entities/question.entity";
 

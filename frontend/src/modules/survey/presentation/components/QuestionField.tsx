@@ -7,7 +7,8 @@ import {
 } from "@survey/domain/entities/question.entity";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
 import { ChoiceField } from "@survey/presentation/components/fields/ChoiceField";
-import { JalaliDateField } from "@survey/presentation/components/fields/JalaliDateField";
+// import { JalaliDateField } from "@survey/presentation/components/fields/JalaliDateField";
+import { JalaliCalendarField } from "./fields/JalaliCalendarField";
 import { NumberField } from "@survey/presentation/components/fields/NumberField";
 import { TextField } from "@survey/presentation/components/fields/TextField";
 import { persianInteger } from "@survey/presentation/format/persian";
@@ -70,17 +71,14 @@ export function QuestionField({
           />
         );
 
-      case QuestionKind.JalaliDate:
-        return (
-          <JalaliDateField
-            id={controlId}
-            question={question}
-            value={value}
-            onChange={onSetValue}
-            invalid={invalid}
-            describedBy={errorId}
-          />
-        );
+    case QuestionKind.JalaliDate:
+  return (
+    <JalaliCalendarField
+      value={value}
+      onChange={onSetValue}
+    />
+  );
+
 
       case QuestionKind.SingleChoice:
         return (

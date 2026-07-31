@@ -1,12 +1,16 @@
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+
 @import "tailwindcss";
 
 /* Class-based dark mode, so the user's toggle can override the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ---------------------------------------------------------------------------
-   Primitive tokens — the raw palette. Never referenced directly by a
-   component; components use the semantic tokens defined further down.
-   --------------------------------------------------------------------------- */
 @theme {
   --color-brand-50: #eef5ff;
   --color-brand-100: #d9e8ff;
@@ -19,7 +23,6 @@
   --color-brand-800: #143f8e;
   --color-brand-900: #163870;
   --color-brand-950: #0f2347;
-
   /* One hue per risk tier, matching the four levels in backend/config.py. */
   --color-risk-low: #0d9488;
   --color-risk-moderate: #ca8a04;
@@ -37,11 +40,7 @@
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------------------------------------------------------------------------
-   Semantic tokens — what components actually use. Declared with `inline` so
-   they resolve through the CSS variables below and therefore flip with the
-   theme instead of being frozen at build time.
-   --------------------------------------------------------------------------- */
+
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -104,9 +103,6 @@
   color-scheme: dark;
 }
 
-/* ---------------------------------------------------------------------------
-   Base layer
-   --------------------------------------------------------------------------- */
 @layer base {
   html {
     direction: rtl;
@@ -123,15 +119,13 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* A single, consistent focus ring across every interactive element. */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: 0.35rem;
   }
 
-  /* Persian digits read better than Latin ones inside body copy, but form
-     inputs must keep ASCII digits so their values stay parseable. */
+
   input,
   select,
   textarea {
@@ -170,7 +164,6 @@
 }
 
 @layer utilities {
-  /* Persian numerals for display-only text (headings, counters, results). */
   .num-fa {
     font-variant-numeric: normal;
     -moz-font-feature-settings: "ss01";

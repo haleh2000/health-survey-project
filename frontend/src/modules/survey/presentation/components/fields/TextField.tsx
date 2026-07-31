@@ -1,4 +1,4 @@
-import { toAsciiDigits } from "@core/text/digits";
+import { toAsciiDigits, toPersianDigits } from "@core/text/digits";
 import { TextInput } from "@ds/components/TextInput";
 
 import type { TextQuestion } from "@survey/domain/entities/question.entity";
@@ -31,7 +31,7 @@ export function TextField({
       autoComplete={isNationalId ? "off" : "name"}
       maxLength={isNationalId ? 10 : question.maxLength}
       placeholder={question.placeholder}
-      value={value}
+      value={isNationalId ? toPersianDigits(value) : value}
       invalid={invalid ?? false}
       aria-describedby={describedBy}
       className={isNationalId ? "text-left tracking-[0.25em]" : undefined}

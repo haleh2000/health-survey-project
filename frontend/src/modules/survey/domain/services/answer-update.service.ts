@@ -1,13 +1,6 @@
 import type { ChoiceQuestion, Question } from "@survey/domain/entities/question.entity";
 import { readList, type SurveyAnswers } from "@survey/domain/entities/survey-answers.entity";
 
-/**
- * How an answer changes in response to a user action.
- *
- * Kept in the domain rather than in a React handler so the "هیچکدام" rule is
- * expressed once, testable without rendering anything, and impossible for a
- * new field component to re-implement differently.
- */
 
 const exclusiveValues = (question: ChoiceQuestion): ReadonlySet<string> =>
   new Set(

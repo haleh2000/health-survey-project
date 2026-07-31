@@ -18,14 +18,11 @@ logger = logging.getLogger(__name__)
 app = FastAPI(docs_url=None, swagger_ui_oauth2_redirect_url=None)
 patch_fastapi(app, docs_url="/swagger")
 
-# The SPA is served from a different origin than the API, so without this the
-# browser blocks every request before it reaches FastAPI. Defaults cover the
-# Vite dev server; set CORS_ALLOW_ORIGINS (comma separated) in production.
 ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
         "CORS_ALLOW_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173",
+        "http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173",
     ).split(",")
     if origin.strip()
 ]
@@ -33,8 +30,8 @@ ALLOWED_ORIGINS = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_methods=["POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.exception_handler(RequestValidationError)
@@ -55,14 +52,9 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 @app.post("/calculate_risk", response_model=RiskResponse)
 async def get_risk_score(data: SurveyInput):
-    """
-    Endpoint is now asynchronous. Processing is offloaded to a separate thread 
-    to prevent blocking the main event loop during concurrent requests.
-    """
     try:
         result_dict = await asyncio.to_thread(calculate_risk_sync, data)
         return RiskResponse(**result_dict)
-
     except Exception as e:
         logger.error(f"Error calculating risk score: {e}")
         raise HTTPException(status_code=400, detail="خطا در پردازش اطلاعات کاربر.")
