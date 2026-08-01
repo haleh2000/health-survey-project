@@ -4,7 +4,6 @@ import { cn } from "@ds/lib/cn";
 
 export interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean;
-  /** Trailing unit label, e.g. "سانتی‌متر". */
   suffix?: ReactNode;
 }
 

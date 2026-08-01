@@ -1,7 +1,7 @@
-// src/modules/survey/presentation/components/advice/AdviceSectionCard.tsx
-import { Card } from "@ds/components/Card";
-import { cn } from "@ds/lib/cn";
 import type { ReactNode } from "react";
+import { Card } from '@ds/components/Card';
+import { cn } from "@ds/lib/cn";
+
 
 interface AdviceSectionCardProps {
   title: string;
@@ -9,6 +9,7 @@ interface AdviceSectionCardProps {
   imageAlt: string;
   children: ReactNode;
   backgroundColor?: string;
+  borderTitle?: string;
 }
 
 export function AdviceSectionCard({
@@ -17,15 +18,18 @@ export function AdviceSectionCard({
   imageAlt,
   children,
   backgroundColor = "bg-white",
+  borderTitle,
 }: AdviceSectionCardProps) {
   return (
-    <Card className={cn("overflow-hidden p-0", backgroundColor)}>
-      {/* هدر با عکس */}
-      <div className="relative flex items-center justify-between border-b border-border bg-gradient-to-l from-cyan-50 to-teal-50 px-6 py-4">
-        <h3 className="text-base font-bold text-ink">{title}</h3>
-        <img src={imageSrc} alt={imageAlt} className="h-20 w-20 object-contain" />
-      </div>
+    <Card className={cn("m-6 overflow-hidden p-0", backgroundColor)}>
+      {borderTitle && (
+        <div className="absolute top-0 right-15 -translate-y-1/2 bg-white px-3 text-2xl">
+          <span className="font-semibold text-day-primary">{borderTitle}</span>
+        </div>
+      )}
 
+      {/* هدر با عکس */}
+      
       {/* محتوا */}
       <div className="p-6">{children}</div>
     </Card>

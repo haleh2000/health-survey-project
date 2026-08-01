@@ -22,7 +22,7 @@ ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
         "CORS_ALLOW_ORIGINS",
-        "http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173",
+        "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173",
     ).split(",")
     if origin.strip()
 ]
@@ -30,9 +30,11 @@ ALLOWED_ORIGINS = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

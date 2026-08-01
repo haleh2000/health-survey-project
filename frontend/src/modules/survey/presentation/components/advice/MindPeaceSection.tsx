@@ -24,6 +24,7 @@ export function MindPeaceSection() {
       title="پیشنهادات آرامش ذهن و خودمراقبتی"
       imageSrc={mindPeaceImg}
       imageAlt="شخصیت آرامش ذهن"
+      
     >
       <div className="space-y-6">
         {/* توضیحات */}

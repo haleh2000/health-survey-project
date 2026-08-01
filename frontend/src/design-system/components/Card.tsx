@@ -1,9 +1,9 @@
 import type { HTMLAttributes } from "react";
-
 import { cn } from "@ds/lib/cn";
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: "none" | "sm" | "md" | "lg";
+  title?: string;
 }
 
 const PADDING = {
@@ -13,17 +13,24 @@ const PADDING = {
   lg: "p-6 sm:p-9",
 } as const;
 
-export function Card({ padding = "md", className, children, ...rest }: CardProps) {
+export function Card({ padding = "md", className, children, title, ...rest }: CardProps) {
   return (
-    <div
-      className={cn(
-        "rounded-card border border-day-second bg-day-primary shadow-card",
-        PADDING[padding],
-        className,
+    <div className="relative">
+      {title && (
+        <div className="absolute -top-3.5 right-8 px-3 py-0.5 rounded-full bg-gradient-to-r from-pink-200/60 to-pink-100/60 text-sm font-medium text-pink-800">
+          {title}
+        </div>
       )}
-      {...rest}
-    >
-      {children}
+      <div
+        className={cn(
+          "rounded-card border border-day-primary bg-day-primary shadow-card mt-[50px]",
+          PADDING[padding],
+          className,
+        )}
+        {...rest}
+      >
+        {children}
+      </div>
     </div>
   );
 }
