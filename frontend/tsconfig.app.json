@@ -1,45 +1,34 @@
 {
   "compilerOptions": {
-    
-    
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
-
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Path aliases — one alias per architectural layer, so an illegal
-       dependency is visible in the import statement itself.
-       Must stay in sync with `resolve.alias` in vite.config.ts.
-       No `baseUrl`: it is deprecated in TS 6, and paths already resolve
-       relative to this file. */
-       
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
-      
-      "@core/*": ["./src/core/*"],
-      "@ds/*": ["./src/design-system/*"],
-      "@survey/*": ["./src/modules/survey/*"],
-      "@app/*": ["./src/app/*"]
+      "@core/*": ["src/core/*"],
+      "@ds/*": ["src/design-system/*"],
+      "@survey/*": ["src/modules/survey/*"],
+      "@app/*": ["src/app/*"],
+      "@utils/*": ["src/utils/*"],
+      "@/*": ["src/*"]
     },
-
-    /* Linting */
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "react-jsx"
   },
   "include": ["src"]
 }

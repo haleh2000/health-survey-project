@@ -21,56 +21,55 @@ export function WeightLossSection() {
   return (
     <AdviceSectionCard
       title="پیشنهادات کاهش وزن"
+      borderTitle="پیشنهادات کاهش وزن"
       imageSrc={weightLossImg}
       imageAlt="شخصیت کاهش وزن"
-      backgroundColor="bg-gradient-to-br from-green-50 to-lime-50"
     >
       <div className="space-y-6">
         {/* توضیح */}
-        <div className="rounded-xl bg-amber-50 p-4">
-          <h4 className="mb-2 text-sm font-bold text-amber-900">
-            ☀️ کاهش شرن کد‌بار و اکلاحات کورخبید مه به یار IMI=۳۰=۳۵ باقیمنی
-          </h4>
-          <p className="text-sm leading-7 text-ink">
-            الیرودردیں بخیک سحتون، سیمئل سے کالَی میرالُنستچیں رددنیٖگیںمَستی
-            بدنای‌نیکیں.
-          </p>
-        </div>
+       <div className="flex">
+      <ul className="space-y-1 text-sm text-gray-700">
+        <li className="flex items-center gap-2">
+          <span className="text-2xl">📉</span>
+          <span className="text-day-red text-lg font-bold mb-2">
+            کاهش وزن پایدار با اصلاحات کوچک (فقط اگر BMI بیشتر از ۲۵ باشد)
+          </span>
+        </li>
+        <li className="flex items-center gap-2"><span>این روش به جای شوک دادن به بدن، با اصلاحات کوچک و پایدار، کسری انرژی لازم را برای کاهش ۳۰۰ گرم در هفته (۱.۲ کیلوگرم در ماه) با حذف ۵۰۰ کالری در روز فراهم می‌کند؛ بدون اینکه متابولیسم شما افت کند یا دچار گرسنگی عصبی شوید.</span></li>
+      </ul>
+    </div>
 
-        {/* راهکارهای پیشنهادی */}
-        <div>
-          <p className="mb-3 text-sm font-semibold text-ink">
-            راهکارهای پیشنهادی برای تغییری روزانه پس کالری:
-          </p>
-          <ScaleSelector
-            options={WEIGHT_ACTIVITIES}
-            selected={selectedActivities}
-            onChange={setSelectedActivities}
-            maxSelection={3}
-          />
-        </div>
+        {/* راهکارهای کاهش ۵۰۰ کالری */}
+<div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+  <h3 className="mb-3 text-sm font-bold text-teal-700">
+    📉 راهکارهای پیشنهادی برای کاهش روزانه ۵۰۰ کالری
+  </h3>
 
-        {/* نکات مهم */}
-        <div className="space-y-2 rounded-xl bg-blue-50 p-4">
-          <p className="text-xs font-semibold text-blue-900">💡 نکات مهم:</p>
-          <ul className="mr-4 space-y-1 text-xs leading-6 text-ink-subtle">
-            <li>
-              <span className="font-semibold">💪</span> عضور بریدین (بکنبا شبتہ،
-              باہوب): بتاں ۳ روک رٹکت کیجیدیگری کٹگری گرے بیژون کنید
-            </li>
-            <li>
-              <span className="font-semibold">🍊</span> گنوایل خودین و شبونی
-              (میگہ کالُری)=بکایکِ۔ بہ یک روئیہ حکیلی کوالے گسترمگوم از
-            </li>
-            <li>
-              <span className="font-semibold">💧</span> نوشیروکولینا (۸–۱۰
-              لیوان): سدسی آیکریہ بافقا‌یپہ شیستے گوتا‌گینبِہِگاتیںہ راںش
-            </li>
-          </ul>
+  <div className="flex flex-col gap-2">
+    {[
+      { emoji: "🥤", title: "حذف نوشیدنی‌های قندی", cal: "۱۵۰ کالری", desc: "مصرف آب، آب‌گازدار با لیمو یا چای بدون قند" },
+      { emoji: "🍳", title: "تغییر روش پخت", cal: "۱۵۰ کالری", desc: "بخارپز، کبابی یا گریل کردن 🔄 سرخ‌کردن" },
+      { emoji: "🍰", title: "محدود کردن دسر و شیرینی", cal: "۲۰۰ کالری", desc: "جایگزینی با یک واحد میوه کامل (سرشار از فیبر)" },
+      { emoji: "🧴", title: "حذف سس‌های پرچرب", cal: "۱۰۰–۱۵۰ کالری", desc: "آبلیمو، بالزامیک یا ماست یونانی 🔄 مایونز" },
+      { emoji: "🍚", title: "کاهش کربوهیدرات ساده", cal: "۱۵۰–۲۰۰ کالری", desc: "نصف کردن سهم برنج یا نان و پر کردن بشقاب با سبزیجات" },
+      { emoji: "🥛", title: "انتخاب لبنیات کم‌چرب", cal: "۱۰۰ کالری", desc: "جایگزینی شیر و ماست پرچرب با نسخه‌های کم‌چرب" },
+      { emoji: "🚶", title: "پیاده‌روی روزانه", cal: "۱۰۰ کالری", desc: "حدود ۲۰ دقیقه با سرعت متوسط (در صورت فشار خون یا بیماری قلبی با پزشک مشورت کنید)" },
+    ].map(({ emoji, title, cal, desc }) => (
+      <div key={title} className="flex items-start gap-2 rounded-xl border border-emerald-100 bg-white/70 px-3 py-2">
+        <span className="text-lg">{emoji}</span>
+        <div className="flex-1 text-right">
+          <span className="text-xs font-bold text-teal-700">{title} </span>
+          <span className="text-xs text-emerald-600">({cal})</span>
+          <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{desc}</p>
         </div>
+      </div>
+    ))}
+  </div>
+</div>
+
 
         {/* ردیابی هفتگی */}
-        <WeeklyTracker label="فقایتل روزانہ (فعل دقیقہ)" />
+        <WeeklyTracker label="کاهش روزانه ۵۰۰ کالری" />
       </div>
     </AdviceSectionCard>
   );

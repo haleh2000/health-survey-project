@@ -60,6 +60,7 @@
   --color-day-red: var(--day-red);
   --color-day-primary: var(--day-primary);
   --color-day-second : var(--day-second);
+  --color-main-text : var(--main-text);
 }
 
 :root {
@@ -81,6 +82,7 @@
   --day-red : #cb1a51;
   --day-primary : #0099a8;
   --day-second : #003a40a8;
+  --main-text: #727070;
   color-scheme: light;
 }
 

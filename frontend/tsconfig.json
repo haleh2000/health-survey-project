@@ -1,10 +1,7 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@ds/*": ["src/design-system/*"],
-      "@core/*": ["src/core/*"],
-      "@survey/*": ["src/modules/survey/*"]
-    }
-  }
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }
