@@ -14,7 +14,10 @@ import {
   persianDecimal,
   persianInteger,
 } from "@survey/presentation/format/persian";
-import { Group1Advice } from "@survey/presentation/components/advice/Group1Advice";
+import { Group1Advice } from "@survey/presentation/components/advice/group1/Group1Advice";
+
+import { Group4Advice } from "@survey/presentation/components/advice/group4/Group4Advice";
+
 
 export interface RiskResultCardProps {
   assessment: RiskAssessment;
@@ -47,6 +50,9 @@ export function RiskResultCard({
     assessment.tier as (typeof TIER_STEPS)[number],
   );
 
+  const hasCustomAdvice =
+    assessment.tier === "critical" || assessment.tier === "low";
+
   const handlePrint = () => window.print();
 
   const handleShare = async () => {
@@ -60,72 +66,12 @@ export function RiskResultCard({
 
   return (
     <div className="flex flex-col gap-6 pb-10">
-      {/* هدر نتیجه */}
-      <Card className="text-center">
-        <div
-          className={cn(
-            "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-white text-2xl font-bold",
-            TIER_COLORS[assessment.tier] ?? "bg-gray-400",
-          )}
-        >
-          {persianInteger(assessment.score)}
-        </div>
-        <h2 className="text-lg font-bold text-ink">{assessment.levelLabel}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-subtle">
-          {summaryFor(assessment)}
-        </p>
-      </Card>
-
-      {/* نوار چهارمرحله‌ای */}
-      <div className="flex gap-1">
-        {TIER_STEPS.map((step, i) => (
-          <div key={step} className="flex flex-1 flex-col items-center gap-1">
-            <div
-              className={cn(
-                "h-2 w-full rounded-full transition-colors",
-                i <= tierIndex
-                  ? (TIER_COLORS[step] ?? "bg-gray-300")
-                  : "bg-surface-muted",
-              )}
-            />
-            <span className="text-xs text-ink-subtle">{TIER_LABELS[step]}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* آمار */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="text-center">
-          <p className="text-xs text-ink-subtle">نمره</p>
-          <p className="text-xl font-bold text-ink">
-            {persianInteger(assessment.score)}
-          </p>
-        </Card>
-        <Card className="text-center">
-          <p className="text-xs text-ink-subtle">سن</p>
-          <p className="text-xl font-bold text-ink">
-            {persianInteger(assessment.ageYears)}
-          </p>
-        </Card>
-        {bodyMetrics ? (
-          <Card className="text-center">
-            <p className="text-xs text-ink-subtle">BMI</p>
-            <p className="text-xl font-bold text-ink">
-              {persianDecimal(bodyMetrics.rounded)}
-            </p>
-            <p className="text-xs text-ink-subtle">{bodyMetrics.categoryLabel}</p>
-          </Card>
-        ) : (
-          <Card className="text-center">
-            <p className="text-xs text-ink-subtle">BMI</p>
-            <p className="text-xl font-bold text-ink-subtle">—</p>
-          </Card>
-        )}
-      </div>
 
       {/* توصیه */}
       {assessment.tier === "critical" ? (
-        <Group1Advice onPrint={handlePrint} onShare={handleShare} />
+        <Group1Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
+      ) : assessment.tier === "low" ? (
+        <Group4Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
       ) : (
         <Card>
           <h3 className="mb-2 text-sm font-semibold text-ink">توصیه</h3>
@@ -148,18 +94,17 @@ export function RiskResultCard({
         </Button>
       </div>
 
-      {/* دکمه‌های پرینت/اشتراک — فقط برای tierهای غیر critical */}
-      {assessment.tier !== "critical" && (
+      {!hasCustomAdvice && (
         <div className="flex gap-3">
           <button
             onClick={handleShare}
-            className="flex-1 rounded-xl border-2 border-cyan-400 bg-white px-6 py-3 text-sm font-semibold text-cyan-700 hover:bg-cyan-50"
+            className="cursor-pointer flex-1 rounded-xl border-2 border-cyan-400 bg-white px-6 py-3 text-sm font-semibold text-cyan-700 hover:bg-day-primary"
           >
             اشتراک‌گذاری
           </button>
           <button
             onClick={handlePrint}
-            className="flex-1 rounded-xl bg-cyan-500 px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
+            className="cursor-pointer flex-1 rounded-xl bg-day-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
           >
             پرینت
           </button>
@@ -168,3 +113,4 @@ export function RiskResultCard({
     </div>
   );
 }
+
