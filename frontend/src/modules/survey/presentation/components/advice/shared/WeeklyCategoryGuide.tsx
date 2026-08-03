@@ -19,7 +19,7 @@ export function WeeklyCategoryGuide({
   return (
     <div className="flex flex-col gap-4 rounded-2xl bg-day-primary/5 p-4">
       <p className="text-sm leading-relaxed text-ink-subtle">{description}</p>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 mb-4">
         {groups.map((group) => (
           <div
             key={group.label}

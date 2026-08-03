@@ -34,13 +34,13 @@ export function Group1Advice({ assessment, onPrint, onShare }: Group1AdviceProps
       <div className="flex gap-3">
         <button
           onClick={onShare}
-          className="cursor-pointer flex-1 rounded-xl border-2 bg-white px-6 py-3 text-sm font-semibold text-cyan-700 hover:bg-day-primary hover:text-white"
+          className=":focus-visiblefocus-visible:!outline-none cursor-pointer flex-1 rounded-xl border-2 bg-white px-6 py-3 text-sm font-semibold text-cyan-700 hover:bg-day-primary hover:text-white"
         >
           اشتراک‌گذاری
         </button>
         <button
           onClick={onPrint}
-          className="cursor-pointer flex-1 rounded-xl bg-day-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
+          className="focus-visible:!outline-none cursor-pointer flex-1 rounded-xl bg-day-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
         >
           پرینت
         </button>

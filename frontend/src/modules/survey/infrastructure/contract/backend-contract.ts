@@ -125,8 +125,8 @@ export const BACKEND_KEYWORD = {
 
 /** The four labels `risk_level` can hold, from config.py. */
 export const RISK_LEVEL_LABEL = {
-  low: "گروه ۱: ریسک پایین",
-  moderate: "گروه ۲: لبه خطر بلند مدت (ریسک مزمن سبک زندگی)",
-  elevated: "گروه ۳: لبه خطر کوتاه مدت (ریسک حاد بالقوه)",
-  critical: "گروه ۴: ریسک بالینی اولویت‌دار (Critical Risk)",
+  critical: "گروه ۱: گروه پر ریسک (با بیماری قطعی یا امتیاز بالا)",
+  elevated: "گروه ۲: گروه در آستانه خطر (کوتاه‌مدت)",
+  moderate: "گروه ۳: گروه در معرض خطر (بلندمدت)",
+  low: "گروه ۴: گروه افراد سالم",
 } as const;
