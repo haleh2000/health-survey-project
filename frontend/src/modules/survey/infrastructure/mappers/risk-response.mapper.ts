@@ -11,15 +11,6 @@ import {
 } from "@survey/infrastructure/contract/backend-contract";
 import type { RiskResponseDto } from "@survey/infrastructure/dto/survey.dto";
 
-/**
- * Turns the Persian-keyed response into a `RiskAssessment`.
- *
- * The label is the authoritative signal because `processing.py` short-circuits
- * to the critical tier on any cancer or stroke history regardless of score —
- * so classifying by score alone would silently downgrade those results. Score
- * thresholds are only the fallback for an unrecognised label.
- */
-
 const LABEL_TO_TIER: ReadonlyMap<string, RiskTier> = new Map([
   [RISK_LEVEL_LABEL.low, RiskTier.Low],
   [RISK_LEVEL_LABEL.moderate, RiskTier.Moderate],
@@ -27,7 +18,6 @@ const LABEL_TO_TIER: ReadonlyMap<string, RiskTier> = new Map([
   [RISK_LEVEL_LABEL.critical, RiskTier.Critical],
 ]);
 
-/** Mirrors the cut-offs in `processing.py`, used only if the label is unknown. */
 const tierFromScore = (score: number): RiskTier => {
   if (score <= 5) return RiskTier.Low;
   if (score <= 10) return RiskTier.Moderate;
@@ -35,8 +25,19 @@ const tierFromScore = (score: number): RiskTier => {
   return RiskTier.Critical;
 };
 
-const classify = (label: string, score: number): RiskTier =>
-  LABEL_TO_TIER.get(label.trim()) ?? tierFromScore(score);
+const classify = (label: string, score: number): RiskTier => {
+  // اگر امتیاز معتبره، فقط از اون استفاده کن
+  if (Number.isFinite(score)) return tierFromScore(score);
+  
+  // فقط اگر score نامعتبر بود، از label استفاده کن
+  const t = label.trim();
+  if (t.includes("گروه ۱") || t.includes("گروه 1")) return RiskTier.Critical;
+  if (t.includes("گروه ۲") || t.includes("گروه 2")) return RiskTier.Elevated;
+  if (t.includes("گروه ۳") || t.includes("گروه 3")) return RiskTier.Moderate;
+  if (t.includes("گروه ۴") || t.includes("گروه 4")) return RiskTier.Low;
+  return LABEL_TO_TIER.get(t) ?? RiskTier.Low;
+};
+
 
 const readString = (dto: RiskResponseDto, key: string): string | null => {
   const value = dto[key];
@@ -68,12 +69,11 @@ export const toRiskAssessment = (
     ageYears === null ||
     score === null
   ) {
-    // A shape we do not recognise means the two sides have drifted apart;
-    // surfacing it as a server error beats rendering "undefined" to a user.
     return err(
       serverError(200, "پاسخ سرور قابل پردازش نبود. لطفاً با پشتیبانی تماس بگیرید."),
     );
   }
+
 
   return ok({
     fullName,

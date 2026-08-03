@@ -1,9 +1,15 @@
-// src/modules/survey/presentation/components/advice/shared/RiskResultHeader.tsx
 import { cn } from "@ds/lib/cn";
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 
 const TIER_STEPS = ["low", "moderate", "elevated", "critical"] as const;
 type Tier = (typeof TIER_STEPS)[number];
+
+const TIER_TITLES: Record<Tier, string> = {
+  low:      "۴. گروه افراد سالم",
+  moderate: "۲. گروه در آستانه خطر (کوتاه‌مدت)",
+  elevated: "۳. گروه در معرض خطر (بلندمدت)",
+  critical: "۱. گروه پر ریسک (با بیماری قطعی)",
+};
 
 const TIER_LABELS: Record<Tier, string> = {
   low: "کم", moderate: "متوسط", elevated: "بالا", critical: "بحرانی",
@@ -32,7 +38,7 @@ export function RiskResultHeader({ assessment }: { assessment: RiskAssessment })
           {assessment.score}
         </div>
         <div className="flex flex-col">
-          <span className={cn("text-lg font-bold", colors.text)}>{assessment.levelLabel}</span>
+          <span className={cn("text-lg font-bold", colors.text)}>{TIER_TITLES[tier]}</span>
           <span className="text-sm text-gray-600">{assessment.fullName}</span>
         </div>
       </div>

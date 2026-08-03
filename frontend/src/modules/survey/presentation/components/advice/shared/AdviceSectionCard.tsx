@@ -5,8 +5,8 @@ import { cn } from "@ds/lib/cn";
 
 interface AdviceSectionCardProps {
   title: string;
-  imageSrc: string;
-  imageAlt: string;
+  imageSrc?: string;
+  imageAlt?: string;
   children: ReactNode;
   backgroundColor?: string;
   borderTitle?: string;
@@ -28,7 +28,7 @@ export function AdviceSectionCard({
         </div>
       )}
 
-      <div className="p-6">{children}</div>
+      <div className="p-2">{children}</div>
     </Card>
   );
 }

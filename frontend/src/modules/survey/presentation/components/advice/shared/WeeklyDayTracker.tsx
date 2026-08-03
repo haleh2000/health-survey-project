@@ -12,17 +12,17 @@ export function WeeklyDayTracker({
 }: WeeklyDayTrackerProps) {
   return (
     <div className="relative pr-32">
-      <div className="absolute right-0 top-1/2 z-10 mr-[-20px]">
+      <div className="absolute right-0 top-1/2 z-10">
         <span className="whitespace-nowrap text-sm font-bold text-gray-600">
           {label}
         </span>
       </div>
 
       {showDayHeaders && (
-        <div className="grid grid-cols-7 gap-2 pb-[10px]">
+        <div className="grid grid-cols-7 gap-2 py-[10px]">
           {DAYS.map((day, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
-              <span className="text-xs font-bold text-day-primary">{day}</span>
+              <span className="text-sm font-bold text-day-primary">{day}</span>
             </div>
           ))}
         </div>

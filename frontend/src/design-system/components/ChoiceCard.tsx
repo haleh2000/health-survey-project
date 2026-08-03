@@ -26,8 +26,6 @@ export function ChoiceCard({
       className={cn(
         "group relative flex cursor-pointer items-center gap-3 rounded-control border px-4 py-3",
         "transition-colors duration-150",
-        "has-[:focus-visible]:outline has-[:focus-visible]:outline-2",
-        "has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent",
         checked
           ? "border-day-second bg-white shadow-[0_0_12px_rgba(255,255,255,0.35)] "
           : "border-day-second bg-white hover:shadow-[0_0_12px_rgba(255,255,255,0.35)]",
