@@ -21,12 +21,11 @@ return (
   <div className="grid grid-cols-3 gap-4 p-4">
     {weekData.map((day, di) => (
       <div key={day.name} className="flex justify-center">
-        {/* عکس بطری */}
+
         <div className="relative w-40">
           <img src={bottleImg} alt="بطری آب" className="w-full h-auto" />
-
-          {/* نام روز */}
           <div className="absolute top-[3%] left-0 right-0 flex justify-center">
+
             <span className="text-sm font-bold text-white">
               {day.name}
             </span>

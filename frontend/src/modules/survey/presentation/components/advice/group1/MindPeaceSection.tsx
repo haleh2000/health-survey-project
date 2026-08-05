@@ -1,9 +1,13 @@
 // src/modules/survey/presentation/components/advice/MindPeaceSection.tsx
 import { useState } from "react";
 import { AdviceSectionCard } from "../shared/AdviceSectionCard";
-import { DailyNoteField } from "./DailyNoteField";
+// import { DailyNoteField } from "./DailyNoteField";
 import { MoodTracker } from "../../../assets/advice/group1/mood/MoodTracker";
 import mindPeaceImg from "@survey/presentation/assets/advice/group1/mind-peace-character.png";
+import { SectionHeader } from "../shared/SectionHeader";
+import { NoteFields } from "../shared/DailyNoteField";
+
+
 
 const RELAXATION_OPTIONS = [
   "تمرین مدیتیشن، خط ساعت، حداقل ۱۰ دقیقه در روز",
@@ -27,13 +31,12 @@ export function MindPeaceSection() {
       
     >
       <div className="space-y-6">
-        {/* توضیحات */}
-        <div className="flex">
-            <ul className="space-y-1 text-sm text-gray-700">
-              <li className="flex items-center gap-2"><span className="text-2xl">🕯️</span><span className="text-day-red text-lg font-bold">ذهن آگاهی</span></li>
-              <li className="flex items-center gap-2"><span>این تکنیک با درگیر کردن ۵ حس، توجه مغز را از افکار اضطرابی به محیط اطراف برمی‌گرداند و به سیستم عصبی کمک می‌کند احساس امنیت بیشتری داشته باشد؛ در نتیجه اضطراب، ضربان قلب و تنفس به‌تدریج آرام‌تر می‌شوند.</span></li>
-              </ul>
-        </div>
+        <SectionHeader
+            emoji="🕯️"
+            title="ذهن آگاهی"
+            titleColorClass="text-day-red"
+            description="این تکنیک با درگیر کردن ۵ حس، توجه مغز را از افکار اضطرابی به محیط اطراف برمی‌گرداند و به سیستم عصبی کمک می‌کند احساس امنیت بیشتری داشته باشد؛ در نتیجه اضطراب، ضربان قلب و تنفس به‌تدریج آرام‌تر می‌شوند."
+         />
 
         <div  >
           <div className="leading-7 mb-3 text-sm font-semibold text-gray-500">
@@ -46,14 +49,20 @@ export function MindPeaceSection() {
           
         </div>
 
-        <div className="mt-6">
-         <img src={mindPeaceImg} alt="شخصیت تغذیه" className="object-contain" />
-
+        <div className="my-10">
+         <img src={mindPeaceImg} alt="ذهن آگاهی" className="object-contain" />
           </div>
 
-        
+           <SectionHeader
+            emoji="✍️"
+            title="شکرگزاری شبانه"
+            titleColorClass="text-day-red"
+            description="این تمرین مغز را از چرخه «نشخوار فکری» خارج کرده و با استفاده از قانون «پایانِ خوش»، شما روز خود را با یادآوری اتفاقات خوب به پایان می‌رسانید؛ این کار باعث می‌شود خاطره‌ی کلِ روز در ذهن شما مثبت‌تر ثبت شود."
+         />
 
-        <DailyNoteField />
+         <p className="text-gray-600">۳ چیز خوبی که امروز اتفاق افتاد:</p>
+
+       <NoteFields labels={["شنبه", "یک‌شنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"]} />
 
         {/* ردیابی خلق‌وخو */}
         <MoodTracker />
