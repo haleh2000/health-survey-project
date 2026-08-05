@@ -1,0 +1,27 @@
+// src/modules/survey/presentation/components/shared/CalorieSwapList.tsx
+
+const items = [
+  { icon: "🥤", title: "نوشیدنی", desc: "به جای نوشابه یا آبمیوه‌های پاکتی، از آب، دتاکس‌واتر یا چای سبز استفاده کنید.", cal: "۱۵۰- کالری" },
+  { icon: "🍳", title: "طبخ غذا", desc: "به جای سرخ کردن با روغن زیاد، از روش‌های گریل، بخارپز یا هواپز بهره ببرید.", cal: "۱۰۰ تا ۲۰۰- کالری" },
+  { icon: "🧴", title: "سس‌ها", desc: "سس‌های مایونز و چرب را با سس ماست یونانی، سرکه یا بالزامیک جایگزین کنید.", cal: "۱۰۰- کالری" },
+  { icon: "🍰", title: "تنقلات", desc: "به جای شیرینی و بیسکویت، از میوه تازه یا یک مشت آجیل خام میل کنید.", cal: "۲۰۰- کالری" },
+  { icon: "🍚", title: "کربوهیدرات", desc: "سهم نان سفید و برنج را کم کرده و به جای آن از نان سنگک/جو و سبزیجات استفاده کنید.", cal: "۱۵۰- کالری" },
+  { icon: "🚶", title: "پیاده‌روی", desc: "حدود ۳۰ دقیقه پیاده‌روی با سرعت متوسط را به روتین خود اضافه کنید تا مسیر کاهش وزن سریع‌تر شود.", cal: "۱۵۰+ کالری" },
+];
+
+export function CalorieSwapList() {
+  return (
+    <div className="my-8 space-y-2">
+      {items.map((item) => (
+        <div key={item.title} className="flex items-start gap-3 rounded-xl bg-day-primary/3 p-3 border border-day-primary">
+          <span className="text-2xl">{item.icon}</span>
+          <div className="flex-1 text-right">
+            <span className="text-sm font-bold text-day-primary">{item.title}: </span>
+            <span className="text-sm text-gray-600">{item.desc}</span>
+          </div>
+          <span className="whitespace-nowrap text-xs font-semibold text-green-600 bg-green-100 rounded-full px-2 py-0.5">{item.cal}</span>
+        </div>
+      ))}
+    </div>
+  );
+}

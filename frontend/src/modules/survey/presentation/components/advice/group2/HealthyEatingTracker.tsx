@@ -16,7 +16,7 @@ const ITEMS = [
     title: "فست فود و غذاهای چرب",
     limit: "حداکثر ۱ وعده در هفته",
     description: "روزهایی که مصرف کرده‌اید را علامت بزنید.",
-    totalLabel: "تعداد کل مصرف در هفته",
+    totalLabel: " تعداد کل مصرف در هفته ",
   },
   {
     emoji: "🥓",
@@ -37,7 +37,7 @@ const ITEMS = [
     title: "اضافه نکردن نمک به غذا",
     limit: "هدف: کاهش مصرف",
     description: "روزهایی که نمک اضافه نکردید را علامت بزنید.",
-    totalLabel: "تعداد روزهای موفق",
+    totalLabel:" تعداد روزهای موفق(بدون نمک اضافه)",
   },
 ];
 
@@ -71,11 +71,11 @@ export default function WeeklyFoodTracker() {
               {item.emoji} {item.title}
             </h3>
 
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-gray-600">
               {item.limit}
             </p>
 
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="mb-8 text-sm text-gray-500">
               {item.description}
             </p>
 
@@ -104,9 +104,9 @@ export default function WeeklyFoodTracker() {
                 </label>
             ))}
             </div>
-            <div className="mt-4 rounded-lg bg-gray-100 px-4 py-3 text-center font-bold">
-              {item.totalLabel}: {total} {item.title === "اضافه نکردن نمک به غذا" ? "روز" : "وعده"}
-            </div>
+            <div className="mt-4 rounded-lg bg-day-primary/5 px-4 py-3 text-center font-bold text-day-primary">
+            {item.totalLabel}: [ ________ ] {item.title === "اضافه نکردن نمک به غذا" ? "روز" : "وعده"}
+          </div>
           </div>
         );
       })}

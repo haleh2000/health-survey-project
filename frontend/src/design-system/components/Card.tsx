@@ -9,7 +9,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const PADDING = {
   none: "",
   sm: "p-4",
-  md: "p-5 sm:p-6",
+  md: "p-5 sm:p-4",
   lg: "p-6 sm:p-9",
 } as const;
 

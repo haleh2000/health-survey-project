@@ -1,4 +1,4 @@
-// src/modules/survey/presentation/components/advice/group3/Group3Advice.tsx
+// src/modules/survey/presentation/components/advice/group2/Group2Advice.tsx
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 import { HealthAdviceBanner } from "../shared/HealthAdviceBanner";
 import { WeeklyGoalsHeader } from "../shared/WeeklyGoalsHeader";
@@ -8,15 +8,23 @@ import { SectionHeader } from "../shared/SectionHeader";
 import { RainbowFoodGuide } from "../shared/RainbowFoodGuide";
 import DailyWaterTracker from "./DailyWaterTracker.tsx";
 import HealthyEatingTracker from "./HealthyEatingTracker.tsx";
+import whoStandard from "@survey/presentation/assets/advice/group2/who-standard.png";
+import smart from "@survey/presentation/assets/advice/group2/smart.png";
+import WeeklyActivityGoal from "./WeeklyActivityGoal.tsx";
+import SmartGoalGuide from "./SmartGoalGuide.tsx";
+import { NoteFields } from "../shared/DailyNoteField";
+import { WeeklyHabitTracker } from "./WeeklyHabitTracker";
+import { SlipRecoveryGuide } from "./SlipRecoveryStep.tsx";
 
 
-interface Group3AdviceProps {
+
+interface Group2AdviceProps {
   assessment: RiskAssessment;
   onPrint: () => void;
   onShare: () => void;
 }
 
-export function Group3Advice({ assessment, onPrint, onShare }: Group3AdviceProps) {
+export function Group2Advice({ assessment, onPrint, onShare }: Group2AdviceProps) {
   return (
     <div className="flex flex-col gap-6">
       <RiskResultHeader assessment={assessment} />
@@ -61,7 +69,63 @@ export function Group3Advice({ assessment, onPrint, onShare }: Group3AdviceProps
         
         </AdviceSectionCard>
 
-      </div>
+        <AdviceSectionCard title="پیشنهادات ورزشی" imageSrc="" imageAlt="ورزش" borderTitle="پیشنهادات ورزشی" backgroundColor="bg-white">
+
+          <SectionHeader
+            emoji="💪"
+            title="فعالیت بدنی | استاندارد WHO"
+            titleColorClass="text-day-red"
+            description="سازمان جهانی بهداشت(World Health Organization - WHO)حداقل فعالیت بدنی هفتگی برای بزرگسالان را شامل ۱۵۰ دقیقه فعالیت هوازی با شدت متوسط، مانند پیاده‌روی سریع، به‌همراه ۲ جلسه تمرین قدرتی توصیه می‌کند.تمرینات قدرتی می‌توانند شامل حرکاتی مانند اسکوات، پوش‌آپ و پلانک، با وزن بدن، کش مقاومتی یا وزنه باشند."
+         />
+
+         <div className="relative my-10">
+          <img src={whoStandard} alt="استاندارد who" className="w-full h-auto" />
+         </div>
+
+          <WeeklyActivityGoal/>
+
+        </AdviceSectionCard>
+
+        <AdviceSectionCard title="پیشنهادات برنامه‌ریزی" imageSrc="" imageAlt=" برنامه‌ریزی" borderTitle="پیشنهادات برنامه‌ریزی و خود مراقبتی" backgroundColor="bg-white">
+
+          <SectionHeader
+            emoji="🗺️"
+            title=" نقشه اهداف SMART"
+            titleColorClass="text-day-red"
+            description="این تکنیک اهداف انتزاعی را به برنامه‌هایی دقیق و قابل اجرا تبدیل می‌کند. با رعایت این ۵ معیار، ابهام از مسیر برداشته شده و تمرکز بر دستاوردهای واقعی و منطقی جایگزین رویاپردازی می‌شود."
+            />
+
+          <SmartGoalGuide />
+
+          <NoteFields 
+          labels={["اهداف ماهانه من"]} 
+          gridCols={1} 
+          lineCount={4} 
+           />
+
+           <div className="relative my-10">
+          <img src={smart} alt="استاندارد who" className="w-full h-auto" />
+          </div>
+
+          <SectionHeader
+            emoji="🔄"
+            title="تکنیک بازگشت به مسیر"
+            titleColorClass="text-day-red"
+            description="این تکنیک برای زمانی است که برنامه‌ریزی‌های شخصی شما طبق انتظار پیش نمی‌رود. به‌جای سرزنش یا رها کردن کامل، کمک می‌کند علت لغزش را سریع پیدا کنید، یک اقدام کوچک انجام دهید و از همان روز یا فردا به مسیر برگردید."
+         />
+
+         <p className="text-gray-500 font-bold text-sm leading-7">
+          مثال استفاده از روش در برنامه‌ریزی برای ورزش: 
+          <br />امروز ورزشم انجام نشد، چون خسته بودم و برنامه را به آخر شب موکول کردم. به‌جای رها کردن کامل، ۵ دقیقه کشش سبک انجام می‌دهم و برای فردا ۱۵ دقیقه پیاده‌روی بعد از صبحانه می‌گذارم.
+         </p>
+
+         <WeeklyHabitTracker />
+
+         <SlipRecoveryGuide />
+
+        </AdviceSectionCard>   
+
+        </div>
 
       <div className="flex gap-3">
         <button

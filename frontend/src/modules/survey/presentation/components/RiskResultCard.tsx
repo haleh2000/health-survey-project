@@ -3,8 +3,8 @@ import { Button } from "@ds/components/Button";
 import { adviceFor, type RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 import type { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
 import { Group1Advice } from "@survey/presentation/components/advice/group1/Group1Advice";
-// import { Group2Advice } from "@survey/presentation/components/advice/group2/Group2Advice";
-import { Group3Advice } from "@survey/presentation/components/advice/group2/Group2Advice";
+import { Group2Advice } from "@survey/presentation/components/advice/group2/Group2Advice";
+import { Group3Advice } from "@survey/presentation/components/advice/group3/Group3Advice";
 import { Group4Advice } from "@survey/presentation/components/advice/group4/Group4Advice";
 
 export interface RiskResultCardProps {
@@ -28,10 +28,11 @@ export function RiskResultCard({ assessment, onRestart }: RiskResultCardProps) {
       ) : assessment.tier === "elevated" ? (
         <Group3Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
       ) : assessment.tier === "moderate" ? (
-        <Group3Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
+        <Group2Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
       ) : (
         <Group4Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
       )}
+
 
       <p className="text-center text-xs leading-6 text-ink-subtle">
         این نتیجه جنبه اطلاع‌رسانی دارد و جایگزین مشاوره پزشکی نمی‌شود.
