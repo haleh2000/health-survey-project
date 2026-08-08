@@ -88,3 +88,4 @@ export function WeeklyCategoryGuide({ description, groups, getTrackerLabel }: We
   );
 }
 
+ 

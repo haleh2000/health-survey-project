@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { FieldShell } from "@ds/components/FieldShell";
 
 import {
@@ -7,11 +8,11 @@ import {
 } from "@survey/domain/entities/question.entity";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
 import { ChoiceField } from "@survey/presentation/components/fields/ChoiceField";
-// import { JalaliDateField } from "@survey/presentation/components/fields/JalaliDateField";
 import { JalaliCalendarField } from "./fields/JalaliCalendarField";
 import { NumberField } from "@survey/presentation/components/fields/NumberField";
 import { TextField } from "@survey/presentation/components/fields/TextField";
 import { persianInteger } from "@survey/presentation/format/persian";
+
 
 export interface QuestionFieldProps {
   question: Question;
@@ -24,13 +25,6 @@ export interface QuestionFieldProps {
   onToggleValue: (question: ChoiceQuestion, value: string) => void;
 }
 
-/**
- * Renders one question by kind.
- *
- * The only place that knows which control belongs to which `QuestionKind`, so
- * adding a kind is a compile error here (the switch is exhaustive) rather than
- * a silently blank field.
- */
 export function QuestionField({
   question,
   position,
@@ -71,14 +65,13 @@ export function QuestionField({
           />
         );
 
-    case QuestionKind.JalaliDate:
-  return (
-    <JalaliCalendarField
-      value={value}
-      onChange={onSetValue}
-    />
-  );
-
+      case QuestionKind.JalaliDate:
+        return (
+          <JalaliCalendarField
+            value={value}
+            onChange={onSetValue}
+          />
+        );
 
       case QuestionKind.SingleChoice:
         return (
@@ -106,28 +99,37 @@ export function QuestionField({
     }
   };
 
-  // A group of radios/checkboxes has no single control to label, so the title
-  // is only associated with an input for the free-entry kinds.
   const labelTarget =
     question.kind === QuestionKind.SingleChoice || question.kind === QuestionKind.MultiChoice
       ? undefined
       : controlId;
 
   return (
-    <FieldShell
-      // Anchors the "scroll to the first error" jump after a failed step.
-      id={questionAnchorId(question.id)}
-      index={persianInteger(position)}
-      title={question.title}
-      hint={question.hint}
-      required={question.required}
-      error={error}
-      htmlFor={labelTarget}
-      labelId={labelId}
-      errorId={errorId}
-      className="scroll-mt-28"
-    >
-      {control()}
-    </FieldShell>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={question.id}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+      >
+        <FieldShell
+          id={questionAnchorId(question.id)}
+          index={persianInteger(position)}
+          title={question.title}
+          hint={question.hint}
+          required={question.required}
+          error={error}
+          htmlFor={labelTarget}
+          labelId={labelId}
+          errorId={errorId}
+          className="scroll-mt-28"
+        >
+          <AnimatePresence>
+            {control()}
+          </AnimatePresence>
+        </FieldShell>
+      </motion.div>
+    </AnimatePresence>
   );
 }

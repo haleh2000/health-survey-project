@@ -1,33 +1,74 @@
-import { cn } from "@ds/lib/cn";
+import { motion } from "framer-motion";
 
-export interface ProgressBarProps {
-  /** Completed units. */
-  value: number;
-  /** Total units. Must be greater than zero. */
-  max: number;
-  label?: string;
-  className?: string;
+export interface ProgressSegmentConfig {
+  count: number;
+  color?: string;
 }
 
-export function ProgressBar({ value, max, label, className }: ProgressBarProps) {
-  const safeMax = Math.max(max, 1);
-  const ratio = Math.min(Math.max(value / safeMax, 0), 1);
+interface ProgressBarProps {
+  value: number;
+  max: number;
+  label?: string;
+  segments?: ProgressSegmentConfig[];
+}
+
+export function ProgressBar({ value, max, label, segments }: ProgressBarProps) {
+  const percent = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+
+  const segs: ProgressSegmentConfig[] = segments ?? [{ count: max }];
+
+  let cumulative = 0;
 
   return (
-   <div className="rounded-full shadow-[0_0_12px_rgba(255,255,255,0.35)]">
-  <div
-    className={cn("h-1.5 w-full overflow-hidden rounded-full bg-[#7fc2c9]", className)}
-    role="progressbar"
-    aria-valuenow={value}
-    aria-valuemin={0}
-    aria-valuemax={safeMax}
-    aria-label={label ?? "میزان پیشرفت"}
-  >
-    <div
-      className="h-full rounded-full bg-day-red transition-[width] duration-500 ease-[var(--ease-out-soft)]"
-      style={{ width: `${ratio * 100}%` }}
-    />
-  </div>
-</div>
+    <div className="w-full">
+      {label && (
+        <div className="mb-1.5 flex items-center justify-between">
+          <span className="num-fa text-xs text-white/90">{label}</span>
+          <span className="num-fa text-xs text-white/70">
+            {Math.round(percent)}٪
+          </span>
+        </div>
+      )}
+
+      <div className="flex w-full gap-1" dir="rtl">
+        {segs.map((seg, i) => {
+          const segStart = cumulative;
+          const segEnd = cumulative + seg.count;
+          cumulative = segEnd;
+
+          const segProgress =
+            value <= segStart
+              ? 0
+              : value >= segEnd
+              ? 100
+              : ((value - segStart) / seg.count) * 100;
+
+          const isActive = value > segStart && value < segEnd;
+          const color = seg.color ?? "bg-day-primary";
+
+          return (
+            <div
+              key={i}
+              className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-white/20"
+            >
+              <motion.div
+                className={`absolute inset-y-0 right-0 rounded-full ${color}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${segProgress}%` }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+              >
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-l from-transparent via-white/40 to-transparent"
+                    animate={{ x: ["-100%", "200%"] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+                  />
+                )}
+              </motion.div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

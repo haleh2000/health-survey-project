@@ -3,33 +3,19 @@ import type { ReactNode } from "react";
 import { cn } from "@ds/lib/cn";
 
 export interface FieldShellProps {
-  /** Anchor for programmatic scrolling, e.g. jumping to the first error. */
   id?: string;
-  /** Rendered before the title, e.g. "۳". */
   index?: string;
   title: string;
   hint?: string;
   required?: boolean;
   error?: string;
-  /**
-   * Id of the single control this labels. Omit for radio/checkbox groups —
-   * they have no one control, and should point `aria-labelledby` at `labelId`
-   * instead.
-   */
   htmlFor?: string;
-  /** Id given to the title element, for `aria-labelledby`. */
   labelId?: string;
-  /** Id given to the error text, for `aria-describedby`. */
   errorId?: string;
   children: ReactNode;
   className?: string;
 }
 
-/**
- * The shared frame around every question: number, title, required marker,
- * hint and error slot. Centralising it means a new question type cannot
- * invent its own label or error styling.
- */
 export function FieldShell({
   id,
   index,

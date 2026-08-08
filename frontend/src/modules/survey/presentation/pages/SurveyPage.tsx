@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { toAsciiDigits } from "@core/text/digits";
 import { Alert } from "@ds/components/Alert";
@@ -55,7 +56,6 @@ export function SurveyPage() {
             wizard.goNext();
           }}
         >
-          {/* Keyed by step so the entrance animation replays on navigation. */}
           <Card key={wizard.step.id} padding="lg" className="animate-step-in">
             <div className="mb-6 border-b border-day-second pb-4">
               <h2 className="text-lg font-semibold text-ink">{wizard.step.title}</h2>
@@ -65,20 +65,33 @@ export function SurveyPage() {
             </div>
 
             <div className="space-y-7">
-              {wizard.questions.map((question, index) => (
-                <QuestionField
-                  key={question.id}
-                  question={question}
-                  position={index + 1}
-                  value={wizard.valueOf(question.id)}
-                  selected={wizard.selectionOf(question.id)}
-                  error={wizard.errors[question.id]}
-                  onSetValue={(value) => wizard.setValue(question, value)}
-                  onToggleValue={(choiceQuestion, value) =>
-                    wizard.toggleValue(choiceQuestion, value)
-                  }
-                />
-              ))}
+              <AnimatePresence mode="wait">
+                {wizard.questions.map((question, index) => (
+                  <motion.div
+                    key={question.id}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{
+                      duration: 0.4,
+                      ease: [0.25, 0.1, 0.25, 1],
+                      delay: index * 0.1,
+                    }}
+                  >
+                    <QuestionField
+                      question={question}
+                      position={index + 1}
+                      value={wizard.valueOf(question.id)}
+                      selected={wizard.selectionOf(question.id)}
+                      error={wizard.errors[question.id]}
+                      onSetValue={(value) => wizard.setValue(question, value)}
+                      onToggleValue={(choiceQuestion, value) =>
+                        wizard.toggleValue(choiceQuestion, value)
+                      }
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </Card>
 

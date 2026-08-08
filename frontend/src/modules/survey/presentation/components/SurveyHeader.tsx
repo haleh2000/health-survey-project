@@ -1,9 +1,11 @@
+// src/modules/survey/presentation/components/SurveyHeader.tsx
 import { ProgressBar } from "@ds/components/ProgressBar";
 import { ThemeToggle } from "@ds/components/ThemeToggle";
 import { cn } from "@ds/lib/cn";
 
 import type { SurveyStep } from "@survey/domain/entities/survey-definition.entity";
 import { persianInteger, persianRatio } from "@survey/presentation/format/persian";
+import { MotivationalMessage } from "./MotivationalMessage";
 
 export interface SurveyHeaderProps {
   steps: readonly SurveyStep[];
@@ -24,13 +26,6 @@ const CheckIcon = () => (
   </svg>
 );
 
-/**
- * Sticky progress header.
- *
- * The bar tracks answered questions rather than completed steps, because steps
- * differ in length and a step-based bar would sit still through six questions
- * and then leap.
- */
 export function SurveyHeader({
   steps,
   stepIndex,
@@ -43,7 +38,7 @@ export function SurveyHeader({
         <div className="mb-3 flex items-center justify-between gap-3">
           <h1 className="text-sm font-semibold text-ink">پرسشنامه سلامت</h1>
           <div className="flex items-center gap-1">
-            <span className="num-fa text-white text-xs text-ink-subtle">
+            <span className="num-fa text-white text-xs">
               گام {persianRatio(stepIndex + 1, steps.length)}
             </span>
             <ThemeToggle />
@@ -54,6 +49,12 @@ export function SurveyHeader({
           value={answeredCount}
           max={totalCount}
           label={`${persianInteger(answeredCount)} پرسش از ${persianInteger(totalCount)} پاسخ داده شده`}
+        />
+
+        <MotivationalMessage 
+          answeredCount={answeredCount} 
+          totalCount={totalCount} 
+          className="mt-2" 
         />
 
         <ol className="mt-4 flex items-center">
@@ -93,12 +94,11 @@ export function SurveyHeader({
                 </span>
                 <span
                   className={cn(
-                  "text-center text-[0.65rem] leading-tight transition-colors whitespace-nowrap",
-                  current && "font-semibold text-white",
-                  done && "text-white/80",
-                  !done && !current && "text-white/50",
-                )}
-
+                    "text-center text-[0.65rem] leading-tight transition-colors whitespace-nowrap",
+                    current && "font-semibold text-white",
+                    done && "text-white/80",
+                    !done && !current && "text-white/50",
+                  )}
                 >
                   {step.title}
                 </span>
