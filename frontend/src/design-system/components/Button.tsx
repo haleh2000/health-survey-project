@@ -16,13 +16,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANTS: Record<Variant, string> = {
 primary:
-    "h-12 rounded-[14px] border-0 bg-gradient-to-r from-[#12adc1] to-[#078ba0] text-[1.05rem] font-bold text-white cursor-pointer shadow-[0_14px_30px_rgba(17,164,184,0.22)] transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_0_12px_rgba(255,255,255,0.35)] active:translate-y-px",
+    "h-12 rounded-[14px] border-0 bg-gradient-to-r from-[#0fadb6] to-[#0a8a92] text-[1.05rem] font-bold text-white cursor-pointer shadow-[0_14px_30px_rgba(17,164,184,0.22)] transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_0_12px_rgba(255,255,255,0.35)] active:translate-y-px",
   destructive:
     "bg-red-500 text-white hover:bg-red-600 active:translate-y-px",
   secondary:
     "cursor-pointer text-white border border-line-strong hover:bg-day-primary active:translate-y-px",
   ghost:
-    "rounded-[14px] border-0 bg-gradient-to-r from-[#12adc1] to-[#078ba0] text-white text-[1.05rem] font-bold cursor-pointer shadow-[0_14px_30px_rgba(17,164,184,0.22)] transition-all duration-200 ease-in-out hover:-translate-y-0.5",
+    "rounded-[14px] border-0 bg-gradient-to-r from-[#0fadb6] to-[#0a8a92] text-white text-[1.05rem] font-bold cursor-pointer shadow-[0_14px_30px_rgba(17,164,184,0.22)] transition-all duration-200 ease-in-out hover:-translate-y-0.5",
   outline:
     "border border-input bg-transparent text-foreground hover:shadow-[0_0_12px_rgba(255,255,255,0.35)]",
 };

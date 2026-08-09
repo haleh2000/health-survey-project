@@ -64,9 +64,9 @@
   }
 
   :root {
-    /* بیمه دی brand — turquoise family */
-    --canvas: #ecf7f8;
-    --head: #003a40;
+    /* بیمه دی brand — harmonized around #0a9ba4 */
+    --canvas: #ebf6f7;
+    --head: #083f44;
     --surface: #ffffff;
     --surface-muted: #f7fafd;
     --line: #e3eaf3;
@@ -81,7 +81,7 @@
     --danger: #dc2626;
     --danger-soft: #fef2f2;
     --day-red : #cb1a51;
-    --day-primary : #00a0af;
+    --day-primary : #0a9ba4;
     --day-second : #003a40a8;
     --main-text: #727070;
     color-scheme: light;
@@ -115,8 +115,8 @@
     body {
       background-color: var(--canvas);
       background-image:
-        radial-gradient(60rem 30rem at 85% -5%, rgba(0, 160, 175, 0.10), transparent 60%),
-        radial-gradient(50rem 28rem at 5% 40%, rgba(0, 160, 175, 0.07), transparent 60%);
+        radial-gradient(60rem 30rem at 85% -5%, rgba(10, 155, 164, 0.10), transparent 60%),
+        radial-gradient(50rem 28rem at 5% 40%, rgba(10, 155, 164, 0.07), transparent 60%);
       background-attachment: fixed;
       color: var(--ink);
       font-family: var(--font-sans);
