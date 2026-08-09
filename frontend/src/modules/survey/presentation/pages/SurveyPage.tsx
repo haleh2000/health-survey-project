@@ -9,6 +9,7 @@ import { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
 import { QuestionField } from "@survey/presentation/components/QuestionField";
 import { RiskResultCard } from "@survey/presentation/components/RiskResultCard";
 import { StepNav } from "@survey/presentation/components/StepNav";
+import { StepTimeline } from "@survey/presentation/components/StepTimeline";
 import { SurveyHeader } from "@survey/presentation/components/SurveyHeader";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 import { useSurveyWizard } from "@survey/presentation/state/useSurveyWizard";
@@ -49,14 +50,18 @@ export function SurveyPage() {
 
   return (
     <>
-      <SurveyHeader
-        steps={definition.steps}
-        stepIndex={wizard.stepIndex}
-        answeredCount={wizard.answeredCount}
-        totalCount={wizard.totalCount}
-      />
+      {/* Compact sticky header on mobile; the sidebar timeline takes over on desktop. */}
+      <div className="lg:hidden">
+        <SurveyHeader
+          steps={definition.steps}
+          stepIndex={wizard.stepIndex}
+          answeredCount={wizard.answeredCount}
+          totalCount={wizard.totalCount}
+        />
+      </div>
 
-      <main className="mx-auto max-w-2xl px-5 pt-6 pb-16">
+      <div className="mx-auto max-w-2xl px-5 pt-6 pb-16 lg:grid lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10 lg:pt-10">
+        <main className="min-w-0">
         <form
           noValidate
           onSubmit={(event) => {
@@ -126,7 +131,15 @@ export function SurveyPage() {
             onNext={wizard.goNext}
           />
         </form>
-      </main>
+        </main>
+
+        <StepTimeline
+          steps={definition.steps}
+          stepIndex={wizard.stepIndex}
+          answeredCount={wizard.answeredCount}
+          totalCount={wizard.totalCount}
+        />
+      </div>
     </>
   );
 }
