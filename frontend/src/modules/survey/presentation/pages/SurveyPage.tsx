@@ -1,6 +1,8 @@
 import { useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import dayLockup from "@/assets/day-daydar-lockup.png";
+
 import { toAsciiDigits } from "@core/text/digits";
 import { Alert } from "@ds/components/Alert";
 import { Card } from "@ds/components/Card";
@@ -60,7 +62,18 @@ export function SurveyPage() {
         />
       </div>
 
-      <div className="mx-auto max-w-2xl px-5 pt-6 pb-16 lg:grid lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10 lg:pt-10">
+      <div className="mx-auto max-w-2xl px-5 pt-6 pb-16 lg:max-w-5xl lg:pt-8">
+        {/* برند بیمه دی / دی‌دار — above both panels. */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          className="mb-6 flex justify-center lg:mb-8"
+        >
+          <img src={dayLockup} alt="بیمه دی و دی‌دار" className="h-10 w-auto lg:h-12" />
+        </motion.div>
+
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10">
         <main className="min-w-0">
         <form
           noValidate
@@ -80,7 +93,7 @@ export function SurveyPage() {
             >
               <Card padding="lg">
                 <div className="mb-6 border-b border-white/20 pb-4">
-                  <h2 className="text-lg font-bold text-ink">{wizard.step.title}</h2>
+                  <h2 className="text-lg font-bold text-white">{wizard.step.title}</h2>
                   {wizard.step.description && (
                     <p className="mt-1 text-sm text-white/85">{wizard.step.description}</p>
                   )}
@@ -133,12 +146,13 @@ export function SurveyPage() {
         </form>
         </main>
 
-        <StepTimeline
-          steps={definition.steps}
-          stepIndex={wizard.stepIndex}
-          answeredCount={wizard.answeredCount}
-          totalCount={wizard.totalCount}
-        />
+          <StepTimeline
+            steps={definition.steps}
+            stepIndex={wizard.stepIndex}
+            answeredCount={wizard.answeredCount}
+            totalCount={wizard.totalCount}
+          />
+        </div>
       </div>
     </>
   );

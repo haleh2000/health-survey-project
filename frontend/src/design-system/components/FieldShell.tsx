@@ -29,7 +29,7 @@ export function FieldShell({
   children,
   className,
 }: FieldShellProps) {
-  const titleClasses = "flex items-start gap-2 text-[0.95rem] font-medium text-ink";
+  const titleClasses = "flex items-start gap-2 text-[0.95rem] font-medium text-white";
 
   const heading = (
     <>

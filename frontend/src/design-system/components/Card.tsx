@@ -23,7 +23,7 @@ export function Card({ padding = "md", className, children, title, ...rest }: Ca
       )}
       <div
         className={cn(
-          "rounded-card border border-day-primary bg-day-primary shadow-card mt-[50px]",
+          "rounded-card border border-head bg-head shadow-card",
           PADDING[padding],
           className,
         )}
