@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { toJalaali, toGregorian, jalaaliMonthLength } from 'jalaali-js';
 
 const JALALI_MONTHS = [
@@ -94,8 +95,15 @@ export function JalaliCalendarField({ value, onChange, label }: Props) {
         {displayValue}
       </button>
 
+      <AnimatePresence>
       {open && (
-        <div className={`absolute z-50 ${openUp ? 'bottom-full mb-1' : 'mt-1'} bg-white border rounded shadow-lg p-3 w-72`}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: openUp ? 6 : -6 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: openUp ? 4 : -4 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+          style={{ transformOrigin: openUp ? 'bottom right' : 'top right' }}
+          className={`absolute z-50 ${openUp ? 'bottom-full mb-1' : 'mt-1'} bg-white border rounded-xl shadow-xl p-3 w-72`}>
           <div className="flex items-center justify-between mb-2 gap-1">
             <button type="button" onClick={() => changeMonth(1)} className="cursor-pointer text-gray-400 px-2 py-1 hover:bg-gray-100 rounded">‹</button>
 
@@ -142,8 +150,9 @@ export function JalaliCalendarField({ value, onChange, label }: Props) {
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,0 +1,35 @@
+- generic [ref=e4]:
+  - img "دیدار" [ref=e6]
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - heading "سفر سلامت خود را امروز شروع کنید" [level=1] [ref=e9]:
+        - generic [ref=e10]: سفر سلامت خود را
+        - generic [ref=e11]: امروز شروع کنید
+      - paragraph [ref=e12]: ارزیابی رایگان و هوشمند سلامت با توصیه‌های شخصی‌سازی‌شده
+    - button "شروع ارزیابی ←" [ref=e14] [cursor=pointer]:
+      - generic [ref=e16]:
+        - text: شروع ارزیابی
+        - generic [ref=e17]: ←
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - generic [ref=e21]: ✓
+        - generic [ref=e22]: محرمانه و امن
+      - generic [ref=e24]:
+        - generic [ref=e25]: ✓
+        - generic [ref=e26]: بدون نیاز به ثبت‌نام
+      - generic [ref=e28]:
+        - generic [ref=e29]: ✓
+        - generic [ref=e30]: رایگان
+  - generic [ref=e31]:
+    - generic [ref=e34]:
+      - img "فقط در ۵ دقیقه" [ref=e36]
+      - heading "فقط در ۵ دقیقه" [level=3] [ref=e37]
+      - paragraph [ref=e38]: ارزیابی سریع و دقیق
+    - generic [ref=e41]:
+      - img "شخصی‌سازی هوشمند" [ref=e43]
+      - heading "شخصی‌سازی هوشمند" [level=3] [ref=e44]
+      - paragraph [ref=e45]: برنامه‌ای متناسب با نیاز شما
+    - generic [ref=e48]:
+      - img "پیگیری مستمر" [ref=e50]
+      - heading "پیگیری مستمر" [level=3] [ref=e51]
+      - paragraph [ref=e52]: رشد و پیشرفت خود را ببینید

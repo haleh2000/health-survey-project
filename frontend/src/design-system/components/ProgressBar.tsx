@@ -55,7 +55,7 @@ export function ProgressBar({ value, max, label, segments }: ProgressBarProps) {
                 className={`absolute inset-y-0 right-0 rounded-full ${color}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${segProgress}%` }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
+                transition={{ type: "spring", stiffness: 180, damping: 26 }}
               >
                 {isActive && (
                   <motion.div
