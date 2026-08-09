@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { toAsciiDigits } from "@core/text/digits";
@@ -13,9 +13,17 @@ import { SurveyHeader } from "@survey/presentation/components/SurveyHeader";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 import { useSurveyWizard } from "@survey/presentation/state/useSurveyWizard";
 
+/** Critically-damped spring — settles fast, no bounce (Apple's "move" feel). */
+const stepSpring = { type: "spring", stiffness: 320, damping: 32 } as const;
+
 export function SurveyPage() {
   const { definition } = useSurveyDependencies();
   const wizard = useSurveyWizard();
+
+  // Direction of travel drives which side the step slides in from (RTL-aware).
+  const previousStep = useRef(wizard.stepIndex);
+  const direction = wizard.stepIndex >= previousStep.current ? 1 : -1;
+  previousStep.current = wizard.stepIndex;
 
   const height = wizard.valueOf("height");
   const weight = wizard.valueOf("weight");
@@ -56,44 +64,53 @@ export function SurveyPage() {
             wizard.goNext();
           }}
         >
-          <Card key={wizard.step.id} padding="lg" className="animate-step-in">
-            <div className="mb-6 border-b border-day-second pb-4">
-              <h2 className="text-lg font-semibold text-ink">{wizard.step.title}</h2>
-              {wizard.step.description && (
-                <p className="mt-1 text-sm text-white">{wizard.step.description}</p>
-              )}
-            </div>
+          <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+            <motion.div
+              key={wizard.step.id}
+              custom={direction}
+              initial={{ opacity: 0, x: direction * -48, scale: 0.98 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: direction * 48, scale: 0.98 }}
+              transition={stepSpring}
+            >
+              <Card padding="lg">
+                <div className="mb-6 border-b border-white/20 pb-4">
+                  <h2 className="text-lg font-bold text-ink">{wizard.step.title}</h2>
+                  {wizard.step.description && (
+                    <p className="mt-1 text-sm text-white/85">{wizard.step.description}</p>
+                  )}
+                </div>
 
-            <div className="space-y-7">
-              <AnimatePresence mode="wait">
-                {wizard.questions.map((question, index) => (
-                  <motion.div
-                    key={question.id}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
-                    transition={{
-                      duration: 0.4,
-                      ease: [0.25, 0.1, 0.25, 1],
-                      delay: index * 0.1,
-                    }}
-                  >
-                    <QuestionField
-                      question={question}
-                      position={index + 1}
-                      value={wizard.valueOf(question.id)}
-                      selected={wizard.selectionOf(question.id)}
-                      error={wizard.errors[question.id]}
-                      onSetValue={(value) => wizard.setValue(question, value)}
-                      onToggleValue={(choiceQuestion, value) =>
-                        wizard.toggleValue(choiceQuestion, value)
-                      }
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          </Card>
+                <div className="space-y-7">
+                  {wizard.questions.map((question, index) => (
+                    <motion.div
+                      key={question.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 34,
+                        delay: Math.min(index * 0.06, 0.3),
+                      }}
+                    >
+                      <QuestionField
+                        question={question}
+                        position={index + 1}
+                        value={wizard.valueOf(question.id)}
+                        selected={wizard.selectionOf(question.id)}
+                        error={wizard.errors[question.id]}
+                        onSetValue={(value) => wizard.setValue(question, value)}
+                        onToggleValue={(choiceQuestion, value) =>
+                          wizard.toggleValue(choiceQuestion, value)
+                        }
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
+          </AnimatePresence>
 
           {wizard.remoteError && (
             <Alert tone="error" title="ارسال انجام نشد" className="mt-4">

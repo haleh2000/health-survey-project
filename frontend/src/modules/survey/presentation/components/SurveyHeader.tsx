@@ -1,4 +1,6 @@
 // src/modules/survey/presentation/components/SurveyHeader.tsx
+import { motion } from "framer-motion";
+
 import { ProgressBar } from "@ds/components/ProgressBar";
 import { ThemeToggle } from "@ds/components/ThemeToggle";
 import { cn } from "@ds/lib/cn";
@@ -79,7 +81,9 @@ export function SurveyHeader({
 
             nodes.push(
               <li key={step.id} className="flex shrink-0 flex-col items-center gap-1.5">
-                <span
+                <motion.span
+                  animate={{ scale: current ? 1.12 : 1 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 18 }}
                   aria-current={current ? "step" : undefined}
                   title={step.title}
                   className={cn(
@@ -91,7 +95,7 @@ export function SurveyHeader({
                   )}
                 >
                   {done ? <CheckIcon /> : persianInteger(index + 1)}
-                </span>
+                </motion.span>
                 <span
                   className={cn(
                     "text-center text-[0.65rem] leading-tight transition-colors whitespace-nowrap",

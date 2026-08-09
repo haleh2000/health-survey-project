@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { FieldShell } from "@ds/components/FieldShell";
 
 import {
@@ -105,31 +104,19 @@ export function QuestionField({
       : controlId;
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={question.id}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-      >
-        <FieldShell
-          id={questionAnchorId(question.id)}
-          index={persianInteger(position)}
-          title={question.title}
-          hint={question.hint}
-          required={question.required}
-          error={error}
-          htmlFor={labelTarget}
-          labelId={labelId}
-          errorId={errorId}
-          className="scroll-mt-28"
-        >
-          <AnimatePresence>
-            {control()}
-          </AnimatePresence>
-        </FieldShell>
-      </motion.div>
-    </AnimatePresence>
+    <FieldShell
+      id={questionAnchorId(question.id)}
+      index={persianInteger(position)}
+      title={question.title}
+      hint={question.hint}
+      required={question.required}
+      error={error}
+      htmlFor={labelTarget}
+      labelId={labelId}
+      errorId={errorId}
+      className="scroll-mt-28"
+    >
+      {control()}
+    </FieldShell>
   );
 }

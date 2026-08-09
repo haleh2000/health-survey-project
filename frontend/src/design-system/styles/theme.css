@@ -64,7 +64,8 @@
   }
 
   :root {
-    --canvas: #f2f6fb;
+    /* بیمه دی brand — turquoise family */
+    --canvas: #ecf7f8;
     --head: #003a40;
     --surface: #ffffff;
     --surface-muted: #f7fafd;
@@ -80,7 +81,7 @@
     --danger: #dc2626;
     --danger-soft: #fef2f2;
     --day-red : #cb1a51;
-    --day-primary : #0099a8;
+    --day-primary : #00a0af;
     --day-second : #003a40a8;
     --main-text: #727070;
     color-scheme: light;
@@ -113,6 +114,10 @@
 
     body {
       background-color: var(--canvas);
+      background-image:
+        radial-gradient(60rem 30rem at 85% -5%, rgba(0, 160, 175, 0.10), transparent 60%),
+        radial-gradient(50rem 28rem at 5% 40%, rgba(0, 160, 175, 0.07), transparent 60%);
+      background-attachment: fixed;
       color: var(--ink);
       font-family: var(--font-sans);
       /* Persian text needs a little more leading than the Latin default. */
@@ -185,5 +190,27 @@
 
     .animate-step-in {
       animation: step-in 320ms var(--ease-out-soft) both;
+    }
+
+    /* Error slides in and nudges sideways — noticeable without being harsh. */
+    @keyframes error-in {
+      0% {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      40% {
+        opacity: 1;
+        transform: translateY(0) translateX(3px);
+      }
+      70% {
+        transform: translateX(-2px);
+      }
+      100% {
+        transform: none;
+      }
+    }
+
+    .animate-error-in {
+      animation: error-in 360ms var(--ease-out-soft) both;
     }
   }
