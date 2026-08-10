@@ -37,33 +37,33 @@ const SMART_CRITERIA: SmartCriterion[] = [
 
 const SmartGoalGuide: React.FC = () => {
   return (
-    <div className="space-y-6 my-8 bg-white rounded-2xl p-6 shadow-sm">
+    <div className="space-y-6 my-8 bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
       <div>
-        <h3 className="text-lg font-bold text-gray-800 mb-3">
+        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3">
           🎯 روش SMART برای تنظیم هدف سلامتی
         </h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-xs sm:text-sm text-gray-600 mb-4">
           هدف باید ویژگی‌های زیر را داشته باشد:
         </p>
       </div>
 
       <div className="space-y-3">
         {SMART_CRITERIA.map(({ emoji, title, description }) => (
-          <div key={title} className="flex items-start gap-3">
-            <span className="text-xl shrink-0">{emoji}</span>
+          <div key={title} className="flex items-start gap-2 sm:gap-3">
+            <span className="text-md sm:text-xl shrink-0">{emoji}</span>
             <div>
-              <h4 className="font-bold text-gray-800 text-sm">{title}</h4>
-              <p className="text-sm text-gray-600">{description}</p>
+              <h4 className="font-bold text-gray-800 text-xs sm:text-sm">{title}</h4>
+              <p className="text-xs sm:text-sm text-gray-600">{description}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 p-4 bg-day-primary/5 rounded-lg border-r-4 border-day-primary">
-        <h4 className="font-bold text-gray-800 mb-2">
+      <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-day-primary/5 rounded-lg border-r-4 border-day-primary">
+        <h4 className="font-bold text-gray-800 mb-2 text-xs sm:text-sm">
           💬 مثال استفاده از روش SMART در تنظیم هدف سلامتی:
         </h4>
-        <p className="text-sm text-gray-700 leading-relaxed">
+        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
           به‌جای «می‌خواهم لاغر شوم»، می‌گوییم:
           <br />
           <span className="font-medium">

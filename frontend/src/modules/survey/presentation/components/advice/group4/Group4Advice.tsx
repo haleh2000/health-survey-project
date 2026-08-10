@@ -1,4 +1,5 @@
 // src/modules/survey/presentation/components/advice/group4/Group4Advice.tsx
+import { useRef } from "react";
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 import { HealthAdviceBanner } from "../shared/HealthAdviceBanner";
 import { WeeklyGoalsHeader } from "../shared/WeeklyGoalsHeader";
@@ -17,19 +18,23 @@ import { MindfulnessMeditationSection } from "./MindfulnessMeditationSection";
 import WeeklyExerciseTable from './WeeklyExerciseTable';
 import goodDayImg from "@survey/presentation/assets/advice/group4/good-day.png";
 import WeeklyGratitudePlanner from './WeeklyGratitudePlanner';
+import { usePdfDownload } from "../../../hooks/usePdfDownload";
+import logo from "@/assets/day-daydar-lockup.png";
 
 
 interface Group4AdviceProps {
   assessment: RiskAssessment;
-  onPrint: () => void;
   onShare: () => void;
 }
 
-export function Group4Advice({ assessment, onPrint, onShare }: Group4AdviceProps) {
+export function Group4Advice({ assessment, onShare }: Group4AdviceProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const download = usePdfDownload(contentRef, logo);
+
   return (
     <div className="flex flex-col gap-6">
-      <RiskResultHeader assessment={assessment} />
-      <div className="rounded-2xl bg-white">
+      {/* <RiskResultHeader assessment={assessment} /> */}
+      <div ref={contentRef} className="rounded-2xl bg-white">
         <HealthAdviceBanner />
         <WeeklyGoalsHeader
           title="راهکارهای طلایی هفتگی برای تثبیت سلامت"
@@ -51,7 +56,7 @@ export function Group4Advice({ assessment, onPrint, onShare }: Group4AdviceProps
             description="تمرکز بر رنگ‌های طبیعیِ میوه‌ها و سبزیجات (نه رنگ‌های مصنوعی)، ضامن دریافت طیف کاملی از آنتی‌اکسیدان‌های حیاتی است؛ ای زیستی با کاهش التهاب و تقویت سیستم ایمنی، سلامت متابولیک بدن را به‌طور مؤثری ارتقا می‌دهد."
           />
 
-          <div className="py-10">
+          <div className="py-4">
             <RainbowFoodGuide />
           </div>
 
@@ -136,10 +141,10 @@ export function Group4Advice({ assessment, onPrint, onShare }: Group4AdviceProps
           اشتراک‌گذاری
         </button>
         <button
-          onClick={onPrint}
+          onClick={() => download()}
           className="cursor-pointer flex-1 rounded-xl bg-day-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
         >
-          پرینت
+          دانلود
         </button>
       </div>
     </div>

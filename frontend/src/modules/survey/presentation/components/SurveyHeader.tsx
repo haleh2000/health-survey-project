@@ -43,7 +43,7 @@ export function SurveyHeader({
             <span className="num-fa text-white text-xs">
               گام {persianRatio(stepIndex + 1, steps.length)}
             </span>
-            <ThemeToggle />
+            {/* <ThemeToggle /> */}
           </div>
         </div>
 

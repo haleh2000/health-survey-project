@@ -306,7 +306,7 @@ const QUESTIONS: readonly Question[] = [
     kind: QuestionKind.SingleChoice,
     title:
       "آیا برای گرمایش یا پخت‌وپز در منزل از سوخت‌های جامد (چوب، زغال، فضولات حیوانی) استفاده می‌کنید؟",
-    hint: "این پاسخ فعلاً در امتیاز بالینی لحاظ نمی‌شود.",
+    hint: "",
     required: true,
     options: yesNo,
   },

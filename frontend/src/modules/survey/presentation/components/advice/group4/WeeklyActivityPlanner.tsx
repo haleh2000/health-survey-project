@@ -46,26 +46,24 @@ export function WeeklyActivityPlanner() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-6 rounded-2xl bg-day-primary/5 p-4 mt-5">
         {DAYS.map(({ label, type }) => (
-          <div key={label} className="flex items-center gap-2 text-sm">
+          <div key={label} className="flex items-center gap-2 text-sm flex-wrap sm:flex-nowrap">
             <span className="whitespace-nowrap text-gray-500">
               {label} ({type}):
             </span>
-            <div className="flex-1 border-b-2 border-dotted border-gray-400" />
+            <div className="flex-1 min-w-[40px] border-b-2 border-dotted border-gray-400" />
             <span className="whitespace-nowrap text-gray-500">مدت:</span>
-            <div className="w-20 border-b-2 border-dotted border-gray-400" />
+            <div className="w-16 sm:w-20 border-b-2 border-dotted border-gray-400" />
             <span className="text-gray-500">دقیقه</span>
           </div>
         ))}
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-sm flex-wrap sm:flex-nowrap">
           <span className="whitespace-nowrap text-day-primary">تعداد روزهای انجام‌شده:</span>
           <div className="w-16 border-b-2 border-dotted border-gray-400" />
-          <span className="text-day-primary">از ۷ روز — مجموع:</span>
-          <div className="w-20 border-b-2 border-dotted border-gray-400" />
+          <span className="whitespace-nowrap text-day-primary">از ۷ روز — مجموع:</span>
+          <div className="w-16 sm:w-20 border-b-2 border-dotted border-gray-400" />
           <span className="text-day-primary">دقیقه</span>
         </div>
       </div>
-
-  
     </div>
   );
 }

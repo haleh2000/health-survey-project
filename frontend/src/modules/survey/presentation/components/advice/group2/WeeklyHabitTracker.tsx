@@ -1,3 +1,4 @@
+// WeeklyHabitTracker.tsx
 interface HabitStatus {
   day: string;
   options: string[];
@@ -23,13 +24,13 @@ export const WeeklyHabitTracker: React.FC = () => {
             index !== HABIT_STATUS_DATA.length - 1 ? 'border-b border-day-primary' : ''
           }`}
         >
-          <div className="py-3 px-4 font-semibold text-gray-700 bg-day-primary/5 border-l border-day-primary text-center">
+          <div className="py-1.5 sm:py-3 px-1 sm:px-4 font-semibold text-[9px] sm:text-sm text-gray-700 bg-day-primary/5 border-l border-day-primary text-center flex items-center justify-center">
             {row.day}
           </div>
           {row.options.map((option, optIndex) => (
             <div
               key={option}
-              className={`py-3 px-4 text-center text-sm text-gray-600 flex items-center justify-center gap-2 ${
+              className={`py-1.5 sm:py-3 px-1 sm:px-4 text-center text-[9px] sm:text-sm text-gray-600 flex items-center justify-center gap-1 sm:gap-2 ${
                 optIndex < row.options.length - 1 ? 'border-l border-day-primary' : ''
               } ${
                 option === 'طبق برنامه'
@@ -39,8 +40,8 @@ export const WeeklyHabitTracker: React.FC = () => {
                   : 'text-gray-600'
               }`}
             >
-              <span className="inline-block w-4 h-4 border-2 border-current rounded"></span>
-              <span>{option}</span>
+              <span className="inline-block w-2.5 h-2.5 sm:w-4 sm:h-4 border-2 border-current rounded shrink-0"></span>
+              <span className="leading-tight">{option}</span>
             </div>
           ))}
         </div>

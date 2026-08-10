@@ -27,10 +27,6 @@ const CheckIcon = () => (
   </svg>
 );
 
-/**
- * Desktop-only vertical timeline of survey steps.
- * Sits as a sticky sidebar; the mobile header covers small screens.
- */
 export function StepTimeline({
   steps,
   stepIndex,
@@ -42,7 +38,7 @@ export function StepTimeline({
       <div className="rounded-card bg-head p-6 shadow-raised">
         <div className="mb-6 flex items-center justify-between gap-3 border-b border-white/15 pb-4">
           <h1 className="text-base font-bold text-white">پرسشنامه سلامت</h1>
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </div>
 
         <ol>

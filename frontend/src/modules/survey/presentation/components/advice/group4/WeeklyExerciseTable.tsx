@@ -1,3 +1,4 @@
+// src/modules/survey/presentation/components/advice/group4/WeeklyExerciseTable.tsx
 import React from 'react';
 import badIcon from '@survey/presentation/assets/advice/group4/emojis/bad.png';
 import sadIcon from '@survey/presentation/assets/advice/group4/emojis/sad.png';
@@ -28,67 +29,84 @@ const emotionIcons = [
 ];
 
 const LegendIcons = () => (
-  <div className="flex justify-center gap-2">
+  <div className="flex justify-center gap-0.5 sm:gap-2">
     {emotionIcons.map((icon, i) => (
-      <img key={i} src={icon.src} alt={icon.alt} title={icon.alt}
-        className="h-5 w-5 object-contain" />
+      <img
+        key={i}
+        src={icon.src}
+        alt={icon.alt}
+        title={icon.alt}
+        className="h-3.5 w-3.5 shrink-0 object-contain sm:h-5 sm:w-5"
+      />
     ))}
   </div>
 );
 
 const CheckBoxes = ({ prefix, row }: { prefix: string; row: number }) => (
-  <div className="flex justify-center gap-1">
+  <div className="flex justify-center gap-0.5 sm:gap-1">
     {emotionIcons.map((_, i) => (
-      <div key={`${prefix}-${row}-${i}`}
-        className="h-6 w-6 border-2 border-day-primary rounded bg-white shrink-0" />
+      <div
+        key={`${prefix}-${row}-${i}`}
+        className="h-3.5 w-3.5 shrink-0 rounded border border-day-primary bg-white sm:h-6 sm:w-6 sm:border-2"
+      />
     ))}
   </div>
 );
 
 const WeeklyExerciseTable: React.FC<WeeklyExerciseTableProps> = ({ className = '' }) => (
-  <div className={`w-full ${className}`} dir="rtl">
-    {/* Desktop: normal table | Mobile: scrollable */}
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse border border-gray-300 bg-white text-sm min-w-[480px]">
-        <thead>
-          <tr className="bg-[#acdee2]/50">
-            {['روز', 'تکنیک', 'احساس قبل', 'احساس بعد'].map(h => (
-              <th key={h} className="border border-gray-300 px-3 py-2 text-center font-semibold text-gray-700 whitespace-nowrap">
-                {h}
-              </th>
-            ))}
+  <div className={`${className}`} dir="rtl">
+    <table className="w-full table-fixed border-collapse border border-gray-300 bg-white text-[9.5px] leading-tight sm:text-sm">
+      <thead>
+        <tr className="bg-[#acdee2]/50">
+          <th className="w-[15%] border border-gray-300 px-1 py-1 text-center font-semibold text-gray-700 sm:w-auto sm:px-3 sm:py-2">
+            روز
+          </th>
+          <th className="w-[25%] border border-gray-300 px-1 py-1 text-center font-semibold text-gray-700 sm:w-auto sm:px-3 sm:py-2">
+            تکنیک
+          </th>
+          <th className="w-[30%] border border-gray-300 px-1 py-1 text-center font-semibold text-gray-700 sm:w-auto sm:px-3 sm:py-2">
+            احساس قبل
+          </th>
+          <th className="w-[30%] border border-gray-300 px-1 py-1 text-center font-semibold text-gray-700 sm:w-auto sm:px-3 sm:py-2">
+            احساس بعد
+          </th>
+        </tr>
+        <tr>
+          <td className="border border-gray-300 p-0" />
+          <td className="border border-gray-300 p-0" />
+          <td className="border border-gray-300 px-1 py-1 sm:px-2 sm:py-1">
+            <LegendIcons />
+          </td>
+          <td className="border border-gray-300 px-1 py-1 sm:px-2 sm:py-1">
+            <LegendIcons />
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        {days.map((day, i) => (
+          <tr key={i}>
+            <td className="border border-gray-300 px-1 py-1 text-center font-medium text-gray-800 sm:px-3 sm:py-2">
+              {day.label}
+            </td>
+            <td className="border border-gray-300 px-1 py-1 text-center text-gray-700 sm:px-3 sm:py-2">
+              <span className="block break-words">{day.technique}</span>
+            </td>
+            <td className="border border-gray-300 px-1 py-1 sm:px-2 sm:py-2">
+              <CheckBoxes prefix="b" row={i} />
+            </td>
+            <td className="border border-gray-300 px-1 py-1 sm:px-2 sm:py-2">
+              <CheckBoxes prefix="a" row={i} />
+            </td>
           </tr>
-          <tr>
-            <td className="border border-gray-300 p-1" />
-            <td className="border border-gray-300 p-1" />
-            <td className="border border-gray-300 px-2 py-1"><LegendIcons /></td>
-            <td className="border border-gray-300 px-2 py-1"><LegendIcons /></td>
-          </tr>
-        </thead>
-        <tbody>
-          {days.map((day, i) => (
-            <tr key={i}>
-              <td className="border border-gray-300 px-3 py-2 text-center font-medium text-gray-800 whitespace-nowrap">
-                {day.label}
-              </td>
-              <td className="border border-gray-300 px-3 py-2 text-center text-gray-700">
-                {day.technique}
-              </td>
-              <td className="border border-gray-300 px-2 py-2">
-                <CheckBoxes prefix="b" row={i} />
-              </td>
-              <td className="border border-gray-300 px-2 py-2">
-                <CheckBoxes prefix="a" row={i} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
 
-    <div className="mt-4 bg-gray-50 rounded-lg p-3 border border-gray-200">
-      <h3 className="text-xs font-semibold text-gray-700 mb-2">راهنمای تکنیک‌ها:</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs text-gray-600">
+    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+      <h3 className="mb-2 text-xs font-semibold text-gray-700 sm:text-sm">
+        راهنمای تکنیک‌ها:
+      </h3>
+      <div className="grid grid-cols-1 gap-1 text-[10px] leading-relaxed text-gray-600 sm:grid-cols-2 sm:text-xs">
         <div>• مدیتیشن تمرکز: تمرکز روی نفس یا یک نقطه ثابت</div>
         <div>• تنفس آگاهانه (۴-۷-۸): دم ۴ ثانیه، نگه دارید ۷، بازدم ۸</div>
         <div>• اسکن بدن: توجه به احساسات هر قسمت از بدن</div>

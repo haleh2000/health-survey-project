@@ -57,21 +57,28 @@ const CATEGORIES = [
 
 export function SpiceImmunitySection() {
   return (
-    <div className="flex flex-col gap-4 p-4" dir="rtl">
+    <div className="flex flex-col gap-3 p-3 sm:gap-4 sm:p-4" dir="rtl">
       {CATEGORIES.map((cat) => (
-        <div key={cat.title} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div
+          key={cat.title}
+          className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm sm:p-4"
+        >
           <div className="mb-2 flex items-center gap-2">
-            <span className="text-2xl">{cat.emoji}</span>
-            <div>
-              <span className="font-bold text-gray-800">{cat.title}</span>
-              <span className="mr-1 text-sm text-gray-500">({cat.subtitle})</span>
+            <span className="text-xl sm:text-2xl">{cat.emoji}</span>
+            <div className="min-w-0">
+              <span className="text-sm font-bold text-gray-800 sm:text-base">
+                {cat.title}
+              </span>
+              <span className="mr-1 text-xs text-gray-500 sm:text-sm">
+                ({cat.subtitle})
+              </span>
             </div>
           </div>
           <p className="mb-3 text-xs text-gray-500">{cat.instruction}</p>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-1.5 sm:gap-2">
             {cat.items.map((item) => (
-              <li key={item.name} className="flex items-center gap-2 text-sm">
-                <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-green-400" />
+              <li key={item.name} className="flex items-start gap-2 text-xs sm:text-sm">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-green-400 sm:mt-2 sm:h-2 sm:w-2" />
                 <span className="font-medium text-gray-700">{item.name}</span>
                 <span className="text-gray-400">—</span>
                 <span className="text-gray-500">{item.benefit}</span>
