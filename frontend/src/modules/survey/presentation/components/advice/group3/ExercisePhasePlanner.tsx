@@ -97,7 +97,7 @@ export function ExercisePhasePlanner() {
           >
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xl">{phase.icon}</span>
-              <h3 className="text-base font-bold text-gray-800">
+              <h3 className="sm:text-base text-sm leading-5 mb-3 font-bold text-gray-800">
                 {phase.title}
               </h3>
               <span className="text-xs font-bold text-gray-400">({phase.weeksLabel})</span>

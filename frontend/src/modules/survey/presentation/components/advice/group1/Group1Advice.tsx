@@ -1,31 +1,32 @@
-// src/modules/survey/presentation/components/advice/Group1Advice.tsx
+// src/modules/survey/presentation/components/advice/group1/Group1Advice.tsx
+import { useRef } from "react";
 import { NutritionSection } from "./NutritionSection";
 import { WeightLossSection } from "./WeightLossSection";
 import { MindPeaceSection } from "./MindPeaceSection";
 import { HealthAdviceBanner } from "../shared/HealthAdviceBanner";
 import { WeeklyGoalsHeader } from "../shared/WeeklyGoalsHeader";
-import { RiskResultHeader } from "../shared/RiskResultHeader";
+import { usePdfDownload } from "../../../hooks/usePdfDownload";
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
+import logo from "@/assets/day-daydar-lockup.png";
 
 interface Group1AdviceProps {
   assessment: RiskAssessment;
-  onPrint: () => void;
   onShare: () => void;
 }
 
-export function Group1Advice({ assessment, onPrint, onShare }: Group1AdviceProps) {
+export function Group1Advice({ assessment, onShare }: Group1AdviceProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const download = usePdfDownload(contentRef, logo);
+
   return (
-    <div>
-      <RiskResultHeader assessment={assessment} />
-      return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl bg-white">
+      <div ref={contentRef} className="rounded-2xl bg-white">
         <HealthAdviceBanner />
         <WeeklyGoalsHeader
-        title="راهکارهای طلایی هفتگی برای رسیدن به تعادل"
-        bgColorClass="bg-day-red/20"
-        textColorClass="text-day-red"
-      />
+          title="راهکارهای طلایی هفتگی برای رسیدن به تعادل"
+          bgColorClass="bg-day-red/20"
+          textColorClass="text-day-red"
+        />
         <NutritionSection />
         <WeightLossSection />
         <MindPeaceSection />
@@ -34,20 +35,17 @@ export function Group1Advice({ assessment, onPrint, onShare }: Group1AdviceProps
       <div className="flex gap-3">
         <button
           onClick={onShare}
-          className=":focus-visiblefocus-visible:!outline-none cursor-pointer flex-1 rounded-xl border-2 bg-white px-6 py-3 text-sm font-semibold text-cyan-700 hover:bg-day-primary hover:text-white"
+          className="focus-visible:!outline-none cursor-pointer flex-1 rounded-xl border-2 bg-white px-6 py-3 text-sm font-semibold text-cyan-700 hover:bg-day-primary hover:text-white"
         >
           اشتراک‌گذاری
         </button>
         <button
-          onClick={onPrint}
+          onClick={() => download()}
           className="focus-visible:!outline-none cursor-pointer flex-1 rounded-xl bg-day-primary px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
         >
-          پرینت
+          دانلود
         </button>
       </div>
     </div>
   );
-    </div>
-  );
 }
-

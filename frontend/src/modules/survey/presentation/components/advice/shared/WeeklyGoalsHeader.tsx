@@ -13,11 +13,11 @@ export function WeeklyGoalsHeader({
   textColorClass = "text-day-red",
 }: WeeklyGoalsHeaderProps) {
   return (
-    <div className="flex justify-center">
-      <div className={cn("inline-block mt-4 px-4", bgColorClass)}>
+    <div className="flex justify-center px-2 py-4 sm:px-4">
+      <div className={cn("inline-block px-3 sm:px-4", bgColorClass)}>
         <h2
           className={cn(
-            "relative -top-3 text-lg font-bold whitespace-nowrap",
+            "relative -top-3 text-sm sm:text-base lg:text-lg font-bold text-center leading-snug",
             textColorClass,
           )}
         >

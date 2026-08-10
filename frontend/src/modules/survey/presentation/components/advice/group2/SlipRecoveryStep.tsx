@@ -1,3 +1,4 @@
+// SlipRecoveryGuide.tsx
 interface SlipRecoveryStep {
   question: string;
   options: string;
@@ -24,27 +25,27 @@ const RECOVERY_QUESTIONS: SlipRecoveryStep[] = [
 
 export const SlipRecoveryGuide: React.FC = () => {
   return (
-    <div className="w-full bg-white rounded-xl p-6 space-y-5">
-      <h3 className="text-lg font-bold text-gray-800 text-right">
+    <div className="w-full bg-white rounded-xl p-4 sm:p-6 space-y-4 sm:space-y-5">
+      <h3 className="text-base sm:text-lg font-bold text-gray-800 text-right">
         اگر دچار لغزش شدید برای بازگشت این سوالات را از خود بپرسید:
       </h3>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {RECOVERY_QUESTIONS.map((item, idx) => (
-          <div key={idx} className="border-r-4 border-teal-500 pr-4 py-1">
-            <p className="font-semibold text-teal-700 text-right mb-1">
+          <div key={idx} className="border-r-4 border-teal-500 pr-3 sm:pr-4 py-1">
+            <p className="font-semibold text-teal-700 text-right mb-1 text-sm sm:text-base">
               {item.question}
             </p>
-            <p className="text-gray-600 text-sm text-right">
+            <p className="text-gray-600 text-xs sm:text-sm text-right">
               {item.options}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3 mt-4">
-        <span className="text-xl">✨</span>
-        <p className="text-sm text-amber-800 text-right leading-relaxed">
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3 mt-4">
+        <span className="text-lg sm:text-xl shrink-0">✨</span>
+        <p className="text-xs sm:text-sm text-amber-800 text-right leading-relaxed">
           <span className="font-bold">نکته طلایی:</span> کیفیت مسیر شما را «سرعت بازگشت» تعیین می‌کند، نه «تعداد لغزش‌ها».
         </p>
       </div>

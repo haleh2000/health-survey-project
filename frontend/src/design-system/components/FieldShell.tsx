@@ -34,7 +34,7 @@ export function FieldShell({
   const heading = (
     <>
       {index && (
-        <span className="num-fa mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-white/15 text-xs font-bold tabular-nums text-white ring-1 ring-white/25">
+        <span className="num-fa mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-white/60 text-xs font-bold tabular-nums text-head ring-1 ring-white/25">
           {index}
         </span>
       )}

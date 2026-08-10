@@ -38,7 +38,7 @@ export function SurveyPage() {
 
   if (wizard.stage === "completed" && wizard.assessment) {
     return (
-      <main className="mx-auto max-w-2xl px-5 py-10">
+      <main className="mx-auto max-w-3xl px-5 py-10">
         <RiskResultCard
           assessment={wizard.assessment}
           bodyMetrics={bodyMetrics}
@@ -70,7 +70,7 @@ export function SurveyPage() {
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
           className="mb-6 flex justify-center lg:mb-8"
         >
-          <img src={dayLockup} alt="بیمه دی و دی‌دار" className="h-10 w-auto lg:h-12" />
+          {/* <img src={dayLockup} alt="بیمه دی و دی‌دار" className="h-10 w-auto lg:h-12" /> */}
         </motion.div>
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10">
@@ -95,7 +95,7 @@ export function SurveyPage() {
                 <div className="mb-6 border-b border-white/20 pb-4">
                   <h2 className="text-lg font-bold text-white">{wizard.step.title}</h2>
                   {wizard.step.description && (
-                    <p className="mt-1 text-sm text-white/85">{wizard.step.description}</p>
+                    <p className="mt-1 text-sm text-white">{wizard.step.description}</p>
                   )}
                 </div>
 

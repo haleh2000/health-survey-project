@@ -14,7 +14,7 @@ export function TextInput({ invalid = false, suffix, className, ...rest }: TextI
         aria-invalid={invalid || undefined}
         className={cn(
           "h-12 w-full rounded-control border bg-white px-4 text-sm text-gray-700",
-          "transition-colors duration-150 placeholder:text-ink-subtle",
+          "transition-colors duration-150 placeholder:text-gray-400",
           "focus:border-2 focus:shadow-[0_0_12px_rgba(255,255,255,0.35)] focus:border-[#003a40a8] focus:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
           invalid ? "border-danger" : "border-line-strong",
