@@ -109,15 +109,15 @@ def calculate_risk_sync(data: SurveyInput) -> dict:
 
     # 6. Categorization
     if has_any_cancer == 1 or strokes.get('heart_attack', 0) == 1 or strokes.get('brain_stroke', 0) == 1:
-        health_risk_level = config.RISK_LEVEL_4
+        health_risk_level = config.RISK_LEVEL_1  
     elif total_risk_score > 16:
-        health_risk_level = config.RISK_LEVEL_4
+        health_risk_level = config.RISK_LEVEL_2
     elif total_risk_score > 10:
         health_risk_level = config.RISK_LEVEL_3
     elif total_risk_score > 5:
-        health_risk_level = config.RISK_LEVEL_2
+        health_risk_level = config.RISK_LEVEL_4
     else:
-        health_risk_level = config.RISK_LEVEL_1
+        health_risk_level = config.RISK_LEVEL_4 
 
 
 

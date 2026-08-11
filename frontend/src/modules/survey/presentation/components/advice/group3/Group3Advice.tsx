@@ -20,7 +20,6 @@ import logo from "@/assets/day-daydar-lockup.png";
 
 interface Group3AdviceProps {
   assessment: RiskAssessment;
-  onPrint: () => void;
   onShare: () => void;
 }
 
@@ -40,7 +39,7 @@ const CHECKPOINT_LABELS: Record<string, string> = {
   night: "شب",
 };
 
-export function Group3Advice({ assessment, onPrint, onShare }: Group3AdviceProps) {
+export function Group3Advice({ assessment, onShare }: Group3AdviceProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const download = usePdfDownload(contentRef, logo);
 

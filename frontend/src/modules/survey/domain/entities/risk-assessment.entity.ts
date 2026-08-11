@@ -1,11 +1,3 @@
-/**
- * The scored result returned by the backend.
- *
- * `tier` is the stable, machine-readable form the UI switches on; `levelLabel`
- * is the backend's own wording, shown verbatim so the clinical phrasing stays
- * under the backend's control. Mapping one to the other belongs to the
- * infrastructure layer, because only it knows the backend's exact strings.
- */
 
 export const RiskTier = {
   Low: "low",
@@ -16,7 +8,6 @@ export const RiskTier = {
 
 export type RiskTier = (typeof RiskTier)[keyof typeof RiskTier];
 
-/** Ordered from least to most severe — used for the result meter. */
 export const RISK_TIER_ORDER: readonly RiskTier[] = [
   RiskTier.Low,
   RiskTier.Moderate,
@@ -49,7 +40,6 @@ export interface RiskAssessment {
   readonly nationalId: string;
   readonly ageYears: number;
   readonly score: number;
-  /** The backend's own label, e.g. "گروه ۲: لبه خطر بلند مدت …". */
   readonly levelLabel: string;
   readonly tier: RiskTier;
 }

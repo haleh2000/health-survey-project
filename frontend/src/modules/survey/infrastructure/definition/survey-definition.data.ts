@@ -301,7 +301,7 @@ const QUESTIONS: readonly Question[] = [
     required: true,
     options: yesNo,
   },
-  {
+  { 
     id: "solid_fuel",
     kind: QuestionKind.SingleChoice,
     title:

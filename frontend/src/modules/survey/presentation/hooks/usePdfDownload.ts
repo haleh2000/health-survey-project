@@ -13,7 +13,7 @@ export function usePdfDownload(ref: RefObject<HTMLElement | null>, logoSrc?: str
       if (logoSrc) {
         logoImg = new Image();
         logoImg.src = logoSrc;
-        logoImg.style.cssText = 'width:128px;display:block;margin:0 auto 16px';
+        logoImg.style.cssText = 'width:360px;display:block;margin:0 auto 16px';
 
         await new Promise<void>((res) => {
           if (logoImg!.complete) res();
@@ -25,7 +25,7 @@ export function usePdfDownload(ref: RefObject<HTMLElement | null>, logoSrc?: str
         el.insertBefore(logoImg, el.firstChild);
       }
 
-      const dataUrl = await domToPng(el, { scale: 2 });
+      const dataUrl = await domToPng(el, { scale: 3 });
       const img = new Image();
       img.src = dataUrl;
       await new Promise<void>((res) => { img.onload = () => res(); });

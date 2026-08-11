@@ -18,13 +18,6 @@ const QUESTION_ID_BY_ALIAS: ReadonlyMap<string, QuestionId> = new Map(
   Object.entries(REQUEST_FIELD_ALIAS).map(([id, alias]) => [alias, id as QuestionId]),
 );
 
-/**
- * The HTTP implementation of the risk-assessment port.
- *
- * Also rewrites backend validation errors from Persian aliases back into
- * question ids: without that, a 422 could not be attached to the field that
- * caused it and the user would only see a generic banner.
- */
 export class HttpRiskAssessmentRepository implements RiskAssessmentRepository {
   private readonly http: HttpClient;
 
