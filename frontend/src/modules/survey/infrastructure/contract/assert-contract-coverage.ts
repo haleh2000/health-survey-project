@@ -11,16 +11,6 @@ import {
   toBackendValue,
 } from "@survey/infrastructure/mappers/backend-value.map";
 
-/**
- * Startup guard against frontend/backend drift.
- *
- * The backend resolves most answers through `dict.get(value, 0)`, so a wording
- * change that no longer matches scores as zero and nothing anywhere reports an
- * error — the user simply receives a wrong risk level. These checks turn that
- * class of bug into a failure at application startup instead.
- */
-
-/** Questions Pydantic types as an Enum: an unlisted value is a 422. */
 const ENUM_CONSTRAINED: Partial<Record<QuestionId, readonly string[]>> = {
   gender: Object.values(BACKEND_VALUE.gender),
   cancer_history: [BACKEND_VALUE.yes, BACKEND_VALUE.no],
@@ -36,11 +26,7 @@ const ENUM_CONSTRAINED: Partial<Record<QuestionId, readonly string[]>> = {
   veg_fruit: Object.values(BACKEND_VALUE.vegFruit),
 };
 
-/**
- * Questions scored by substring search rather than by lookup, with the number
- * of options that must contain the keyword. Too few and the risk factor can
- * never be detected; too many and unrelated answers trigger it.
- */
+
 const KEYWORD_MATCHED: readonly {
   questionId: QuestionId;
   keyword: string;
@@ -104,11 +90,6 @@ const collectProblems = (definition: SurveyDefinition): string[] => {
   return problems;
 };
 
-/**
- * Fails the build-time/dev run on any drift. In production it logs instead of
- * throwing: a wrong score is bad, but a blank page for every user is worse,
- * and the survey still functions.
- */
 export const assertContractCoverage = (
   definition: SurveyDefinition,
   { throwOnFailure }: { throwOnFailure: boolean },

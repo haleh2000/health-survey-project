@@ -1,12 +1,6 @@
 import { toAsciiDigits } from "@core/text/digits";
 
-/**
- * Iranian national id (کد ملی).
- *
- * Ten digits with a modulus-11 check digit. Validating here means an obviously
- * mistyped id is caught before a round trip, and the value reaching the
- * backend is always normalised to ASCII digits.
- */
+
 export class NationalId {
   readonly value: string;
 

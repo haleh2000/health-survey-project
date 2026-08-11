@@ -14,7 +14,6 @@ export interface RiskResultCardProps {
 }
 
 export function RiskResultCard({ assessment, onRestart }: RiskResultCardProps) {
-  const handlePrint = () => window.print();
   const handleShare = async () => {
     const text = `نتیجه ارزیابی سلامت ${assessment.fullName}: ${assessment.levelLabel}`;
     if (navigator.share) await navigator.share({ title: "نتیجه ارزیابی", text });
@@ -24,13 +23,13 @@ export function RiskResultCard({ assessment, onRestart }: RiskResultCardProps) {
   return (
     <div className="flex flex-col gap-6 pb-10">
       {assessment.tier === "critical" ? (
-        <Group1Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
+        <Group1Advice assessment={assessment} onShare={handleShare} />
       ) : assessment.tier === "elevated" ? (
-        <Group3Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
+        <Group3Advice assessment={assessment} onShare={handleShare} />
       ) : assessment.tier === "moderate" ? (
-        <Group2Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
+        <Group2Advice assessment={assessment} onShare={handleShare} />
       ) : (
-        <Group4Advice assessment={assessment} onPrint={handlePrint} onShare={handleShare} />
+        <Group4Advice assessment={assessment} onShare={handleShare} />
       )}
 
 

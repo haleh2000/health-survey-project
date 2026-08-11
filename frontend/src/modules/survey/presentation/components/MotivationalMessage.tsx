@@ -24,7 +24,7 @@ export function MotivationalMessage({
     }
 
     if (remainingQuestions === 0) {
-      return 'تمام! آماده‌ی دیدن نتیجه‌ت؟';
+      return 'تمام! آماده‌ی دیدن نتیجت هستی؟';
     }
 
     if (remainingQuestions === 1) {
