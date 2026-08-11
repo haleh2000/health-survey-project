@@ -25,17 +25,31 @@ export function usePdfDownload(ref: RefObject<HTMLElement | null>, logoSrc?: str
         el.insertBefore(logoImg, el.firstChild);
       }
 
-      const dataUrl = await domToPng(el, { scale: 3 });
+      const dataUrl = await domToPng(el, { scale: 2 });
       const img = new Image();
       img.src = dataUrl;
       await new Promise<void>((res) => { img.onload = () => res(); });
 
-      const pdf = new jsPDF({
-        orientation: img.width > img.height ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [img.width, img.height],
-      });
-      pdf.addImage(dataUrl, 'PNG', 0, 0, img.width, img.height);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Scale the captured image to fill the full A4 width, then slice it
+      // across as many A4 pages as its height needs.
+      const targetWidth = pageWidth;
+      const targetHeight = (img.height * pageWidth) / img.width;
+
+      let position = 0;
+      let remaining = targetHeight;
+      pdf.addImage(dataUrl, 'PNG', 0, position, targetWidth, targetHeight, undefined, 'FAST');
+      remaining -= pageHeight;
+      while (remaining > 0) {
+        position -= pageHeight;
+        pdf.addPage();
+        pdf.addImage(dataUrl, 'PNG', 0, position, targetWidth, targetHeight, undefined, 'FAST');
+        remaining -= pageHeight;
+      }
+
       pdf.save(filename);
     } catch (err) {
       console.error('PDF generation failed:', err);
