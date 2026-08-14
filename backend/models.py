@@ -1,12 +1,13 @@
+# models.py
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 from enums import (
-    YesNoEnum, GenderEnum, SmokingStatusEnum, AlcoholEnum, 
+    YesNoEnum, GenderEnum, SmokingStatusEnum, AlcoholEnum,
     JunkFoodEnum, ProcessedMeatEnum, VegFruitEnum, HotDrinkEnum
 )
 
 class SurveyInput(BaseModel):
-    # Pydantic will accept the Persian alias from JSON, but internally use English variables
+    # ... (بدون تغییر)
     full_name: str = Field(alias="نام و نام خانوادگی")
     national_id: str = Field(alias="کد ملی")
     gender: GenderEnum = Field(alias="جنسیت")
@@ -33,9 +34,22 @@ class SurveyInput(BaseModel):
     cancer_types: Optional[List[str]] = Field(default=[], alias="نوع سرطان را مشخص کنید:")
     family_history: List[str] = Field(alias="آیا در اقوام درجه یک (پدر، مادر، خواهر، برادر) سابقه بیماری‌های زیر وجود دارد؟")
 
+
 class RiskResponse(BaseModel):
     name: str = Field(serialization_alias="نام")
     national_id: str = Field(serialization_alias="کد_ملی")
     age: int = Field(serialization_alias="سن")
     risk_score: float = Field(serialization_alias="نمره_ریسک")
     risk_level: str = Field(serialization_alias="سطح_ریسک")
+    bmi: float = Field(serialization_alias="bmi")
+    # Organ risk scores
+    lung_risk: int = Field(serialization_alias="lung_risk")
+    gastric_risk: int = Field(serialization_alias="gastric_risk")
+    colon_risk: int = Field(serialization_alias="colon_risk")
+    pancreas_risk: int = Field(serialization_alias="pancreas_risk")
+    stroke_risk: int = Field(serialization_alias="stroke_risk")
+    cardiac_risk: int = Field(serialization_alias="cardiac_risk")
+    metabolic_risk: int = Field(serialization_alias="metabolic_risk")
+    liver_risk: int = Field(serialization_alias="liver_risk")
+    # Causal flags for frontend rendering
+    flags: Dict[str, bool] = Field(serialization_alias="flags")

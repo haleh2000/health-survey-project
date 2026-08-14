@@ -12,7 +12,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "paths": {
       "@core/*": ["src/core/*"],
       "@ds/*": ["src/design-system/*"],

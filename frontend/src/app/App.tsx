@@ -5,6 +5,7 @@ import { SurveyPage } from "@survey/presentation/pages/SurveyPage";
 import WelcomePage from '@survey/presentation/pages/WelcomePage';
 
 export function App() {
+   console.log('App rendered') 
   return (
     <SurveyDependenciesProvider dependencies={getSurveyDependencies()}>
       <BrowserRouter>

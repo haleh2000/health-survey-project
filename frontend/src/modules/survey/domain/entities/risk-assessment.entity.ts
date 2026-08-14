@@ -35,14 +35,74 @@ export const RISK_TIER_ADVICE: Record<RiskTier, string> = {
     "مراجعه به پزشک برای ارزیابی بالینی در اولویت قرار دارد. این نتیجه جایگزین تشخیص پزشکی نیست.",
 };
 
-export interface RiskAssessment {
-  readonly fullName: string;
-  readonly nationalId: string;
-  readonly ageYears: number;
-  readonly score: number;
-  readonly levelLabel: string;
-  readonly tier: RiskTier;
+
+export interface OrganRisks {
+  lung: number;
+  gastric: number;
+  colon: number;
+  pancreas: number;
+  stroke: number;
+  cardiac: number;
+  metabolic: number;
+  liver: number;
 }
+
+// export interface RiskAssessment {
+//   fullName: string;
+//   nationalId: string;
+//   ageYears: number;
+//   score: number;
+//   levelLabel: string;
+//   tier: RiskTier;
+//   organRisks: OrganRisks;
+// }
+
+
+export interface AssessmentFlags {
+  heavy_smoker:           boolean;
+  hookah_ecig:            boolean;
+  occupational_hazard:    boolean;
+  air_pollution:          boolean;
+  hpylori_active:         boolean;
+  salty_food:             boolean;
+  hot_drink:              boolean;
+  smoked_food:            boolean;
+  heavy_alcohol:          boolean;
+  obesity:                boolean;
+  processed_meat_high:    boolean;
+  low_fiber:              boolean;
+  junk_food:              boolean;
+  low_physical_activity:  boolean;
+  diabetes:               boolean;
+  hypertension:           boolean;
+  heart_disease:          boolean;
+  chronic_pancreatitis:   boolean;
+  psychosocial:           boolean;
+  infectious_disease:     boolean;
+  brain_stroke_history:   boolean;
+  heart_attack_history:   boolean;
+  family_lung_cancer:     boolean;
+  family_gastric_cancer:  boolean;
+  family_colon_cancer:    boolean;
+  family_pancreas_cancer: boolean;
+  family_liver_cancer:    boolean;
+  family_stroke:          boolean;
+  family_cardiac:         boolean;
+}
+
+export interface RiskAssessment {
+  fullName:    string;
+  nationalId:  string;
+  ageYears:    number;
+  score:       number;
+  levelLabel:  string;
+  tier:        RiskTier;
+  organRisks:  OrganRisks;
+  bmi:         number | null;   
+  flags:       AssessmentFlags; 
+}
+
+
 
 export const summaryFor = (assessment: RiskAssessment): string =>
   RISK_TIER_SUMMARY[assessment.tier];

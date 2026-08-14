@@ -1,19 +1,19 @@
 // src/modules/survey/presentation/components/RiskResultCard.tsx
+
 import { Button } from "@ds/components/Button";
-import { adviceFor, type RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
+import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
+import type { SurveyAnswers } from "@survey/domain/entities/survey-answers.entity";
 import type { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
-import { Group1Advice } from "@survey/presentation/components/advice/group1/Group1Advice";
-import { Group2Advice } from "@survey/presentation/components/advice/group2/Group2Advice";
-import { Group3Advice } from "@survey/presentation/components/advice/group3/Group3Advice";
-import { Group4Advice } from "@survey/presentation/components/advice/group4/Group4Advice";
+import { AdviceLayout } from "@survey/presentation/components/advice/shared/AdviceLayout";
 
 export interface RiskResultCardProps {
   assessment: RiskAssessment;
+  answers: SurveyAnswers;
   bodyMetrics: BodyMetrics | null;
   onRestart: () => void;
 }
 
-export function RiskResultCard({ assessment, onRestart }: RiskResultCardProps) {
+export function RiskResultCard({ assessment, answers, bodyMetrics, onRestart }: RiskResultCardProps) {
   const handleShare = async () => {
     const text = `نتیجه ارزیابی سلامت ${assessment.fullName}: ${assessment.levelLabel}`;
     if (navigator.share) await navigator.share({ title: "نتیجه ارزیابی", text });
@@ -22,21 +22,15 @@ export function RiskResultCard({ assessment, onRestart }: RiskResultCardProps) {
 
   return (
     <div className="flex flex-col gap-6 pb-10">
-      {assessment.tier === "critical" ? (
-        <Group1Advice assessment={assessment} onShare={handleShare} />
-      ) : assessment.tier === "elevated" ? (
-        <Group3Advice assessment={assessment} onShare={handleShare} />
-      ) : assessment.tier === "moderate" ? (
-        <Group2Advice assessment={assessment} onShare={handleShare} />
-      ) : (
-        <Group4Advice assessment={assessment} onShare={handleShare} />
-      )}
-
-
+      <AdviceLayout
+        assessment={assessment}
+        answers={answers}
+        bodyMetrics={bodyMetrics}
+        onShare={handleShare}
+      />
       <p className="text-center text-xs leading-6 text-ink-subtle">
         این نتیجه جنبه اطلاع‌رسانی دارد و جایگزین مشاوره پزشکی نمی‌شود.
       </p>
-
       <div className="flex flex-col items-center gap-3">
         <p className="text-sm text-ink-subtle">{assessment.fullName}</p>
         <Button variant="ghost" onClick={onRestart}>شروع مجدد</Button>

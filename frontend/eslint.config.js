@@ -5,18 +5,6 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-/**
- * The dependency rule, enforced by the linter.
- *
- *   presentation ─┐
- *   infrastructure ─┼─> application ─> domain ─> (core)
- *
- * Arrows point inwards only. A layer may never import from a layer to its
- * left. `core` and `design-system` are generic and must never learn about
- * a business module. Without these rules "clean architecture" is just a
- * folder naming convention, so they are part of `npm run lint`.
- */
-
 /** Framework/IO packages that must not leak past the application boundary. */
 const ioPackages = [
   { name: 'react', message: 'The domain/application layers must stay framework-free.' },
@@ -44,9 +32,19 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
   },
 
-  // The innermost layer: pure business rules. Knows nothing but itself + core.
+  // domain layer
   {
     files: ['src/modules/*/domain/**/*.ts'],
     rules: restrict([
@@ -61,7 +59,7 @@ export default defineConfig([
     ]),
   },
 
-  // Use cases: orchestrate the domain, talk to ports, never to adapters.
+  // application layer
   {
     files: ['src/modules/*/application/**/*.ts'],
     rules: restrict([
@@ -76,7 +74,7 @@ export default defineConfig([
     ]),
   },
 
-  // Adapters: implement ports. Allowed to use axios, never to import the UI.
+  // infrastructure layer
   {
     files: ['src/modules/*/infrastructure/**/*.ts'],
     rules: {
@@ -94,7 +92,7 @@ export default defineConfig([
     },
   },
 
-  // Generic layers: reusable across projects, so no business knowledge.
+  // generic layers
   {
     files: ['src/core/**/*.ts', 'src/design-system/**/*.{ts,tsx}'],
     rules: {
