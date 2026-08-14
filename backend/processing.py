@@ -107,24 +107,64 @@ def calculate_risk_sync(data: SurveyInput) -> dict:
     total_risk_score += age_risk_factor
 
 
-    # 6. Categorization
+       # 6. Categorization
     if has_any_cancer == 1 or strokes.get('heart_attack', 0) == 1 or strokes.get('brain_stroke', 0) == 1:
-        health_risk_level = config.RISK_LEVEL_1  
+        health_risk_level = config.RISK_LEVEL_1
     elif total_risk_score > 16:
         health_risk_level = config.RISK_LEVEL_2
     elif total_risk_score > 10:
         health_risk_level = config.RISK_LEVEL_3
-    elif total_risk_score > 5:
-        health_risk_level = config.RISK_LEVEL_4
     else:
-        health_risk_level = config.RISK_LEVEL_4 
+        health_risk_level = config.RISK_LEVEL_4
 
-
-
+    # 7. Return dict must include organ risks to match RiskResponse fields
+       # 7. Return dict
     return {
         "name": data.full_name,
         "national_id": data.national_id,
         "age": age,
+        "bmi": round(bmi, 1),
         "risk_score": total_risk_score,
-        "risk_level": health_risk_level
+        "risk_level": health_risk_level,
+        "lung_risk": lung_risk,
+        "gastric_risk": gastric_risk,
+        "colon_risk": colon_risk,
+        "pancreas_risk": pancreas_risk,
+        "stroke_risk": stroke_risk,
+        "cardiac_risk": cardiac_risk,
+        "metabolic_risk": metabolic_risk,
+        "liver_risk": liver_risk,
+        "flags": {
+            "heavy_smoker":           bool(heavy_smoker),
+            "hookah_ecig":            bool(hookah_ecig_bin),
+            "occupational_hazard":    bool(occupational_hazard_bin),
+            "air_pollution":          bool(air_pollution_bin),
+            "hpylori_active":         bool(hpylori_active_bin),
+            "salty_food":             bool(salty_food_bin),
+            "hot_drink":              bool(hot_drink_bin),
+            "smoked_food":            bool(smoked_food_bin),
+            "heavy_alcohol":          bool(heavy_alcohol),
+            "obesity":                bool(obesity_bin),
+            "processed_meat_high":    bool(processed_meat_high_bin),
+            "low_fiber":              bool(low_fiber_bin),
+            "junk_food":              bool(junk_food_bin),
+            "low_physical_activity":  bool(low_physical_activity),
+            "diabetes":               bool(diseases["diabetes"]),
+            "hypertension":           bool(diseases["hypertension"]),
+            "heart_disease":          bool(heart_disease_combined),
+            "chronic_pancreatitis":   bool(diseases["chronic_pancreatitis"]),
+            "psychosocial":           bool(diseases["psychosocial"]),
+            "infectious_disease":     bool(diseases["infectious"]),
+            "brain_stroke_history":   bool(strokes["brain_stroke"]),
+            "heart_attack_history":   bool(strokes["heart_attack"]),
+            "family_lung_cancer":     bool(family["lung_cancer"]),
+            "family_gastric_cancer":  bool(family["gastric_cancer"]),
+            "family_colon_cancer":    bool(family["colon_cancer"]),
+            "family_pancreas_cancer": bool(family["pancreas_cancer"]),
+            "family_liver_cancer":    bool(family["liver_cancer"]),
+            "family_stroke":          bool(family["stroke"]),
+            "family_cardiac":         bool(family["cardiac_disease"]),
+        },
     }
+
+

@@ -1,12 +1,4 @@
-/**
- * The question model.
- *
- * `QuestionId` is a closed union rather than a bare `string` on purpose: the
- * backend contract map in `infrastructure/mappers` is typed as
- * `Record<QuestionId, …>`, so adding a question here fails the build until its
- * backend alias is declared too. That is the compile-time guard against the
- * silent frontend/backend drift this survey suffered from.
- */
+
 export type QuestionId =
   | "full_name"
   | "national_id"
