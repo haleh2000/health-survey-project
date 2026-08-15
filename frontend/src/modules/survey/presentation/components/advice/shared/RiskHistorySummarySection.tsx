@@ -58,7 +58,7 @@ interface RiskCardProps {
   onSelect: (key: string | null) => void;
 }
 
-function RiskCard({ organKey, score, assessment, config, isSelected, onSelect }: RiskCardProps) {
+function RiskCard({ organKey, score, assessment, isSelected, onSelect }: RiskCardProps) {
   const factors    = getActiveCausalFactors(organKey, assessment.flags);
   const organInfo  = ORGAN_CAUSAL_FACTORS[organKey];
   const pct        = Math.min(Math.round((score / 20) * 100), 100);

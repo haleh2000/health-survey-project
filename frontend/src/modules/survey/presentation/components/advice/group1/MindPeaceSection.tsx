@@ -1,5 +1,4 @@
 // src/modules/survey/presentation/components/advice/MindPeaceSection.tsx
-import { useState } from "react";
 import { AdviceSectionCard } from "../shared/AdviceSectionCard";
 // import { DailyNoteField } from "./DailyNoteField";
 import { MoodTracker } from "../../../assets/advice/group1/mood/MoodTracker";
@@ -9,7 +8,7 @@ import { NoteFields } from "../shared/DailyNoteField";
 
 
 
-const RELAXATION_OPTIONS = [
+export const RELAXATION_OPTIONS = [
   "تمرین مدیتیشن، خط ساعت، حداقل ۱۰ دقیقه در روز",
   "یک وقت خود را به خانواده و دوستان سپری کنید",
   "تنفس عمیق (۴ ثانیه نفس بکشید، ۴ ثانیه نگه دارید، ۴ ثانیه رها کنید)",
@@ -20,7 +19,6 @@ const RELAXATION_OPTIONS = [
 ];
 
 export function MindPeaceSection() {
-  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
 
   return (
     <AdviceSectionCard

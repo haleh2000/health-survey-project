@@ -13,6 +13,7 @@ import type { SurveyStep } from "@survey/domain/entities/survey-definition.entit
 import type { FieldErrors } from "@survey/domain/services/answer-validation.service";
 import { setAnswer, toggleAnswer } from "@survey/domain/services/answer-update.service";
 import { visibleQuestionsOf } from "@survey/domain/services/question-visibility.service";
+import { saveAssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 
@@ -168,6 +169,7 @@ useEffect(() => {
       const result = await submitSurvey.execute(finalAnswers);
 
       if (result.ok) {
+        saveAssessmentRecord(result.value);
         setAssessment(result.value);
         setStage("completed");
         scrollToTop();

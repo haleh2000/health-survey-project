@@ -1,0 +1,32 @@
+# --- AI / tooling artifacts ---
+.claude/
+.mcp.json
+.playwright-mcp/
+CLAUDE.local.md
+
+# --- IDE / editor ---
+.idea/
+.vscode/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Node ---
+node_modules/
+dist/
+*.tsbuildinfo
+
+# --- Python ---
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# --- Env & logs ---
+.env
+.env.*
+*.log
+
+# --- Stray screenshots / scratch files in repo root ---
+/*.png

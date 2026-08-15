@@ -1,5 +1,5 @@
 // src/modules/survey/presentation/components/shared/DailyWorkTracker.tsx
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { toPersianDigits } from "@core/utils/numbers";
 
 const DAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه"] as const;

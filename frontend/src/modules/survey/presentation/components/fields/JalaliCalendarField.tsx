@@ -23,15 +23,29 @@ function toGregorianSafe(jy: number, jm: number, jd: number) {
   return { gy: r.gy!, gm: r.gm!, gd: r.gd! };
 }
 
+/**
+ * The stored value is a **Jalali** ISO string (`1370-05-12`). The validator
+ * and the backend both read the first four characters as a Jalali year, so
+ * converting to Gregorian here would make every age come out negative.
+ */
 function toISO(jy: number, jm: number, jd: number): string {
-  const { gy, gm, gd } = toGregorianSafe(jy, jm, jd);
-  return `${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`;
+  return `${jy}-${String(jm).padStart(2, '0')}-${String(jd).padStart(2, '0')}`;
+}
+
+/** Jalali birth years live around 1300–1400; anything above is Gregorian. */
+const GREGORIAN_YEAR_THRESHOLD = 1600;
+
+/** Migrates values saved by the old Gregorian-emitting version of this field. */
+function normalizeToJalaliISO(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d || y < GREGORIAN_YEAR_THRESHOLD) return iso;
+  const r = jalaali.toJalaali(y, m, d);
+  return toISO(r.jy, r.jm, r.jd);
 }
 
 function fromISO(iso: string): { jy: number; jm: number; jd: number } {
-  const d = new Date(iso);
-  const r = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
-  return { jy: r.jy, jm: r.jm, jd: r.jd };
+  const [jy, jm, jd] = normalizeToJalaliISO(iso).split('-').map(Number);
+  return { jy: jy ?? 1370, jm: jm ?? 1, jd: jd ?? 1 };
 }
 
 function todayISO(): string {
@@ -112,6 +126,14 @@ export function JalaliCalendarField({
 
   const [navYear,  setNavYear]  = useState<number>(() => initNav().jy);
   const [navMonth, setNavMonth] = useState<number>(() => initNav().jm);
+
+  // Answers saved by the old version of this field are Gregorian — rewrite
+  // them once so validation and the backend see a Jalali date again.
+  useEffect(() => {
+    if (!value) return;
+    const normalized = normalizeToJalaliISO(value);
+    if (normalized !== value) onChange(normalized);
+  }, [value, onChange]);
 
   // ── selected date breakdown (for blue header display) ────────────────────
 

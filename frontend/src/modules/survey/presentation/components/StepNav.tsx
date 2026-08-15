@@ -38,7 +38,7 @@ export function StepNav({
   onNext,
 }: StepNavProps) {
   return (
-    <div className="flex items-center justify-between gap-3 pt-4">
+    <div className="sticky bottom-3 z-20 mt-5 flex items-center justify-between gap-3 rounded-2xl border border-white/40 bg-surface/85 p-3 shadow-raised backdrop-blur-xl">
       <motion.div whileTap={{ scale: 0.96 }} transition={press}>
         <Button variant="ghost" onClick={onBack} disabled={isFirstStep || submitting}>
           مرحله قبل

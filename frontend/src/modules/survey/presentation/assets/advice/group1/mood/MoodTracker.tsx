@@ -20,7 +20,7 @@ const MOOD_ICONS = [
 ];
 
 export function MoodTracker() {
-  const [moods, setMoods] = useState<(number | null)[]>(Array(7).fill(null));
+  const [, setMoods] = useState<(number | null)[]>(Array(7).fill(null));
 
   const setMood = (dayIndex: number, moodIndex: number) => {
     setMoods((prev) => {

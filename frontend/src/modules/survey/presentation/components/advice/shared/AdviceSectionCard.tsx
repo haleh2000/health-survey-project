@@ -13,9 +13,7 @@ interface AdviceSectionCardProps {
 }
 
 export function AdviceSectionCard({
-  title,
   imageSrc,
-  imageAlt,
   children,
   backgroundColor = "bg-white",
   borderTitle,

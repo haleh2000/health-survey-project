@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 
 import { ProgressBar } from "@ds/components/ProgressBar";
-import { ThemeToggle } from "@ds/components/ThemeToggle";
 import { cn } from "@ds/lib/cn";
 
 import type { SurveyStep } from "@survey/domain/entities/survey-definition.entity";
