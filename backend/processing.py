@@ -91,10 +91,11 @@ def calculate_risk_sync(data: SurveyInput) -> dict:
     stroke_risk = (2 * diseases.get('hypertension', 0) + diseases.get('diabetes', 0) + heavy_smoker + 
                    strokes.get('brain_stroke', 0) + diseases.get('psychosocial', 0) + family.get('stroke', 0))
     
-    cardiac_risk = (heart_disease_combined + diseases.get('hypertension', 0) + diseases.get('diabetes', 0) + 
-                    heavy_smoker + family.get('cardiac_disease', 0) + strokes.get('heart_attack', 0) + obesity_bin)
+    cardiac_risk = (diseases.get('heart_disease', 0) + diseases.get('hypertension', 0) + diseases.get('diabetes', 0) + 
+                heavy_smoker + family.get('cardiac_disease', 0) + strokes.get('heart_attack', 0) + obesity_bin)
     
-    metabolic_risk = (diseases.get('diabetes', 0) + heart_disease_combined + diseases.get('hypertension', 0) + diseases.get('psychosocial', 0))
+    metabolic_risk = (diseases.get('diabetes', 0) + diseases.get('heart_disease', 0) + strokes.get('heart_attack', 0) + 
+                  diseases.get('hypertension', 0) + diseases.get('psychosocial', 0))
     
     liver_risk = (2 * cancers.get('liver', 0) + 2 * heavy_alcohol + 2 * diseases.get('infectious', 0) + 
                   family.get('liver_cancer', 0) + obesity_bin + diseases.get('diabetes', 0) + heavy_smoker)
@@ -106,8 +107,7 @@ def calculate_risk_sync(data: SurveyInput) -> dict:
     age_risk_factor = 0 if age < 40 else (1 if age < 50 else (2 if age < 60 else 3))
     total_risk_score += age_risk_factor
 
-
-       # 6. Categorization
+    # 6. Categorization
     if has_any_cancer == 1 or strokes.get('heart_attack', 0) == 1 or strokes.get('brain_stroke', 0) == 1:
         health_risk_level = config.RISK_LEVEL_1
     elif total_risk_score > 16:
@@ -117,8 +117,7 @@ def calculate_risk_sync(data: SurveyInput) -> dict:
     else:
         health_risk_level = config.RISK_LEVEL_4
 
-    # 7. Return dict must include organ risks to match RiskResponse fields
-       # 7. Return dict
+    # 7. Return dict
     return {
         "name": data.full_name,
         "national_id": data.national_id,
@@ -166,5 +165,3 @@ def calculate_risk_sync(data: SurveyInput) -> dict:
             "family_cardiac":         bool(family["cardiac_disease"]),
         },
     }
-
-
