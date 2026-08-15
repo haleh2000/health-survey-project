@@ -21,7 +21,8 @@ export function AdviceSectionCard({
   borderTitle,
 }: AdviceSectionCardProps) {
   return (
-    <Card className={cn("m-3 sm:m-6 overflow-hidden p-0", backgroundColor)}>
+    <Card className={cn("m-3 sm:m-6 overflow-hidden p-0 relative", backgroundColor)}
+  style={imageSrc ? { backgroundImage: `url(${imageSrc})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
       {borderTitle && (
         <div className="absolute top-0 right-4 sm:right-15 -translate-y-1/2 bg-white px-3 text-lg sm:text-2xl">
           <span className="font-semibold text-day-primary">{borderTitle}</span>

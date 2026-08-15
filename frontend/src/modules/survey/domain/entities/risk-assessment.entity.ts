@@ -101,9 +101,6 @@ export interface RiskAssessment {
   bmi:         number | null;   
   flags:       AssessmentFlags; 
 }
-
-
-
 export const summaryFor = (assessment: RiskAssessment): string =>
   RISK_TIER_SUMMARY[assessment.tier];
 
