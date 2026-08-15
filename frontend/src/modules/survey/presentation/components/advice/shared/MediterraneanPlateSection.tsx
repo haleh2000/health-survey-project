@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { SectionHeader } from "./SectionHeader";
 import { WeeklyDayTracker } from "./WeeklyDayTracker";
 

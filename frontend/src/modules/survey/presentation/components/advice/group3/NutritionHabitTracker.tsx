@@ -12,7 +12,6 @@ const ISSUES = [
 
 export function NutritionHabitTracker() {
   const [checked, setChecked] = useState<boolean[]>(Array(7).fill(false));
-  const [successCount, setSuccessCount] = useState("");
 
   const toggle = (i: number) => setChecked((prev) => prev.map((v, idx) => (idx === i ? !v : v)));
 

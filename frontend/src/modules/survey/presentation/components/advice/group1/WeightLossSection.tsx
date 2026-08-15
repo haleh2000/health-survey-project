@@ -1,5 +1,4 @@
 // src/modules/survey/presentation/components/advice/WeightLossSection.tsx
-import { useState } from "react";
 import { AdviceSectionCard } from "../shared/AdviceSectionCard";
 import { WeeklyDayTracker } from "../shared/WeeklyDayTracker";
 

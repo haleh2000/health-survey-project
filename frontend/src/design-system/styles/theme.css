@@ -88,7 +88,7 @@
   }
 
   .dark {
-    /* --canvas: #070d1a; */
+    --canvas: #070d1a;
     --surface: #101a2d;
     --surface-muted: #16233a;
     --line: #22314b;

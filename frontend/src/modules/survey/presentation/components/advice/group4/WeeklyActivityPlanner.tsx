@@ -3,7 +3,7 @@ interface ExerciseGoal {
   items: string[];
 }
 
-const GOALS: ExerciseGoal[] = [
+export const GOALS: ExerciseGoal[] = [
   {
     category: "استقامت",
     items: ["دو ۵ کیلومتر در زمان زیر ۳۰ دقیقه"],
