@@ -76,11 +76,6 @@ const validateJalaliDate = (
   return null;
 };
 
-/**
- * Rejects values that are not in the option list. This catches answers left
- * over from an earlier version of the questionnaire, which would otherwise
- * reach the backend and be scored as zero without any error.
- */
 const validateChoice = (question: ChoiceQuestion, selected: readonly string[]): string | null => {
   const allowed = new Set(question.options.map((option) => option.value));
   const unknown = selected.find((value) => !allowed.has(value));
@@ -88,7 +83,6 @@ const validateChoice = (question: ChoiceQuestion, selected: readonly string[]): 
   return unknown === undefined ? null : "گزینه انتخاب‌شده معتبر نیست.";
 };
 
-/** Validates one answer. Returns a Persian message, or null when it is fine. */
 export const validateQuestion = (
   question: Question,
   answers: SurveyAnswers,
@@ -112,17 +106,12 @@ export const validateQuestion = (
   }
 };
 
-/** Validates only the questions currently shown on one step. */
 export const validateStep = (
   definition: SurveyDefinition,
   step: SurveyStep,
   answers: SurveyAnswers,
 ): FieldErrors => collect(visibleQuestionsOf(definition, step, answers), answers);
 
-/**
- * Validates the whole survey and, on success, brands the answers so they can
- * be handed to the repository port.
- */
 export const validateAll = (
   definition: SurveyDefinition,
   answers: SurveyAnswers,
