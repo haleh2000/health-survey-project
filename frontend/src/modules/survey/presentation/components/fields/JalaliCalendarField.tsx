@@ -23,31 +23,19 @@ function toGregorianSafe(jy: number, jm: number, jd: number) {
   return { gy: r.gy!, gm: r.gm!, gd: r.gd! };
 }
 
-/**
- * The stored value is a **Jalali** ISO string (`1370-05-12`). The validator
- * and the backend both read the first four characters as a Jalali year, so
- * converting to Gregorian here would make every age come out negative.
- */
 function toISO(jy: number, jm: number, jd: number): string {
-  return `${jy}-${String(jm).padStart(2, '0')}-${String(jd).padStart(2, '0')}`;
+  const { gy, gm, gd } = toGregorianSafe(jy, jm, jd);
+  return `${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`;
 }
 
-/** Jalali birth years live around 1300–1400; anything above is Gregorian. */
-const GREGORIAN_YEAR_THRESHOLD = 1600;
-
-/** Migrates values saved by the old Gregorian-emitting version of this field. */
-function normalizeToJalaliISO(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  if (!y || !m || !d || y < GREGORIAN_YEAR_THRESHOLD) return iso;
-  const r = jalaali.toJalaali(y, m, d);
-  return toISO(r.jy, r.jm, r.jd);
-}
-
+// ✅ fromISO now parses Jalali ISO directly (no Gregorian conversion)
 function fromISO(iso: string): { jy: number; jm: number; jd: number } {
-  const [jy, jm, jd] = normalizeToJalaliISO(iso).split('-').map(Number);
-  return { jy: jy ?? 1370, jm: jm ?? 1, jd: jd ?? 1 };
+  const d = new Date(iso);
+  const r = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  return { jy: r.jy, jm: r.jm, jd: r.jd };
 }
 
+// ✅ todayISO: toJalaali converts today to Jalali parts, then toISO emits Jalali ISO
 function todayISO(): string {
   const t = new Date();
   const { jy, jm, jd } = jalaali.toJalaali(
@@ -59,8 +47,8 @@ function todayISO(): string {
 }
 
 function calcFirstDow(jy: number, jm: number): number {
-  const { gy, gm, gd } = toGregorianSafe(jy, jm, 1);
-  return (new Date(gy, gm - 1, gd).getDay() + 1) % 7;
+  const r = jalaali.toGregorian(jy, jm, 1);
+  return (new Date(r.gy, r.gm - 1, r.gd).getDay() + 1) % 7;
 }
 
 const JALALI_MONTHS = [
@@ -325,8 +313,8 @@ export function JalaliCalendarField({
                   className={[
                     'flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-bold transition-colors cursor-pointer',
                     view === 'months'
-                      ? 'bg-white text-[#0099A8] '
-                      : 'bg-white/20 text-white hover:bg-white/30 ',
+                      ? 'bg-white text-[#0099A8]'
+                      : 'bg-white/20 text-white hover:bg-white/30',
                   ].join(' ')}
                 >
                   {selectedParts
@@ -428,105 +416,103 @@ export function JalaliCalendarField({
               )}
 
               {/* ── MONTHS VIEW ── */}
-            {view === 'months' && (
-    <>
-      {/* header row: title + close (✕) */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-gray-500">انتخاب ماه</span>
-        <button
-          type="button"
-          onClick={() => setView('days')}
-          aria-label="بستن و بازگشت به تقویم"
-          className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-        >
-          <CloseIcon className="w-3.5 h-3.5" />
-        </button>
-      </div>
+              {view === 'months' && (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-gray-500">انتخاب ماه</span>
+                    <button
+                      type="button"
+                      onClick={() => setView('days')}
+                      aria-label="بستن و بازگشت به تقویم"
+                      className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                    >
+                      <CloseIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
 
-      <div className="grid grid-cols-3 gap-1.5">
-        {JALALI_MONTHS.map((name, i) => {
-          const m          = i + 1;
-          const isSelected = m === navMonth;
-          return (
-            <button
-              key={m}
-              type="button"
-              onClick={() => {
-                setNavMonth(m);
-                if (selectedParts) {
-                  const maxD = jalaali.jalaaliMonthLength(navYear, m);
-                  const safeD = Math.min(selectedParts.jd, maxD);
-                  setTempISO(toISO(navYear, m, safeD));
-                }
-                setView('days');
-              }}
-              className={[
-                'py-3 rounded-xl text-xs font-medium transition-colors duration-100  hover:cursor-pointer',
-                isSelected
-                  ? 'bg-[#0099A8] text-white  hover:cursor-pointer'
-                  : 'text-gray-700 hover:bg-[#0099A8]/10 hover:cursor-pointer',
-              ].join(' ')}
-            >
-              {name}
-            </button>
-          );
-        })}
-      </div>
-    </>
-  )}
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {JALALI_MONTHS.map((name, i) => {
+                      const m          = i + 1;
+                      const isSelected = m === navMonth;
+                      return (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => {
+                            setNavMonth(m);
+                            if (selectedParts) {
+                              const maxD  = jalaali.jalaaliMonthLength(navYear, m);
+                              const safeD = Math.min(selectedParts.jd, maxD);
+                              setTempISO(toISO(navYear, m, safeD));
+                            }
+                            setView('days');
+                          }}
+                          className={[
+                            'py-3 rounded-xl text-xs font-medium transition-colors duration-100 cursor-pointer',
+                            isSelected
+                              ? 'bg-[#0099A8] text-white'
+                              : 'text-gray-700 hover:bg-[#0099A8]/10',
+                          ].join(' ')}
+                        >
+                          {name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
-  {/* ── YEARS VIEW (scrollable list) ── */}
-  {view === 'years' && (
-    <>
-      {/* header row: title + close (✕) */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-gray-500">انتخاب سال</span>
-        <button
-          type="button"
-          onClick={() => setView('days')}
-          aria-label="بستن و بازگشت به تقویم"
-          className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          <CloseIcon className="w-3.5 h-3.5" />
-        </button>
-      </div>
+              {/* ── YEARS VIEW (scrollable list) ── */}
+              {view === 'years' && (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-gray-500">انتخاب سال</span>
+                    <button
+                      type="button"
+                      onClick={() => setView('days')}
+                      aria-label="بستن و بازگشت به تقویم"
+                      className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                    >
+                      <CloseIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
 
-      <div
-        ref={yearListRef}
-        className="grid grid-cols-3 gap-1.5 overflow-y-auto max-h-52 pr-0.5"
-        style={{ scrollbarWidth: 'thin' }}
-      >
-        {allYears.map((y) => {
-          const isSelected = y === navYear;
-          return (
-            <button
-              key={y}
-              type="button"
-              data-selected={isSelected}
-              onClick={() => {
-                setNavYear(y);
-                if (selectedParts) {
-                  const maxD = jalaali.jalaaliMonthLength(y, navMonth);
-                  const safeD = Math.min(selectedParts.jd, maxD);
-                  setTempISO(toISO(y, navMonth, safeD));
-                }
-                setView('days');
-              }}
-              className={[
-                'py-3 rounded-xl text-xs font-medium transition-colors duration-100 hover:cursor-pointer',
-                isSelected
-                  ? 'bg-[#0099A8] text-white'
-                  : 'text-gray-700 hover:bg-[#0099A8]/10',
-              ].join(' ')}
-            >
-              {toFarsi(y)}
-            </button>
-          );
-        })}
-      </div>
-    </>
-  )}
-</div>
+                  <div
+                    ref={yearListRef}
+                    className="grid grid-cols-3 gap-1.5 overflow-y-auto max-h-52 pr-0.5"
+                    style={{ scrollbarWidth: 'thin' }}
+                  >
+                    {allYears.map((y) => {
+                      const isSelected = y === navYear;
+                      return (
+                        <button
+                          key={y}
+                          type="button"
+                          data-selected={isSelected}
+                          onClick={() => {
+                            setNavYear(y);
+                            if (selectedParts) {
+                              const maxD  = jalaali.jalaaliMonthLength(y, navMonth);
+                              const safeD = Math.min(selectedParts.jd, maxD);
+                              setTempISO(toISO(y, navMonth, safeD));
+                            }
+                            setView('days');
+                          }}
+                          className={[
+                            'py-3 rounded-xl text-xs font-medium transition-colors duration-100 hover:cursor-pointer',
+                            isSelected
+                              ? 'bg-[#0099A8] text-white'
+                              : 'text-gray-700 hover:bg-[#0099A8]/10',
+                          ].join(' ')}
+                        >
+                          {toFarsi(y)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* ── footer ── */}
             <div className="flex items-center justify-between gap-2 px-3 pb-3">
@@ -575,7 +561,6 @@ function CloseIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
 
 function CalendarIcon({ className }: { className?: string }) {
   return (
