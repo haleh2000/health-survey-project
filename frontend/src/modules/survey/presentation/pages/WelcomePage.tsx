@@ -1,97 +1,151 @@
 // WelcomePage.tsx
-import { motion, useReducedMotion } from "framer-motion";
-import { Lock, Sparkles, Timer } from "lucide-react";
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import daydarLogo from '@ds/assets/logo/daydar-logo.png';
+import time from '@ds/assets/time.png';
+import safe from '@ds/assets/safe.png';
+import daydarReport from '@ds/assets/daydar-report.png';
 
-import { HealthDashboard } from "@survey/presentation/components/dashboard/HealthDashboard";
-import { loadAssessmentHistory } from "@survey/infrastructure/storage/assessment-history.storage";
+const CARD_ACCENT = {
+  color: 'from-[#0099A8]/20 to-teal-500/20',
+  iconColor: 'text-[#0099A8]',
+};
 
-const TRUST_BADGES = [
-  { icon: Timer, label: "رایگان و سریع" },
-  { icon: Lock, label: "محرمانه و امن" },
-  { icon: Sparkles, label: "پیشنهادهای شخصی‌سازی‌شده" },
-] as const;
+const CARD_SHADOW =
+  'shadow-[0_10px_30px_rgba(0,153,168,0.15)] hover:shadow-[0_20px_45px_rgba(0,153,168,0.35)]';
 
 export default function WelcomePage() {
   const navigate = useNavigate();
-  const reduceMotion = useReducedMotion();
+  const heroRef = useRef(null);
 
-  const history = useMemo(loadAssessmentHistory, []);
-  const latest = history[0] ?? null;
-  const hasAssessment = latest !== null;
+  const features = [
+    { icon: time, title: 'رایگان و سریع', delay: 0.2, ...CARD_ACCENT },
+    { icon: safe, title: 'محرمانه و امن', delay: 0.4, ...CARD_ACCENT },
+    {
+      icon: daydarReport,
+      title: 'پیشنهادات هوشمند شخصی‌سازی‌شده',
+      delay: 0.6,
+      ...CARD_ACCENT,
+    },
+  ];
 
   return (
-    <div className="min-h-screen px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        {/* Hero. */}
-        <div className="flex flex-col items-center gap-5 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 24 }}
-            className="text-2xl font-black leading-snug text-ink sm:text-3xl lg:text-4xl"
-          >
-            {hasAssessment ? (
-              <>تصویر سلامت شما، همیشه جلوی چشم</>
-            ) : (
-              <>
-                سفر سلامت خود را{" "}
-                <span className="bg-gradient-to-l from-day-primary to-teal-600 bg-clip-text text-transparent">
-                  امروز شروع کنید
-                </span>
-              </>
-            )}
-          </motion.h1>
+    <div className="min-h-screen overflow-hidden relative flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="relative z-10 w-full max-w-5xl bg-white/60 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-white/50">
+        <motion.div className="flex justify-center mb-6 sm:mb-8" />
 
-          {/* CTA — feedback on the press itself, spring on hover. */}
-          <motion.button
+        {/* Hero Section */}
+        <motion.div ref={heroRef} className="text-center mb-8 sm:mb-10">
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 220, damping: 20, delay: 0.15 }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={() => navigate("/survey")}
-            className="group relative w-full cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-l from-day-primary to-teal-600 px-14 py-4 text-lg font-bold text-white shadow-raised sm:w-auto sm:min-w-[320px]"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mb-6 sm:mb-8"
           >
-            {/* A soft light sweep keeps the button breathing without shouting. */}
-            {!reduceMotion && (
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-gray-900 mb-3 sm:mb-4 leading-tight">
               <motion.span
-                aria-hidden
-                className="absolute inset-y-0 w-1/3 bg-white/20 blur-md"
-                animate={{ left: ["-40%", "120%"] }}
-                transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 1.8, ease: "easeInOut" }}
-              />
-            )}
-            <span className="relative flex items-center justify-center gap-2">
-              {hasAssessment ? "ارزیابی مجدد" : "شروع ارزیابی"}
-              <motion.span
-                animate={reduceMotion ? undefined : { x: [0, -5, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                ←
-              </motion.span>
-            </span>
-          </motion.button>
-
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {TRUST_BADGES.map((badge, index) => (
-              <motion.span
-                key={badge.label}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.08 }}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/70 px-3 py-1.5 text-xs font-semibold text-ink-muted backdrop-blur-sm"
+                transition={{ delay: 0.3 }}
+                className="block"
               >
-                <badge.icon className="h-3.5 w-3.5 text-day-primary" />
-                {badge.label}
+                سفر سلامت خود را
               </motion.span>
-            ))}
-          </div>
-        </div>
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="block bg-gradient-to-l from-[#0099A8] to-teal-600 bg-clip-text text-transparent mt-3"
+              >
+                امروز شروع کنید
+              </motion.span>
+            </h1>
+          </motion.div>
 
-        {/* Personal dashboard — zeroed before the first assessment. */}
-        <HealthDashboard record={latest} historyCount={history.length} />
+          {/* CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.9, type: 'spring', stiffness: 200 }}
+          >
+            <motion.button
+              onClick={() => navigate('/survey')}
+              whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(0, 153, 168, 0.3)' }}
+              whileTap={{ scale: 0.95 }}
+              className="group cursor-pointer relative w-full sm:w-auto sm:min-w-[280px] md:min-w-[340px] px-12 py-3 sm:px-16 sm:py-4 md:px-20 md:py-5 bg-gradient-to-l from-[#0099A8] to-teal-600 text-white rounded-xl sm:rounded-2xl text-lg sm:text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
+            >
+              <motion.div
+                className="absolute inset-0 bg-white"
+                initial={{ x: '-100%', opacity: 0 }}
+                whileHover={{ x: 0, opacity: 0.1 }}
+                transition={{ duration: 0.3 }}
+              />
+              <span className="relative flex items-center justify-center gap-2 sm:gap-3">
+                شروع ارزیابی
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  ←
+                </motion.span>
+              </span>
+              <motion.div
+                className="absolute inset-0 border-2 border-white/50 rounded-xl sm:rounded-2xl"
+                animate={{
+                  scale: [1, 1.05, 1],
+                  opacity: [0.5, 0, 0.5],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+            </motion.button>
+          </motion.div>
+        </motion.div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-10 max-w-4xl mx-auto items-stretch">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: feature.delay }}
+              className="group relative h-full"
+            >
+              <motion.div
+                className={`absolute inset-0 bg-gradient-to-br ${feature.color} rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+              />
+              <div
+                className={`relative h-full flex flex-col bg-white/90 backdrop-blur-sm border border-gray-100 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 transition-all duration-500 text-center ${CARD_SHADOW}`}
+              >
+                <motion.div
+                  initial={{ rotate: 0, scale: 1 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <img
+                    src={feature.icon}
+                    alt={feature.title}
+                    className="w-16 h-16 sm:w-20 sm:h-20 md:w-40 md:h-40 mx-auto object-contain"
+                  />
+                </motion.div>
+                <div className="flex-1 flex items-center justify-center">
+                  <h3
+                    className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-1 sm:mb-2 text-center"
+                    style={{ lineHeight: '2.2' }}
+                  >
+                    {feature.title}
+                  </h3>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

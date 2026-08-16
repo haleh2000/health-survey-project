@@ -13,6 +13,9 @@ import { StepTimeline } from "@survey/presentation/components/StepTimeline";
 import { SurveyHeader } from "@survey/presentation/components/SurveyHeader";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 import { useSurveyWizard } from "@survey/presentation/state/useSurveyWizard";
+import { HealthDashboard } from "@survey/presentation/components/dashboard/HealthDashboard"
+import { loadAssessmentHistory } from "@survey/infrastructure/storage/assessment-history.storage";
+;
 
 const stepSpring = { type: "spring", stiffness: 320, damping: 32 } as const;
 
@@ -42,18 +45,20 @@ export function SurveyPage() {
     [height, weight],
   );
 
-  if (wizard.stage === "completed" && wizard.assessment) {
-    return (
-      <main className="mx-auto max-w-3xl px-5 py-10">
-        <RiskResultCard
-          assessment={wizard.assessment}
-          answers={wizard.answers}
-          bodyMetrics={bodyMetrics}
-          onRestart={wizard.restart}
-        />
-      </main>
-    );
-  }
+if (wizard.stage === "completed" && wizard.assessment) {
+  const history = loadAssessmentHistory();
+  const latestRecord = history[0] ?? null;
+
+  return (
+    <main className="mx-auto max-w-4xl px-5 py-10">
+      <HealthDashboard record={latestRecord} historyCount={history.length} />
+      <button onClick={wizard.restart} className="mt-6 text-sm font-bold text-day-primary">
+        ارزیابی مجدد
+      </button>
+    </main>
+  );
+}
+
 
   const submitting = wizard.stage === "submitting";
 
