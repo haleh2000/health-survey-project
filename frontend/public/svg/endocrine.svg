@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 800" width="500" height="800">
+  <title>Sistema Endocrino</title>
+  <desc>Diagrama esquemático del sistema endocrino humano</desc>
+
+  <!-- Body outline -->
+  <g id="body-outline" fill="none" stroke="#e5e7eb" stroke-width="1.5">
+    <!-- Head -->
+    <ellipse cx="250" cy="55" rx="40" ry="50" />
+    <!-- Neck -->
+    <path d="M 225 100 L 222 125" />
+    <path d="M 275 100 L 278 125" />
+    <!-- Torso -->
+    <path d="M 200 130 L 175 200 L 170 320 L 185 430 L 195 510 L 200 560" />
+    <path d="M 300 130 L 325 200 L 330 320 L 315 430 L 305 510 L 300 560" />
+    <!-- Shoulders -->
+    <path d="M 200 130 Q 210 120 222 125" />
+    <path d="M 300 130 Q 290 120 278 125" />
+    <!-- Legs -->
+    <path d="M 200 560 Q 195 590 192 630 L 188 700 L 183 760 L 175 790" />
+    <path d="M 300 560 Q 305 590 308 630 L 312 700 L 317 760 L 325 790" />
+  </g>
+
+  <!-- Title -->
+  <text x="250" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#059669">Sistema Endocrino</text>
+
+  <!-- Hipófisis (Pituitary gland) — base of brain -->
+  <g id="hipofisis" data-region="hipofisis" data-region-id="hipofisis" class="body-region interactive">
+    <ellipse cx="250" cy="62" rx="8" ry="6" fill="#10B981" fill-opacity="0.5" stroke="#059669" stroke-width="1.5" />
+    <text x="295" y="58" text-anchor="start" font-size="9" fill="#065f46">Hipófisis</text>
+    <!-- connector line -->
+    <line x1="258" y1="62" x2="290" y2="57" stroke="#059669" stroke-width="0.8" stroke-dasharray="3,2" />
+  </g>
+
+  <!-- Hipotálamo (Hypothalamus) — above pituitary -->
+  <g id="hipotalamo" data-region="hipotalamo" data-region-id="hipotalamo" class="body-region interactive">
+    <ellipse cx="250" cy="48" rx="12" ry="7" fill="#34D399" fill-opacity="0.4" stroke="#059669" stroke-width="1" />
+    <text x="165" y="45" text-anchor="start" font-size="9" fill="#065f46">Hipotálamo</text>
+    <line x1="238" y1="48" x2="198" y2="44" stroke="#059669" stroke-width="0.8" stroke-dasharray="3,2" />
+  </g>
+
+  <!-- Glándula pineal -->
+  <g id="glandula_pineal" data-region="glandula_pineal" data-region-id="glandula_pineal" class="body-region interactive">
+    <circle cx="262" cy="44" r="4" fill="#6EE7B7" fill-opacity="0.5" stroke="#059669" stroke-width="1" />
+    <text x="300" y="35" text-anchor="start" font-size="8" fill="#065f46">Gl. Pineal</text>
+    <line x1="266" y1="42" x2="298" y2="34" stroke="#059669" stroke-width="0.7" stroke-dasharray="2,2" />
+  </g>
+
+  <!-- Tiroides (Thyroid gland) — neck -->
+  <g id="tiroides" data-region="tiroides" data-region-id="tiroides" class="body-region interactive">
+    <!-- Left lobe -->
+    <ellipse cx="239" cy="138" rx="11" ry="15" fill="#10B981" fill-opacity="0.45" stroke="#059669" stroke-width="1.5" />
+    <!-- Right lobe -->
+    <ellipse cx="261" cy="138" rx="11" ry="15" fill="#10B981" fill-opacity="0.45" stroke="#059669" stroke-width="1.5" />
+    <!-- Isthmus -->
+    <rect x="239" y="138" width="22" height="6" fill="#10B981" fill-opacity="0.35" />
+    <text x="180" y="133" text-anchor="start" font-size="9" fill="#065f46">Tiroides</text>
+    <line x1="228" y1="136" x2="210" y2="132" stroke="#059669" stroke-width="0.8" stroke-dasharray="3,2" />
+  </g>
+
+  <!-- Paratiroides (Parathyroid) -->
+  <g id="paratiroides" data-region="paratiroides" data-region-id="paratiroides" class="body-region interactive">
+    <circle cx="229" cy="130" r="4" fill="#A7F3D0" fill-opacity="0.6" stroke="#059669" stroke-width="1" />
+    <circle cx="229" cy="146" r="4" fill="#A7F3D0" fill-opacity="0.6" stroke="#059669" stroke-width="1" />
+    <circle cx="271" cy="130" r="4" fill="#A7F3D0" fill-opacity="0.6" stroke="#059669" stroke-width="1" />
+    <circle cx="271" cy="146" r="4" fill="#A7F3D0" fill-opacity="0.6" stroke="#059669" stroke-width="1" />
+    <text x="310" y="135" text-anchor="start" font-size="8" fill="#065f46">Paratiroides</text>
+    <line x1="275" y1="131" x2="308" y2="134" stroke="#059669" stroke-width="0.7" stroke-dasharray="2,2" />
+  </g>
+
+  <!-- Timo (Thymus) — upper chest -->
+  <g id="timo" data-region="timo" data-region-id="timo" class="body-region interactive">
+    <ellipse cx="250" cy="195" rx="18" ry="22" fill="#10B981" fill-opacity="0.3" stroke="#059669" stroke-width="1.2" />
+    <line x1="250" y1="185" x2="250" y2="205" stroke="#059669" stroke-width="0.8" stroke-dasharray="2,2" />
+    <text x="165" y="190" text-anchor="start" font-size="9" fill="#065f46">Timo</text>
+    <line x1="232" y1="192" x2="200" y2="189" stroke="#059669" stroke-width="0.8" stroke-dasharray="3,2" />
+  </g>
+
+  <!-- Hormone pathway lines (dotted) from pituitary downward -->
+  <g id="hormone-pathways" fill="none" stroke="#10B981" stroke-width="1" stroke-dasharray="4,3" stroke-opacity="0.4">
+    <line x1="250" y1="68" x2="250" y2="120" />
+    <line x1="250" y1="155" x2="250" y2="173" />
+    <line x1="250" y1="217" x2="250" y2="290" />
+    <line x1="250" y1="330" x2="250" y2="370" />
+  </g>
+
+  <!-- Páncreas (islotes de Langerhans) -->
+  <g id="pancreas" data-region="pancreas" data-region-id="pancreas" class="body-region interactive">
+    <path d="M 215 305 Q 230 295 260 298 Q 285 300 295 312 Q 300 320 288 326 Q 270 332 245 328 Q 220 325 215 315 Z"
+      fill="#10B981" fill-opacity="0.4" stroke="#059669" stroke-width="1.5" />
+    <!-- Islets dots -->
+    <circle cx="235" cy="312" r="3" fill="#059669" fill-opacity="0.6" />
+    <circle cx="252" cy="308" r="3" fill="#059669" fill-opacity="0.6" />
+    <circle cx="268" cy="312" r="3" fill="#059669" fill-opacity="0.6" />
+    <text x="155" y="308" text-anchor="start" font-size="9" fill="#065f46">Páncreas</text>
+    <text x="153" y="320" text-anchor="start" font-size="7" fill="#065f46">(Islotes)</text>
+    <line x1="215" y1="312" x2="193" y2="315" stroke="#059669" stroke-width="0.8" stroke-dasharray="3,2" />
+  </g>
+
+  <!-- Glándulas suprarrenales (Adrenal glands) -->
+  <g id="suprarrenal_derecha" data-region="suprarrenal_derecha" data-region-id="suprarrenal_derecha" class="body-region interactive">
+    <path d="M 295 268 Q 310 260 322 268 Q 322 280 310 282 Q 298 280 295 268 Z"
+      fill="#10B981" fill-opacity="0.5" stroke="#059669" stroke-width="1.5" />
+    <text x="330" y="270" text-anchor="start" font-size="8" fill="#065f46">Suprarrenal D</text>
+  </g>
+  <g id="suprarrenal_izquierda" data-region="suprarrenal_izquierda" data-region-id="suprarrenal_izquierda" class="body-region interactive">
+    <path d="M 178 258 Q 190 250 202 258 Q 202 270 190 272 Q 178 270 178 258 Z"
+      fill="#10B981" fill-opacity="0.5" stroke="#059669" stroke-width="1.5" />
+    <text x="130" y="258" text-anchor="end" font-size="8" fill="#065f46">Suprarrenal I</text>
+  </g>
+
+  <!-- Kidneys (faint outline, suprarrenales sit atop them) -->
+  <g id="rinones-outline" fill="none" stroke="#d1d5db" stroke-width="1" stroke-dasharray="3,3">
+    <ellipse cx="310" cy="295" rx="20" ry="30" />
+    <ellipse cx="190" cy="285" rx="20" ry="30" />
+  </g>
+  <text x="330" y="297" font-size="7" fill="#9ca3af">Riñón D</text>
+  <text x="130" y="290" text-anchor="end" font-size="7" fill="#9ca3af">Riñón I</text>
+
+  <!-- Ovarios / Testículos (gonads) -->
+  <g id="gonadas" data-region="gonadas" data-region-id="gonadas" class="body-region interactive">
+    <ellipse cx="232" cy="470" rx="14" ry="10" fill="#10B981" fill-opacity="0.35" stroke="#059669" stroke-width="1.2" />
+    <ellipse cx="268" cy="470" rx="14" ry="10" fill="#10B981" fill-opacity="0.35" stroke="#059669" stroke-width="1.2" />
+    <text x="250" y="495" text-anchor="middle" font-size="9" fill="#065f46">Gónadas</text>
+  </g>
+
+  <!-- Legend -->
+  <g id="legend" transform="translate(20, 620)">
+    <rect x="0" y="0" width="460" height="90" rx="6" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1" />
+    <text x="10" y="18" font-size="10" font-weight="bold" fill="#065f46">Principales hormonas:</text>
+    <text x="10" y="34" font-size="8" fill="#047857">• Hipófisis → GH, TSH, ACTH, FSH, LH</text>
+    <text x="10" y="48" font-size="8" fill="#047857">• Tiroides → T3, T4, Calcitonina</text>
+    <text x="10" y="62" font-size="8" fill="#047857">• Suprarrenales → Cortisol, Adrenalina, Aldosterona</text>
+    <text x="10" y="76" font-size="8" fill="#047857">• Páncreas → Insulina, Glucagón</text>
+  </g>
+</svg>

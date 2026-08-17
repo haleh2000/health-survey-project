@@ -4,39 +4,45 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
 import { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
-
-import { AnimatedNumber } from "./AnimatedNumber";
-import { ORGAN_META } from "./organ-meta";
+import { toPersianDigits } from "@core/text/digits";
+import { ORGAN_META, type OrganKey } from "./organ-meta";
+import { scoreToTier } from "./organ-meta";
+import { OrganIcon } from "../../../../../design-system/illustrations/OrganIcon";
 
 interface Props {
-  /** Total risk score, or null before the first assessment. */
-  score: number | null;
   tier: RiskTier | null;
-  levelLabel: string | null;
+  onOrganClick?: (key: OrganKey) => void;
+  organRisks?: Partial<Record<OrganKey, { tier: RiskTier }>>;
 }
 
 const TIER_VISUAL: Record<RiskTier, { fill: number; hex: string }> = {
-  [RiskTier.Low]: { fill: 0.28, hex: "#0d9488" },
-  [RiskTier.Moderate]: { fill: 0.5, hex: "#ca8a04" },
+  [RiskTier.Low]:      { fill: 0.28, hex: "#0d9488" },
+  [RiskTier.Moderate]: { fill: 0.50, hex: "#ca8a04" },
   [RiskTier.Elevated]: { fill: 0.72, hex: "#ea580c" },
   [RiskTier.Critical]: { fill: 0.92, hex: "#dc2626" },
 };
 
+const ATTENTION_TIERS = new Set<RiskTier>([
+  RiskTier.Moderate,
+  RiskTier.Elevated,
+  RiskTier.Critical,
+]);
+
 const RING_RADIUS = 84;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-/**
- * The dashboard centerpiece: a score ring with a slow orbit of organ icons
- * around it — the web translation of the reference image's "body scan" hub.
- */
-export function ScoreOrbit({ score, tier, levelLabel }: Props) {
+export function ScoreOrbit({ tier, onOrganClick, organRisks }: Props) {
   const reduceMotion = useReducedMotion();
-  const empty = score === null || tier === null;
+  const empty = tier === null;
   const visual = empty ? null : TIER_VISUAL[tier];
+
+  const attentionCount = organRisks
+    ? Object.values(organRisks).filter((r) => r && ATTENTION_TIERS.has(r.tier)).length
+    : 0;
 
   return (
     <div className="relative mx-auto grid aspect-square w-full max-w-[340px] place-items-center">
-      {/* Breathing halo behind everything. */}
+      {/* Breathing halo */}
       {!reduceMotion && (
         <motion.div
           aria-hidden
@@ -47,56 +53,64 @@ export function ScoreOrbit({ score, tier, levelLabel }: Props) {
         />
       )}
 
-      {/* Orbiting organ icons — the whole ring rotates, each bubble counter-rotates. */}
+      {/* Orbiting organ icons */}
       <motion.div
-        aria-hidden
+        aria-hidden={!onOrganClick}
         className="absolute inset-0"
         animate={reduceMotion ? undefined : { rotate: 360 }}
         transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
       >
         {ORGAN_META.map((meta, index) => {
           const angle = (index / ORGAN_META.length) * 2 * Math.PI - Math.PI / 2;
-          const Icon = meta.icon;
+          const organTier = organRisks?.[meta.key]?.tier ?? (empty ? RiskTier.Low : RiskTier.Low);
+          const isClickable = !!onOrganClick;
+
           return (
-            <motion.div
+            <motion.button
               key={meta.key}
-              className="absolute grid h-11 w-11 place-items-center rounded-full border border-white/60 bg-surface/90 shadow-card backdrop-blur-sm"
+              type="button"
+              aria-label={meta.label}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOrganClick?.(meta.key);
+              }}
+              className={[
+                "absolute grid h-11 w-11 place-items-center rounded-full",
+                "border border-white/60 bg-surface/90 shadow-card backdrop-blur-sm",
+                "transition-transform duration-150",
+                isClickable
+                  ? "cursor-pointer hover:scale-110 hover:border-day-primary/60 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-day-primary"
+                  : "cursor-default",
+              ].join(" ")}
               style={{
                 left: `calc(50% + ${Math.cos(angle) * 47}% - 22px)`,
-                top: `calc(50% + ${Math.sin(angle) * 47}% - 22px)`,
+                top:  `calc(50% + ${Math.sin(angle) * 47}% - 22px)`,
               }}
               animate={reduceMotion ? undefined : { rotate: -360 }}
               transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
             >
-              <Icon
-                className={`h-5 w-5 ${empty ? "text-ink-subtle" : "text-day-primary"}`}
-                strokeWidth={2}
+              <OrganIcon
+                organ={meta.key}
+                 color={empty ? undefined : TIER_VISUAL[organTier].hex}
+                size={20}
+                className={empty ? "opacity-40" : undefined}
               />
-            </motion.div>
+            </motion.button>
           );
         })}
       </motion.div>
 
-      {/* Score ring. */}
+      {/* Score ring */}
       <svg viewBox="0 0 200 200" className="absolute inset-[13%] -rotate-90">
         <circle
-          cx="100"
-          cy="100"
-          r={RING_RADIUS}
-          fill="none"
-          stroke="var(--line)"
-          strokeWidth="10"
+          cx="100" cy="100" r={RING_RADIUS}
+          fill="none" stroke="var(--line)" strokeWidth="10"
           strokeDasharray={empty ? "3 8" : undefined}
         />
         {!empty && visual && (
           <motion.circle
-            cx="100"
-            cy="100"
-            r={RING_RADIUS}
-            fill="none"
-            stroke={visual.hex}
-            strokeWidth="10"
-            strokeLinecap="round"
+            cx="100" cy="100" r={RING_RADIUS}
+            fill="none" stroke={visual.hex} strokeWidth="10" strokeLinecap="round"
             strokeDasharray={RING_CIRCUMFERENCE}
             initial={{ strokeDashoffset: RING_CIRCUMFERENCE }}
             animate={{ strokeDashoffset: RING_CIRCUMFERENCE * (1 - visual.fill) }}
@@ -105,37 +119,34 @@ export function ScoreOrbit({ score, tier, levelLabel }: Props) {
         )}
       </svg>
 
-      {/* Center readout. */}
+      {/* Center readout */}
       <div className="relative z-10 flex flex-col items-center gap-1 text-center">
         {empty ? (
           <>
             <Sparkles className="h-6 w-6 text-day-primary" />
-            <span className="text-4xl font-black text-ink-subtle">۰</span>
-            <span className="max-w-[9rem] text-xs leading-6 text-ink-muted">
-              هنوز ارزیابی انجام نشده
-            </span>
+            <span className="max-w-[9rem] text-xs leading-6 text-ink-muted">هنوز ارزیابی انجام نشده</span>
+          </>
+        ) : attentionCount > 0 ? (
+          <>
+            <motion.span
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.4 }}
+              className="text-5xl font-black tabular-nums text-ink"
+            >
+              {toPersianDigits(attentionCount)}
+            </motion.span>
+            <span className="max-w-[9rem] text-xs leading-5 text-ink-subtle">مورد نیاز به پیگیری</span>
           </>
         ) : (
-          <>
-            <span className="text-[11px] font-semibold text-ink-subtle">نمره کل ریسک</span>
-            <AnimatedNumber
-              value={score}
-              fractionDigits={1}
-              delay={0.3}
-              className="text-5xl font-black tabular-nums text-ink"
-            />
-            {levelLabel && visual && (
-              <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.7 }}
-                className="rounded-full px-3 py-1 text-xs font-bold text-white shadow-sm"
-                style={{ backgroundColor: visual.hex }}
-              >
-                {levelLabel}
-              </motion.span>
-            )}
-          </>
+          <motion.span
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.4 }}
+            className="max-w-[9rem] text-sm font-bold leading-6 text-teal-600 dark:text-teal-400"
+          >
+            همه موارد در وضعیت مطلوب
+          </motion.span>
         )}
       </div>
     </div>

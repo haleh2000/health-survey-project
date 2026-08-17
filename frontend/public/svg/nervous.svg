@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 800" width="500" height="800">
+  <title>Sistema Nervioso</title>
+  <desc>Diagrama esquemático del sistema nervioso central y periférico</desc>
+
+  <!-- Body outline -->
+  <g id="body-outline" fill="none" stroke="#e5e7eb" stroke-width="1.5">
+    <ellipse cx="250" cy="55" rx="40" ry="50" />
+    <path d="M 210 95 L 210 105 Q 210 115 200 120 L 140 145 Q 110 155 100 180 L 75 270 L 60 340 L 50 380" />
+    <path d="M 290 95 L 290 105 Q 290 115 300 120 L 360 145 Q 390 155 400 180 L 425 270 L 440 340 L 450 380" />
+    <path d="M 200 120 L 175 200 L 170 300 L 185 400 L 195 470 L 200 530" />
+    <path d="M 300 120 L 325 200 L 330 300 L 315 400 L 305 470 L 300 530" />
+    <path d="M 200 530 Q 195 560 190 600 L 185 680 L 180 740 L 170 780" />
+    <path d="M 300 530 Q 305 560 310 600 L 315 680 L 320 740 L 330 780" />
+  </g>
+
+  <!-- Brain -->
+  <g id="brain" data-region="brain" data-region-id="brain" class="body-region interactive">
+    <ellipse cx="250" cy="42" rx="32" ry="28" fill="#fbbf24" fill-opacity="0.4" stroke="#d97706" stroke-width="1.5" />
+    <!-- Cerebral folds -->
+    <path d="M 228 30 Q 238 25 248 30 Q 258 25 268 30" fill="none" stroke="#d97706" stroke-width="0.8" />
+    <path d="M 225 40 Q 235 35 250 40 Q 265 35 275 40" fill="none" stroke="#d97706" stroke-width="0.8" />
+    <path d="M 230 50 Q 240 45 250 50 Q 260 45 270 50" fill="none" stroke="#d97706" stroke-width="0.8" />
+    <!-- Hemispheric division -->
+    <line x1="250" y1="15" x2="250" y2="65" stroke="#d97706" stroke-width="0.5" stroke-dasharray="3,2" />
+    <text x="250" y="78" text-anchor="middle" font-size="8" fill="#92400e">Cerebro</text>
+  </g>
+
+  <!-- Cerebellum -->
+  <g id="cerebellum" data-region="cerebellum" data-region-id="cerebellum" class="body-region interactive">
+    <ellipse cx="250" cy="68" rx="18" ry="10" fill="#fb923c" fill-opacity="0.4" stroke="#ea580c" stroke-width="1" />
+    <path d="M 238 68 Q 244 65 250 68 Q 256 65 262 68" fill="none" stroke="#ea580c" stroke-width="0.6" />
+  </g>
+
+  <!-- Brainstem -->
+  <g id="brainstem" data-region="brainstem" data-region-id="brainstem" class="body-region interactive">
+    <rect x="246" y="72" width="8" height="16" rx="3" fill="#fbbf24" fill-opacity="0.5" stroke="#d97706" stroke-width="1" />
+    <text x="265" y="82" font-size="6" fill="#92400e">Tronco</text>
+  </g>
+
+  <!-- Spinal cord -->
+  <g id="spinal_cord" data-region="spinal_cord" data-region-id="spinal_cord" class="body-region interactive">
+    <path d="M 250 88 L 250 120 L 250 200 L 250 300 L 250 400 L 250 460"
+      fill="none" stroke="#eab308" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round" />
+    <text x="262" y="300" font-size="7" fill="#854d0e">Médula espinal</text>
+  </g>
+
+  <!-- Cervical nerves -->
+  <g id="cervical_nerves" data-region="cervical_nerves" data-region-id="cervical_nerves" class="body-region interactive">
+    <path d="M 250 95 L 225 100" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.6" />
+    <path d="M 250 95 L 275 100" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.6" />
+    <path d="M 250 105 L 220 112" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.6" />
+    <path d="M 250 105 L 280 112" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.6" />
+  </g>
+
+  <!-- Brachial plexus (arm nerves) -->
+  <g id="brachial_plexus_right" data-region="brachial_plexus" data-region-id="brachial_plexus" class="body-region interactive">
+    <path d="M 250 115 L 300 125 L 350 150 L 400 180 L 425 260 L 440 340"
+      fill="none" stroke="#84cc16" stroke-width="2" stroke-opacity="0.5" />
+    <text x="370" y="175" font-size="6" fill="#3f6212">Plexo braquial</text>
+  </g>
+  <g id="brachial_plexus_left" data-region="brachial_plexus_left" data-region-id="brachial_plexus_left" class="body-region interactive">
+    <path d="M 250 115 L 200 125 L 150 150 L 100 180 L 75 260 L 60 340"
+      fill="none" stroke="#84cc16" stroke-width="2" stroke-opacity="0.5" />
+  </g>
+
+  <!-- Thoracic nerves (intercostal) -->
+  <g id="thoracic_nerves" data-region="thoracic_nerves" data-region-id="thoracic_nerves" class="body-region interactive">
+    <path d="M 250 160 L 210 170" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <path d="M 250 160 L 290 170" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <path d="M 250 200 L 205 210" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <path d="M 250 200 L 295 210" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <path d="M 250 240 L 210 250" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <path d="M 250 240 L 290 250" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <path d="M 250 280 L 215 285" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <path d="M 250 280 L 285 285" fill="none" stroke="#84cc16" stroke-width="1" stroke-opacity="0.4" />
+    <text x="297" y="242" font-size="6" fill="#3f6212">Intercostales</text>
+  </g>
+
+  <!-- Lumbar nerves -->
+  <g id="lumbar_nerves" data-region="lumbar_nerves" data-region-id="lumbar_nerves" class="body-region interactive">
+    <path d="M 250 350 L 220 370" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.5" />
+    <path d="M 250 350 L 280 370" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.5" />
+    <path d="M 250 380 L 215 400" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.5" />
+    <path d="M 250 380 L 285 400" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-opacity="0.5" />
+  </g>
+
+  <!-- Sciatic nerves -->
+  <g id="sciatic_right" data-region="sciatic_nerve" data-region-id="sciatic_nerve" class="body-region interactive">
+    <path d="M 270 430 L 290 470 L 305 530 L 310 600 L 315 670 L 318 730"
+      fill="none" stroke="#84cc16" stroke-width="2.5" stroke-opacity="0.5" />
+    <text x="315" y="540" font-size="6" fill="#3f6212">Ciático D</text>
+  </g>
+  <g id="sciatic_left" data-region="sciatic_left" data-region-id="sciatic_left" class="body-region interactive">
+    <path d="M 230 430 L 210 470 L 195 530 L 190 600 L 185 670 L 182 730"
+      fill="none" stroke="#84cc16" stroke-width="2.5" stroke-opacity="0.5" />
+    <text x="165" y="540" font-size="6" fill="#3f6212">Ciático I</text>
+  </g>
+
+  <!-- Cauda equina -->
+  <g id="cauda_equina" data-region="cauda_equina" data-region-id="cauda_equina" class="body-region interactive">
+    <path d="M 250 460 L 240 480 L 235 500" fill="none" stroke="#eab308" stroke-width="1.5" stroke-opacity="0.5" />
+    <path d="M 250 460 L 260 480 L 265 500" fill="none" stroke="#eab308" stroke-width="1.5" stroke-opacity="0.5" />
+    <path d="M 250 460 L 250 500" fill="none" stroke="#eab308" stroke-width="1.5" stroke-opacity="0.5" />
+    <text x="268" y="485" font-size="6" fill="#854d0e">Cauda equina</text>
+  </g>
+</svg>

@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 700" width="400" height="700" role="img" aria-label="Silueta corporal clínica — vista anterior">
+  <title>Silueta Corporal Clínica</title>
+  <desc>Diagrama de silueta corporal anterior con 25 regiones anatómicas clínicas en español</desc>
+
+  <style>
+    .body-region {
+      cursor: pointer;
+      transition: fill 0.18s ease, fill-opacity 0.18s ease;
+    }
+    .body-region:hover .region-fill {
+      fill-opacity: 0.32;
+    }
+    .body-region.active .region-fill {
+      fill: var(--system-color, #EF4444);
+      fill-opacity: 0.38;
+    }
+    .region-label {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 7.5px;
+      fill: #475569;
+      pointer-events: none;
+      user-select: none;
+    }
+    .region-label-small {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 6.5px;
+      fill: #475569;
+      pointer-events: none;
+      user-select: none;
+    }
+    .leader-line {
+      stroke: #94a3b8;
+      stroke-width: 0.6;
+      fill: none;
+      pointer-events: none;
+    }
+    .anatomy-landmark {
+      fill: none;
+      stroke: #cbd5e1;
+      stroke-width: 0.8;
+      stroke-dasharray: 2 2;
+      pointer-events: none;
+    }
+    .body-outline {
+      fill: #f8fafc;
+      stroke: #94a3b8;
+      stroke-width: 1.4;
+    }
+  </style>
+
+  <!-- ===== BODY OUTLINE — anterior clinical silhouette ===== -->
+  <!-- Head -->
+  <ellipse cx="200" cy="52" rx="34" ry="40" class="body-outline" />
+  <!-- Neck -->
+  <path d="M 185 88 L 183 110 L 217 110 L 215 88 Z" class="body-outline" />
+  <!-- Torso -->
+  <path d="M 183 110
+           Q 155 112 138 118
+           L 115 128 Q 100 134 95 150
+           L 88 250
+           Q 86 270 88 290
+           L 90 350 Q 91 362 100 368
+           L 108 372 L 108 430
+           L 293 430 L 293 372
+           L 300 368 Q 310 362 311 350
+           L 313 290 Q 315 270 313 250
+           L 306 150 Q 301 134 285 128
+           L 262 118 Q 245 112 217 110 Z"
+    class="body-outline" />
+  <!-- Right arm (viewer's left) -->
+  <path d="M 95 150 Q 85 155 78 168 L 62 240 Q 58 262 60 278 L 62 310 Q 63 322 68 328 L 74 332 Q 80 334 82 330 L 88 290 Q 90 270 88 250 L 95 150 Z"
+    class="body-outline" />
+  <!-- Right forearm + hand -->
+  <path d="M 68 328 L 64 360 Q 60 385 55 400 L 52 420 Q 50 432 55 438 L 70 445 Q 78 447 82 441 L 88 425 Q 92 415 90 405 L 86 368 L 82 330 Z"
+    class="body-outline" />
+  <!-- Right hand fingers -->
+  <path d="M 55 438 Q 50 448 52 456 L 56 460 Q 60 462 63 457 L 65 448
+           M 65 448 Q 64 458 66 464 L 70 467 Q 74 468 76 462 L 77 450
+           M 77 450 Q 77 460 80 465 L 84 467 Q 88 467 89 460 L 88 449
+           M 88 449 Q 90 458 92 462 L 96 462 Q 99 460 98 453 L 95 445"
+    fill="none" stroke="#94a3b8" stroke-width="1" />
+  <!-- Left arm -->
+  <path d="M 306 150 Q 315 155 322 168 L 338 240 Q 342 262 340 278 L 338 310 Q 337 322 332 328 L 326 332 Q 320 334 318 330 L 313 290 Q 311 270 313 250 L 306 150 Z"
+    class="body-outline" />
+  <!-- Left forearm + hand -->
+  <path d="M 332 328 L 336 360 Q 340 385 345 400 L 348 420 Q 350 432 345 438 L 330 445 Q 322 447 318 441 L 312 425 Q 308 415 310 405 L 314 368 L 318 330 Z"
+    class="body-outline" />
+  <!-- Left hand fingers -->
+  <path d="M 345 438 Q 350 448 348 456 L 344 460 Q 340 462 337 457 L 335 448
+           M 335 448 Q 336 458 334 464 L 330 467 Q 326 468 324 462 L 323 450
+           M 323 450 Q 323 460 320 465 L 316 467 Q 312 467 311 460 L 312 449
+           M 312 449 Q 310 458 308 462 L 304 462 Q 301 460 302 453 L 305 445"
+    fill="none" stroke="#94a3b8" stroke-width="1" />
+  <!-- Right leg -->
+  <path d="M 108 430 L 105 520 Q 104 560 106 590 L 108 630 Q 109 645 114 655 L 124 665 Q 134 670 140 664 Q 146 658 148 648 L 152 620 Q 156 600 154 580 L 152 540 L 150 480 L 148 430 Z"
+    class="body-outline" />
+  <!-- Right lower leg + foot -->
+  <path d="M 108 630 L 108 670 Q 107 690 110 700 L 118 710 Q 128 715 136 710 Q 143 705 144 695 L 148 648"
+    class="body-outline" />
+  <path d="M 110 700 Q 104 706 98 708 L 80 710 Q 72 710 70 716 L 70 720 Q 70 724 78 724 L 144 724 Q 150 724 150 718 L 148 712"
+    class="body-outline" />
+  <!-- Left leg -->
+  <path d="M 293 430 L 250 430 L 248 480 L 246 540 Q 244 560 248 580 L 252 620 Q 254 630 256 648 Q 258 658 264 664 Q 270 670 280 665 L 290 655 Q 295 645 294 630 L 292 590 Q 294 560 295 520 L 293 430 Z"
+    class="body-outline" />
+  <!-- Left lower leg + foot -->
+  <path d="M 294 630 L 294 670 Q 293 690 290 700 L 282 710 Q 272 715 264 710 Q 257 705 256 695 L 252 648"
+    class="body-outline" />
+  <path d="M 290 700 Q 296 706 302 708 L 320 710 Q 328 710 330 716 L 330 720 Q 330 724 322 724 L 256 724 Q 250 724 250 718 L 252 712"
+    class="body-outline" />
+
+  <!-- ===== ANATOMICAL LANDMARKS ===== -->
+  <!-- Ribcage outline -->
+  <path d="M 155 145 Q 140 165 138 200 Q 137 230 140 255 Q 155 260 175 255 Q 190 252 200 250
+           Q 210 252 225 255 Q 245 260 260 255 Q 263 230 262 200 Q 260 165 245 145"
+    class="anatomy-landmark" />
+  <!-- Sternum line -->
+  <line x1="200" y1="120" x2="200" y2="250" class="anatomy-landmark" />
+  <!-- Costal margin -->
+  <path d="M 140 255 Q 160 278 180 280 Q 200 282 220 280 Q 240 278 260 255"
+    class="anatomy-landmark" />
+  <!-- Pelvis outline -->
+  <path d="M 128 370 Q 130 390 138 400 Q 155 415 175 420 Q 200 424 225 420 Q 245 415 262 400 Q 270 390 272 370"
+    class="anatomy-landmark" />
+  <!-- Umbilicus marker -->
+  <circle cx="200" cy="300" r="3" fill="none" stroke="#b0bec5" stroke-width="0.8" />
+  <!-- Abdominal midline -->
+  <line x1="200" y1="280" x2="200" y2="365" class="anatomy-landmark" />
+  <!-- Horizontal abdominal dividers -->
+  <path d="M 143 305 Q 165 308 200 308 Q 235 308 257 305" class="anatomy-landmark" />
+  <path d="M 138 335 Q 162 338 200 338 Q 238 338 262 335" class="anatomy-landmark" />
+  <!-- Clavicles -->
+  <path d="M 185 118 Q 165 120 148 130" fill="none" stroke="#94a3b8" stroke-width="1" />
+  <path d="M 215 118 Q 235 120 252 130" fill="none" stroke="#94a3b8" stroke-width="1" />
+  <!-- Knee cap indicators -->
+  <ellipse cx="128" cy="585" rx="14" ry="10" fill="none" stroke="#b0bec5" stroke-width="0.8" />
+  <ellipse cx="272" cy="585" rx="14" ry="10" fill="none" stroke="#b0bec5" stroke-width="0.8" />
+
+  <!-- ===== CLICKABLE ANATOMICAL REGIONS ===== -->
+
+  <!-- 1. HEAD -->
+  <g id="region-head" data-region-id="head" data-system="nervous" data-fma="50801" class="body-region" role="button" aria-label="Cabeza">
+    <ellipse cx="200" cy="52" rx="34" ry="40" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <text x="200" y="50" text-anchor="middle" class="region-label" font-weight="600">Cabeza</text>
+  </g>
+
+  <!-- 2. FACE -->
+  <g id="region-face" data-region-id="face" data-system="sensory" data-fma="54448" class="body-region" role="button" aria-label="Cara">
+    <ellipse cx="200" cy="58" rx="26" ry="26" class="region-fill" fill="#f1f5f9" fill-opacity="0.01" stroke="none" />
+    <!-- Leader line to label outside -->
+    <line x1="224" y1="50" x2="248" y2="38" class="leader-line" />
+    <text x="250" y="36" text-anchor="start" class="region-label-small">Cara</text>
+  </g>
+
+  <!-- 3. NECK -->
+  <g id="region-neck" data-region-id="neck" data-system="endocrine" data-fma="9603" class="body-region" role="button" aria-label="Cuello">
+    <rect x="183" y="88" width="34" height="22" rx="4" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="217" y1="96" x2="240" y2="88" class="leader-line" />
+    <text x="242" y="90" text-anchor="start" class="region-label-small">Cuello</text>
+  </g>
+
+  <!-- 4. RIGHT SHOULDER (anatomical right = viewer's left) -->
+  <g id="region-right-shoulder" data-region-id="right-shoulder" data-system="musculoskeletal" data-fma="25202" class="body-region" role="button" aria-label="Hombro derecho">
+    <ellipse cx="100" cy="150" rx="22" ry="18" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="82" y1="145" x2="52" y2="138" class="leader-line" />
+    <text x="50" y="136" text-anchor="end" class="region-label-small">Hombro der.</text>
+  </g>
+
+  <!-- 5. LEFT SHOULDER -->
+  <g id="region-left-shoulder" data-region-id="left-shoulder" data-system="musculoskeletal" data-fma="25202" class="body-region" role="button" aria-label="Hombro izquierdo">
+    <ellipse cx="300" cy="150" rx="22" ry="18" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="318" y1="145" x2="348" y2="138" class="leader-line" />
+    <text x="350" y="136" text-anchor="start" class="region-label-small">Hombro izq.</text>
+  </g>
+
+  <!-- 6. CHEST RIGHT (lung — anatomical right) -->
+  <g id="region-chest-right" data-region-id="chest-right" data-system="respiratory" data-fma="68877" class="body-region" role="button" aria-label="Tórax derecho">
+    <path d="M 144 132 Q 138 150 140 200 Q 145 240 155 255 Q 175 252 190 250 L 200 248 L 200 145 Q 190 138 175 133 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="160" y1="190" x2="120" y2="195" class="leader-line" />
+    <text x="118" y="193" text-anchor="end" class="region-label-small">Tórax der.</text>
+  </g>
+
+  <!-- 7. CHEST LEFT (lung) -->
+  <g id="region-chest-left" data-region-id="chest-left" data-system="respiratory" data-fma="68877" class="body-region" role="button" aria-label="Tórax izquierdo">
+    <path d="M 256 132 Q 262 150 260 200 Q 255 240 245 255 Q 225 252 210 250 L 200 248 L 200 145 Q 210 138 225 133 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="240" y1="190" x2="278" y2="195" class="leader-line" />
+    <text x="280" y="193" text-anchor="start" class="region-label-small">Tórax izq.</text>
+  </g>
+
+  <!-- 8. HEART AREA -->
+  <g id="region-heart-area" data-region-id="heart-area" data-system="cardiovascular" data-fma="7088" class="body-region" role="button" aria-label="Área cardíaca">
+    <ellipse cx="185" cy="205" rx="28" ry="30" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="162" y1="198" x2="120" y2="218" class="leader-line" />
+    <text x="118" y="216" text-anchor="end" class="region-label-small">Área cardíaca</text>
+  </g>
+
+  <!-- 9. RIGHT HYPOCHONDRIUM (hepatic region) -->
+  <g id="region-right-hypochondrium" data-region-id="right-hypochondrium" data-system="digestive" data-fma="7197" class="body-region" role="button" aria-label="Hipocondrio derecho">
+    <path d="M 140 258 Q 138 278 140 302 L 165 306 Q 180 308 200 308 L 200 258 Q 175 255 155 257 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="148" y1="282" x2="108" y2="282" class="leader-line" />
+    <text x="106" y="280" text-anchor="end" class="region-label-small">Hipoc. der.</text>
+  </g>
+
+  <!-- 10. UPPER ABDOMEN (epigastrium) -->
+  <g id="region-upper-abdomen" data-region-id="upper-abdomen" data-system="digestive" data-fma="7148" class="body-region" role="button" aria-label="Abdomen superior - epigastrio">
+    <path d="M 160 258 L 200 258 L 200 308 L 165 306 L 160 258 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="0.01" stroke="none" />
+    <!-- sub-region overlay for epigastrium center -->
+    <rect x="178" y="258" width="44" height="50" class="region-fill" fill="#f1f5f9" fill-opacity="0.01" stroke="none" />
+    <text x="200" y="286" text-anchor="middle" class="region-label" font-weight="600">Epigastrio</text>
+  </g>
+
+  <!-- 11. LEFT HYPOCHONDRIUM (splenic region) -->
+  <g id="region-left-hypochondrium" data-region-id="left-hypochondrium" data-system="digestive" data-fma="7196" class="body-region" role="button" aria-label="Hipocondrio izquierdo">
+    <path d="M 260 258 Q 262 278 260 302 L 235 306 Q 220 308 200 308 L 200 258 Q 225 255 245 257 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="252" y1="282" x2="292" y2="282" class="leader-line" />
+    <text x="294" y="280" text-anchor="start" class="region-label-small">Hipoc. izq.</text>
+  </g>
+
+  <!-- 12. PERIUMBILICAL -->
+  <g id="region-periumbilical" data-region-id="periumbilical" data-system="digestive" data-fma="7200" class="body-region" role="button" aria-label="Región periumbilical">
+    <path d="M 143 308 Q 140 320 140 338 L 165 340 Q 180 340 200 340 Q 220 340 235 340 L 260 338 Q 260 320 257 308 L 235 306 Q 220 308 200 308 Q 180 308 165 306 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <text x="200" y="326" text-anchor="middle" class="region-label">Periumbilical</text>
+  </g>
+
+  <!-- 13. RIGHT ILIAC FOSSA -->
+  <g id="region-right-iliac" data-region-id="right-iliac" data-system="digestive" data-fma="14542" class="body-region" role="button" aria-label="Fosa ilíaca derecha">
+    <path d="M 140 340 Q 138 352 140 366 L 155 370 Q 170 373 185 372 L 200 370 L 200 340 L 165 340 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="148" y1="356" x2="108" y2="358" class="leader-line" />
+    <text x="106" y="356" text-anchor="end" class="region-label-small">Fosa ilíaca der.</text>
+  </g>
+
+  <!-- 14. LOWER ABDOMEN (hypogastrium) -->
+  <g id="region-lower-abdomen" data-region-id="lower-abdomen" data-system="urinary" data-fma="15900" class="body-region" role="button" aria-label="Abdomen inferior - hipogastrio">
+    <path d="M 175 340 Q 160 340 143 338 L 143 355 Q 155 370 175 372 L 200 372 L 225 372 Q 245 370 257 355 L 257 338 Q 240 340 225 340 Q 210 340 200 340 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="0.01" stroke="none" />
+    <text x="200" y="358" text-anchor="middle" class="region-label" font-weight="600">Hipogastrio</text>
+  </g>
+
+  <!-- 15. LEFT ILIAC FOSSA -->
+  <g id="region-left-iliac" data-region-id="left-iliac" data-system="digestive" data-fma="14543" class="body-region" role="button" aria-label="Fosa ilíaca izquierda">
+    <path d="M 260 340 Q 262 352 260 366 L 245 370 Q 230 373 215 372 L 200 370 L 200 340 L 235 340 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="252" y1="356" x2="292" y2="358" class="leader-line" />
+    <text x="294" y="356" text-anchor="start" class="region-label-small">Fosa ilíaca izq.</text>
+  </g>
+
+  <!-- 16. PELVIC -->
+  <g id="region-pelvic" data-region-id="pelvic" data-system="reproductive" data-fma="17558" class="body-region" role="button" aria-label="Región pélvica">
+    <path d="M 155 372 Q 140 385 138 400 Q 155 415 175 420 Q 200 424 225 420 Q 245 415 262 400 Q 260 385 245 372 L 225 372 L 200 372 L 175 372 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <text x="200" y="400" text-anchor="middle" class="region-label" font-weight="600">Pélvico</text>
+  </g>
+
+  <!-- 17. RIGHT ARM (upper) -->
+  <g id="region-right-arm" data-region-id="right-arm" data-system="musculoskeletal" data-fma="0" class="body-region" role="button" aria-label="Brazo derecho">
+    <path d="M 95 150 Q 85 155 78 168 L 62 240 Q 58 262 60 278 L 62 310 Q 63 322 68 328 L 82 330 L 88 290 Q 90 270 88 250 L 95 150 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="72" y1="240" x2="42" y2="240" class="leader-line" />
+    <text x="40" y="238" text-anchor="end" class="region-label-small">Brazo der.</text>
+  </g>
+
+  <!-- 18. LEFT ARM (upper) -->
+  <g id="region-left-arm" data-region-id="left-arm" data-system="musculoskeletal" data-fma="0" class="body-region" role="button" aria-label="Brazo izquierdo">
+    <path d="M 306 150 Q 315 155 322 168 L 338 240 Q 342 262 340 278 L 338 310 Q 337 322 332 328 L 318 330 L 313 290 Q 311 270 313 250 L 306 150 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="328" y1="240" x2="358" y2="240" class="leader-line" />
+    <text x="360" y="238" text-anchor="start" class="region-label-small">Brazo izq.</text>
+  </g>
+
+  <!-- 19. RIGHT HAND -->
+  <g id="region-right-hand" data-region-id="right-hand" data-system="musculoskeletal" data-fma="0" class="body-region" role="button" aria-label="Mano derecha">
+    <path d="M 52 420 Q 50 432 55 438 L 70 445 Q 78 447 82 441 L 88 425 Q 92 415 90 405 L 86 368 L 82 330 L 68 328 L 64 360 Q 60 385 55 400 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="60" y1="420" x2="28" y2="428" class="leader-line" />
+    <text x="26" y="426" text-anchor="end" class="region-label-small">Mano der.</text>
+  </g>
+
+  <!-- 20. LEFT HAND -->
+  <g id="region-left-hand" data-region-id="left-hand" data-system="musculoskeletal" data-fma="0" class="body-region" role="button" aria-label="Mano izquierda">
+    <path d="M 348 420 Q 350 432 345 438 L 330 445 Q 322 447 318 441 L 312 425 Q 308 415 310 405 L 314 368 L 318 330 L 332 328 L 336 360 Q 340 385 345 400 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="340" y1="420" x2="372" y2="428" class="leader-line" />
+    <text x="374" y="426" text-anchor="start" class="region-label-small">Mano izq.</text>
+  </g>
+
+  <!-- 21. LUMBAR (front representation of lower back/flanks) -->
+  <g id="region-lumbar" data-region-id="lumbar" data-system="musculoskeletal" data-fma="16202" class="body-region" role="button" aria-label="Región lumbar">
+    <path d="M 92 290 Q 91 330 100 368 L 113 372 L 108 430
+             M 308 430 L 300 372 L 312 368 Q 321 330 310 290"
+      class="region-fill" fill="#f1f5f9" fill-opacity="0.01" stroke="none" />
+    <!-- Visible flank regions -->
+    <ellipse cx="118" cy="340" rx="20" ry="30" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <ellipse cx="282" cy="340" rx="20" ry="30" class="region-fill" fill="#f1f5f9" fill-opacity="0.01" stroke="none" />
+    <line x1="100" y1="340" x2="60" y2="348" class="leader-line" />
+    <text x="58" y="346" text-anchor="end" class="region-label-small">Lumbar / Flanco</text>
+  </g>
+
+  <!-- 22. RIGHT LEG (thigh + shin combined as "Pierna der.") -->
+  <g id="region-right-leg" data-region-id="right-leg" data-system="musculoskeletal" data-fma="0" class="body-region" role="button" aria-label="Pierna derecha">
+    <path d="M 108 430 L 105 520 Q 104 550 106 570 L 114 575 Q 122 577 128 575 L 132 570 Q 144 560 150 540 L 152 480 L 148 430 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <!-- Shin area -->
+    <path d="M 114 600 Q 110 630 108 670 L 118 710 Q 128 715 136 710 Q 143 705 144 695 L 148 648 L 152 620 Q 156 600 154 580 L 128 575 Q 120 578 114 600 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="120" y1="500" x2="80" y2="510" class="leader-line" />
+    <text x="78" y="508" text-anchor="end" class="region-label-small">Pierna der.</text>
+  </g>
+
+  <!-- 23. LEFT LEG -->
+  <g id="region-left-leg" data-region-id="left-leg" data-system="musculoskeletal" data-fma="0" class="body-region" role="button" aria-label="Pierna izquierda">
+    <path d="M 293 430 L 250 430 L 248 480 L 246 540 Q 248 560 252 570 L 258 575 Q 264 577 272 575 L 280 575 Q 292 565 294 550 L 295 520 L 293 430 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <!-- Shin area -->
+    <path d="M 286 600 Q 290 630 294 670 L 282 710 Q 272 715 264 710 Q 257 705 256 695 L 252 648 L 248 620 Q 244 600 246 580 L 272 575 Q 280 578 286 600 Z"
+      class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="280" y1="500" x2="320" y2="510" class="leader-line" />
+    <text x="322" y="508" text-anchor="start" class="region-label-small">Pierna izq.</text>
+  </g>
+
+  <!-- 24. RIGHT KNEE -->
+  <g id="region-right-knee" data-region-id="right-knee" data-system="musculoskeletal" data-fma="24974" class="body-region" role="button" aria-label="Rodilla derecha">
+    <ellipse cx="128" cy="585" rx="20" ry="18" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="110" y1="590" x2="78" y2="600" class="leader-line" />
+    <text x="76" y="598" text-anchor="end" class="region-label-small">Rodilla der.</text>
+  </g>
+
+  <!-- 25. LEFT KNEE -->
+  <g id="region-left-knee" data-region-id="left-knee" data-system="musculoskeletal" data-fma="24974" class="body-region" role="button" aria-label="Rodilla izquierda">
+    <ellipse cx="272" cy="585" rx="20" ry="18" class="region-fill" fill="#f1f5f9" fill-opacity="1" stroke="none" />
+    <line x1="290" y1="590" x2="322" y2="600" class="leader-line" />
+    <text x="324" y="598" text-anchor="start" class="region-label-small">Rodilla izq.</text>
+  </g>
+
+  <!-- ===== FACIAL FEATURES (non-interactive decoration) ===== -->
+  <!-- Eyes -->
+  <ellipse cx="190" cy="48" rx="5" ry="4" fill="none" stroke="#94a3b8" stroke-width="0.8" />
+  <ellipse cx="210" cy="48" rx="5" ry="4" fill="none" stroke="#94a3b8" stroke-width="0.8" />
+  <!-- Pupils -->
+  <circle cx="190" cy="48" r="2" fill="#cbd5e1" />
+  <circle cx="210" cy="48" r="2" fill="#cbd5e1" />
+  <!-- Nose (subtle) -->
+  <path d="M 200 52 L 196 62 Q 198 65 200 65 Q 202 65 204 62 Z" fill="none" stroke="#b0bec5" stroke-width="0.8" />
+  <!-- Mouth (subtle) -->
+  <path d="M 193 70 Q 200 75 207 70" fill="none" stroke="#b0bec5" stroke-width="0.8" />
+  <!-- Ear indicators -->
+  <path d="M 166 46 Q 163 50 164 58 Q 165 62 168 60" fill="none" stroke="#94a3b8" stroke-width="0.8" />
+  <path d="M 234 46 Q 237 50 236 58 Q 235 62 232 60" fill="none" stroke="#94a3b8" stroke-width="0.8" />
+
+  <!-- ===== FOOTER / ORIENTATION LABEL ===== -->
+  <text x="200" y="742" text-anchor="middle" font-family="Georgia, serif" font-size="7" fill="#94a3b8" letter-spacing="1">VISTA ANTERIOR</text>
+  <line x1="100" y1="739" x2="175" y2="739" stroke="#e2e8f0" stroke-width="0.6" />
+  <line x1="225" y1="739" x2="300" y2="739" stroke="#e2e8f0" stroke-width="0.6" />
+  <!-- Laterality indicators -->
+  <text x="68" y="742" text-anchor="middle" font-family="Georgia, serif" font-size="7" fill="#94a3b8">Der.</text>
+  <text x="332" y="742" text-anchor="middle" font-family="Georgia, serif" font-size="7" fill="#94a3b8">Izq.</text>
+
+</svg>
