@@ -392,7 +392,7 @@ export function RiskHistorySummarySection({ assessment, config, onHistoryOpen }:
           <p className="sticky top-0 z-10 -mx-1 px-1 pb-2 pt-0.5
                         bg-gradient-to-b from-slate-50 via-slate-50/95 to-transparent
                         text-[11px] font-bold tracking-widest text-teal-600">
-            تحلیل ریسک
+           تحلیل سلامت
           </p>
 
           {/* Scrollable card list */}

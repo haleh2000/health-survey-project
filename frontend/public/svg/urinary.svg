@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 800" width="500" height="800">
+  <title>Sistema Urinario</title>
+  <desc>Diagrama esquemático del sistema urinario humano</desc>
+
+  <!-- Body outline -->
+  <g id="body-outline" fill="none" stroke="#e5e7eb" stroke-width="1.5">
+    <ellipse cx="250" cy="55" rx="40" ry="50" />
+    <path d="M 200 120 L 175 200 L 170 300 L 185 400 L 195 470 L 200 530" />
+    <path d="M 300 120 L 325 200 L 330 300 L 315 400 L 305 470 L 300 530" />
+    <path d="M 200 530 Q 195 560 190 600 L 185 680 L 180 740 L 170 780" />
+    <path d="M 300 530 Q 305 560 310 600 L 315 680 L 320 740 L 330 780" />
+    <path d="M 200 120 Q 210 115 210 105 L 210 95" />
+    <path d="M 300 120 Q 290 115 290 105 L 290 95" />
+  </g>
+
+  <!-- Right kidney -->
+  <g id="kidney_right" data-region="kidney_right" data-region-id="kidney_right" class="body-region interactive">
+    <ellipse cx="310" cy="280" rx="22" ry="35" fill="#f97316" fill-opacity="0.4" stroke="#ea580c" stroke-width="1.5" />
+    <!-- Renal hilum -->
+    <path d="M 295 265 Q 290 280 295 295" fill="none" stroke="#ea580c" stroke-width="1" />
+    <text x="310" y="325" text-anchor="middle" font-size="8" fill="#9a3412">Riñón D</text>
+  </g>
+
+  <!-- Left kidney -->
+  <g id="kidney_left" data-region="kidney_left" data-region-id="kidney_left" class="body-region interactive">
+    <ellipse cx="190" cy="270" rx="22" ry="35" fill="#f97316" fill-opacity="0.4" stroke="#ea580c" stroke-width="1.5" />
+    <!-- Renal hilum -->
+    <path d="M 205 255 Q 210 270 205 285" fill="none" stroke="#ea580c" stroke-width="1" />
+    <text x="190" y="315" text-anchor="middle" font-size="8" fill="#9a3412">Riñón I</text>
+  </g>
+
+  <!-- Adrenal glands -->
+  <g id="adrenal_right" data-region="adrenal_gland" data-region-id="adrenal_gland" class="body-region interactive">
+    <path d="M 298 244 Q 310 238 322 244" fill="#fbbf24" fill-opacity="0.5" stroke="#d97706" stroke-width="1" />
+    <text x="310" y="237" text-anchor="middle" font-size="5" fill="#92400e">Suprarrenal</text>
+  </g>
+  <g id="adrenal_left" data-region="adrenal_left" data-region-id="adrenal_left" class="body-region interactive">
+    <path d="M 178 234 Q 190 228 202 234" fill="#fbbf24" fill-opacity="0.5" stroke="#d97706" stroke-width="1" />
+  </g>
+
+  <!-- Renal arteries -->
+  <g id="renal_arteries" data-region="renal_arteries" data-region-id="renal_arteries" class="body-region interactive">
+    <line x1="250" y1="278" x2="290" y2="278" stroke="#ef4444" stroke-width="2" stroke-opacity="0.6" />
+    <line x1="250" y1="268" x2="210" y2="268" stroke="#ef4444" stroke-width="2" stroke-opacity="0.6" />
+    <!-- Abdominal aorta reference line -->
+    <line x1="250" y1="240" x2="250" y2="420" stroke="#ef4444" stroke-width="2" stroke-opacity="0.3" />
+  </g>
+
+  <!-- Right ureter -->
+  <g id="ureter_right" data-region="ureter_right" data-region-id="ureter_right" class="body-region interactive">
+    <path d="M 300 310 Q 295 360 285 400 Q 275 440 270 480"
+      fill="none" stroke="#f97316" stroke-width="2.5" stroke-opacity="0.5" stroke-linecap="round" />
+    <text x="300" y="380" font-size="6" fill="#9a3412">Uréter D</text>
+  </g>
+
+  <!-- Left ureter -->
+  <g id="ureter_left" data-region="ureter_left" data-region-id="ureter_left" class="body-region interactive">
+    <path d="M 200 300 Q 205 350 215 390 Q 225 430 230 480"
+      fill="none" stroke="#f97316" stroke-width="2.5" stroke-opacity="0.5" stroke-linecap="round" />
+    <text x="195" y="370" font-size="6" fill="#9a3412">Uréter I</text>
+  </g>
+
+  <!-- Bladder -->
+  <g id="bladder" data-region="bladder" data-region-id="bladder" class="body-region interactive">
+    <ellipse cx="250" cy="500" rx="35" ry="28" fill="#06b6d4" fill-opacity="0.35" stroke="#0891b2" stroke-width="1.5" />
+    <!-- Trigone -->
+    <path d="M 233 490 L 250 515 L 267 490" fill="none" stroke="#0891b2" stroke-width="0.8" stroke-dasharray="3,2" />
+    <text x="250" y="505" text-anchor="middle" font-size="9" fill="#155e75">Vejiga</text>
+  </g>
+
+  <!-- Urethra -->
+  <g id="urethra" data-region="urethra" data-region-id="urethra" class="body-region interactive">
+    <path d="M 250 528 L 250 570"
+      fill="none" stroke="#06b6d4" stroke-width="3" stroke-opacity="0.5" stroke-linecap="round" />
+    <text x="265" y="555" font-size="7" fill="#155e75">Uretra</text>
+  </g>
+</svg>

@@ -108,7 +108,7 @@ export function StatusPanel({ flags, baseDelay = 0 }: Props) {
                   ? "bg-surface-muted text-ink-subtle"
                   : flagged
                     ? "bg-amber-500/10 text-amber-600"
-                    : "bg-emerald-500/10 text-emerald-600"
+                    : "bg-emerald-500/10 text-day-primary"
               }`}
             >
               <Icon className="h-5 w-5" strokeWidth={2} />

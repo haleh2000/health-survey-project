@@ -50,7 +50,7 @@ if (wizard.stage === "completed" && wizard.assessment) {
   const latestRecord = history[0] ?? null;
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-10">
+    <main className="mx-auto max-w-6xl px-5 py-10">
       <HealthDashboard record={latestRecord} historyCount={history.length} />
       <button onClick={wizard.restart} className="mt-6 text-sm font-bold text-day-primary">
         ارزیابی مجدد
