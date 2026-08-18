@@ -6,6 +6,7 @@ import daydarLogo from '@ds/assets/logo/daydar-logo.png';
 import time from '@ds/assets/time.png';
 import safe from '@ds/assets/safe.png';
 import daydarReport from '@ds/assets/daydar-report.png';
+import drdd from '@ds/assets/drdd.png';
 
 const CARD_ACCENT = {
   color: 'from-[#0099A8]/20 to-teal-500/20',
@@ -33,6 +34,15 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen overflow-hidden relative flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="relative z-10 w-full max-w-5xl bg-white/60 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-white/50">
+      
+          <div className="w-1/3 flex items-center justify-center shrink-0 ">
+          <img
+            src={drdd}
+            alt=""
+            className="w-24 h-24 md:w-32 md:h-32 object-contain"
+          />
+        </div>
+
         <motion.div className="flex justify-center mb-6 sm:mb-8" />
 
         {/* Hero Section */}
