@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { toAsciiDigits } from "@core/text/digits";
 import type { AppError } from "@core/errors/app-error";
 
 import type { ChoiceQuestion, Question, QuestionId } from "@survey/domain/entities/question.entity";
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
+import { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
 import {
   readList,
   readText,
@@ -169,7 +171,15 @@ useEffect(() => {
       const result = await submitSurvey.execute(finalAnswers);
 
       if (result.ok) {
-        saveAssessmentRecord(result.value);
+        // قد و وزن هم ذخیره می‌شوند تا داشبورد بتواند BMI را به کیلوگرم ترجمه کند.
+        const metrics = BodyMetrics.create(
+          Number(toAsciiDigits(readText(finalAnswers, "height" as QuestionId))),
+          Number(toAsciiDigits(readText(finalAnswers, "weight" as QuestionId))),
+        );
+        saveAssessmentRecord(
+          result.value,
+          metrics ? { heightCm: metrics.heightCm, weightKg: metrics.weightKg } : null,
+        );
         setAssessment(result.value);
         setStage("completed");
         scrollToTop();

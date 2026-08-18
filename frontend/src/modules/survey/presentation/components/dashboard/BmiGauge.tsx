@@ -24,6 +24,17 @@ export const bmiCategory = (bmi: number) =>
 /** bmi 15 → ~10% full, bmi 35 → ~90% full. */
 const fillLevel = (bmi: number) => Math.min(Math.max((bmi - 15) / 20, 0.1), 0.9) * 0.8 + 0.1;
 
+/** ارتفاع سطح آب در مختصات SVG (۰ بالا، ۲۰۰ پایین) */
+const waterY = (bmi: number) => 200 * (1 - fillLevel(bmi));
+
+/** حباب‌های داخل مایع — موقعیت ثابت تا رندرها یکسان بمانند */
+const BUBBLES = [
+  { cx: 74, r: 3.2, delay: 0, duration: 5.5 },
+  { cx: 108, r: 2.2, delay: 1.4, duration: 6.5 },
+  { cx: 132, r: 2.8, delay: 2.6, duration: 5.8 },
+  { cx: 92, r: 1.8, delay: 3.6, duration: 7 },
+];
+
 /** One wave period is 200 units wide; the path spans two periods for a seamless loop. */
 const wavePath = (amplitude: number) =>
   `M0 0 Q 50 ${-amplitude}, 100 0 T 200 0 T 300 0 T 400 0 V 220 H 0 Z`;
@@ -37,6 +48,8 @@ export function BmiGauge({ bmi }: Props) {
   const empty = bmi === null;
   const level = empty ? 0.12 : fillLevel(bmi);
   const waterTop = 200 * (1 - level);
+  /** رنگ مایع = رنگ دستهٔ BMI (کم‌وزنی/نرمال/اضافه‌وزن/چاقی) */
+  const tint = empty ? "#94a3b8" : bmiCategory(bmi).hex;
 
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[240px]">
@@ -45,10 +58,15 @@ export function BmiGauge({ bmi }: Props) {
           <clipPath id="bmi-liquid-clip">
             <circle cx="100" cy="100" r="86" />
           </clipPath>
+          {/* رنگ مایع از دستهٔ BMI می‌آید تا با نمودار و لجند یکی باشد */}
           <linearGradient id="bmi-water" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#22d3ee" />
-            <stop offset="100%" stopColor="#0a9ba4" />
+            <stop offset="0%" stopColor={tint} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={tint} stopOpacity="0.65" />
           </linearGradient>
+          <radialGradient id="bmi-glass" cx="0.35" cy="0.28" r="0.85">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
         </defs>
 
         {/* Glass rim. */}
@@ -77,10 +95,44 @@ export function BmiGauge({ bmi }: Props) {
               transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
             />
           </motion.g>
+
+          {/* حباب‌های ریز داخل مایع */}
+          {!empty && !reduceMotion && BUBBLES.map((bubble) => (
+            <motion.circle
+              key={bubble.cx}
+              cx={bubble.cx}
+              r={bubble.r}
+              fill="#ffffff"
+              opacity={0.35}
+              initial={{ cy: 190 }}
+              animate={{ cy: waterTop + 6, opacity: [0, 0.4, 0] }}
+              transition={{ duration: bubble.duration, repeat: Infinity, delay: bubble.delay, ease: "easeIn" }}
+            />
+          ))}
+
+          {/* محدودهٔ سالم روی شیشه: BMI ۱۸.۵ تا ۲۴.۹ */}
+          <g>
+            <rect
+              x="14"
+              y={waterY(24.9)}
+              width="172"
+              height={waterY(18.5) - waterY(24.9)}
+              fill="#10b981"
+              opacity="0.12"
+            />
+            <line x1="14" y1={waterY(24.9)} x2="186" y2={waterY(24.9)} stroke="#10b981" strokeWidth="1" strokeDasharray="4 4" opacity="0.7" />
+            <line x1="14" y1={waterY(18.5)} x2="186" y2={waterY(18.5)} stroke="#10b981" strokeWidth="1" strokeDasharray="4 4" opacity="0.7" />
+          </g>
         </g>
 
-        {/* Light catching the glass. */}
-        <ellipse cx="64" cy="42" rx="20" ry="8" fill="white" opacity="0.16" transform="rotate(-28 64 42)" />
+        {/* بازتاب نور روی شیشه */}
+        <circle cx="100" cy="100" r="86" fill="url(#bmi-glass)" pointerEvents="none" />
+        <ellipse cx="64" cy="42" rx="20" ry="8" fill="white" opacity="0.28" transform="rotate(-28 64 42)" />
+
+        {/* برچسب محدودهٔ سالم */}
+        <text x="52" y={waterY(18.5) - 5} textAnchor="middle" fontSize="8.5" fontWeight="700" fill="#10b981" opacity="0.95">
+          محدودهٔ سالم
+        </text>
       </svg>
 
       {/* Readout floats above the water line. */}

@@ -1,21 +1,20 @@
   // src/modules/survey/presentation/components/dashboard/HealthDashboard.tsx
 
   import { motion } from "framer-motion";
-  import { CalendarCheck, ChevronDown, ChevronUp, History, ShieldPlus } from "lucide-react";
+  import { CalendarCheck, History, ShieldPlus } from "lucide-react";
   import { useMemo, useState } from "react";
 
   import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
   import { toPersianDigits } from "@core/text/digits";
-  import type { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
   import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 
   import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
-  import { OrganRiskCard } from "./OrganRiskCard";
+  import { BmiComparisonChart } from "./BmiComparisonChart";
   import { RecommendationTiles } from "./RecommendationTiles";
-  import {BodyMap} from "../../../../health-dashboard/components/BodyMap";
+  import { AnatomyExplorer } from "../../../../health-dashboard/components/AnatomyExplorer";
   import { StatusPanel } from "./StatusPanel";
   import type { OrganKey } from "./organ-meta";
-  import { ORGAN_META, organPercent, scoreToTier } from "./organ-meta";
+  import { ORGAN_META, organPercent } from "./organ-meta";
 
   interface Props {
     record: AssessmentRecord | null;
@@ -26,8 +25,13 @@
 
   const sectionSpring = { type: "spring", stiffness: 220, damping: 26 } as const;
 
-  // ✅ تعداد کارت‌هایی که در حالت جمع‌شده نمایش داده می‌شوند
-  const VISIBLE_ORGAN_COUNT = 3;
+  /**
+   * ✅ فقط ارگان‌هایی روی بدن نشان داده می‌شوند که واقعاً به وضعیت کاربر مربوط‌اند:
+   *    هر ارگان با ریسک «قابل بهبود» به بالا. اگر کمتر از ۳ مورد بود،
+   *    ۳ ارگان با بیشترین ریسک نمایش داده می‌شوند تا بدن خالی نماند.
+   */
+  const RELEVANCE_THRESHOLD = 12;
+  const MIN_VISIBLE_ORGANS = 3;
 
   const readableJalali = (iso: string): string => {
     const parts = parseJalaliIso(iso);
@@ -44,49 +48,18 @@
   export function HealthDashboard({ record, historyCount }: Props) {
     const assessment = record?.assessment ?? null;
 
-    const [expandedOrgan, setExpandedOrgan] = useState<OrganKey | null>(null);
-    const [showAllOrgans, setShowAllOrgans] = useState(false); // ✅ جدید
+    const [selectedOrgan, setSelectedOrgan] = useState<OrganKey | null>(null);
 
-    const organRisksDisplay = assessment
-      ? ORGAN_META.map((meta) => ({ meta, percent: organPercent(assessment.organRisks, meta) })).sort(
-          (a, b) => b.percent - a.percent,
-        )
-      : ORGAN_META.map((meta) => ({ meta, percent: null as number | null }));
-
-    // ✅ لیستی که واقعاً رندر می‌شود (۴ تای اول یا همه)
-    const visibleOrganRisks = showAllOrgans
-      ? organRisksDisplay
-      : organRisksDisplay.slice(0, VISIBLE_ORGAN_COUNT);
-
-    const hasMoreOrgans = organRisksDisplay.length > VISIBLE_ORGAN_COUNT;
-
-    const organRisksForOrbit = useMemo<Partial<Record<OrganKey, { tier: RiskTier }>> | undefined>(() => {
-      if (!assessment) return undefined;
-      return Object.fromEntries(
-        ORGAN_META.map((meta) => [
-          meta.key,
-          { tier: scoreToTier(organPercent(assessment.organRisks, meta)) },
-        ]),
-      ) as Partial<Record<OrganKey, { tier: RiskTier }>>;
+    /** درصد ریسک ارگان‌های مرتبط — کلید موجود = ارگان مرتبط با گروه کاربر */
+    const organPercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
+      if (!assessment) return {};
+      const ranked = ORGAN_META
+        .map((meta) => ({ key: meta.key, percent: organPercent(assessment.organRisks, meta) }))
+        .sort((a, b) => b.percent - a.percent);
+      const relevant = ranked.filter((item) => item.percent >= RELEVANCE_THRESHOLD);
+      const picked = relevant.length >= MIN_VISIBLE_ORGANS ? relevant : ranked.slice(0, MIN_VISIBLE_ORGANS);
+      return Object.fromEntries(picked.map((item) => [item.key, item.percent]));
     }, [assessment]);
-
-    // ✅ باز/بسته کردن آکاردئون + باز کردن لیست در صورت نیاز + اسکرول نرم
-    const handleSelectOrgan = (key: OrganKey) => {
-      const indexInList = organRisksDisplay.findIndex((item) => item.meta.key === key);
-      const isHidden = !showAllOrgans && indexInList >= VISIBLE_ORGAN_COUNT;
-      if (isHidden) setShowAllOrgans(true);
-
-      setExpandedOrgan((prev) => (prev === key ? null : key));
-
-      const delay = isHidden ? 50 : 0;
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          document
-            .getElementById(`organ-card-${key}`)
-            ?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, delay);
-      });
-    };
 
     return (
       <div className="flex flex-col gap-5">
@@ -127,49 +100,19 @@
           </div>
         </motion.section>
 
-        {/* Main grid: risks / orbit / status. */}
-        <section className="grid grid-cols-1 gap-5 rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)]">
+        {/* ✅ مدل دوبعدی آناتومی + پنل وضعیت */}
+        <section className="grid grid-cols-1 gap-5 rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
           <div>
-            <SectionLabel>تحلیل سلامت</SectionLabel>
-            <div className="flex flex-col gap-3">
-              {visibleOrganRisks.map(({ meta, percent }, index) => (
-                <OrganRiskCard
-                  key={meta.key}
-                  meta={meta}
-                  percent={percent}
-                  delay={0.15 + index * 0.05}
-                  expanded={expandedOrgan === meta.key}
-                  onToggle={() => handleSelectOrgan(meta.key)}
-                />
-              ))}
-            </div>
-
-            {/* ✅ دکمه نمایش بیشتر / کمتر */}
-            {hasMoreOrgans && (
-              <button
-                type="button"
-                onClick={() => setShowAllOrgans((prev) => !prev)}
-                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl border border-day-primary/20 bg-day-primary/5 py-2.5 text-xs font-bold text-day-primary transition hover:bg-day-primary/10 cursor-pointer"
-              >
-                {showAllOrgans ? (
-                  <>
-                    نمایش کمتر
-                    <ChevronUp className="h-3.5 w-3.5" />
-                  </>
-                ) : (
-                  <>
-                    نمایش {toPersianDigits(organRisksDisplay.length - VISIBLE_ORGAN_COUNT)} مورد دیگر
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-
-          <div className="order-first flex flex-col items-center justify-center gap-2 lg:order-none lg:self-start lg:sticky lg:top-24">
-            <BodyMap
-              organRisks={organRisksForOrbit}
-              onOrganClick={handleSelectOrgan}
+            <SectionLabel>نقشهٔ سلامت اندام‌ها</SectionLabel>
+            <p className="mb-2 text-[11px] text-ink-subtle">
+              {assessment
+                ? "روی هر اندام بزنید تا کارت توصیه‌های همان اندام باز شود."
+                : "پس از اولین ارزیابی، اندام‌های مرتبط با وضعیت شما اینجا فعال می‌شوند."}
+            </p>
+            <AnatomyExplorer
+              organPercents={organPercents}
+              selectedOrgan={selectedOrgan}
+              onSelectOrgan={setSelectedOrgan}
             />
           </div>
 
@@ -192,9 +135,23 @@
               {assessment?.bmi != null ? "وضعیت بدن شما در یک نگاه" : "پس از ارزیابی محاسبه می‌شود"}
             </span>
           </div>
-          <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-            <BmiGauge bmi={assessment?.bmi ?? null} />
-            <BmiRangeLegend bmi={assessment?.bmi ?? null} />
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+            <div className="flex flex-col gap-4">
+              <BmiGauge bmi={assessment?.bmi ?? null} />
+              <BmiRangeLegend bmi={assessment?.bmi ?? null} />
+            </div>
+
+            <div>
+              <h4 className="mb-1 text-xs font-black text-day-primary">مقایسه با محدودهٔ نرمال</h4>
+              <p className="mb-3 text-[11px] text-ink-subtle">
+                آنچه باید باشد در برابر آنچه اکنون هست — و اینکه چقدر بالاتر یا پایین‌تر هستید.
+              </p>
+              <BmiComparisonChart
+                bmi={assessment?.bmi ?? null}
+                heightCm={record?.heightCm ?? null}
+                weightKg={record?.weightKg ?? null}
+              />
+            </div>
           </div>
         </motion.section>
 
