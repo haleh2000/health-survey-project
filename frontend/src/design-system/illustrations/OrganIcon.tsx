@@ -1,17 +1,14 @@
-// src/design-system/illustrations/OrganIcon.tsx
-
 import { ORGAN_ICON_COMPONENT } from './organ-icon-map';
-import type { OrganKey } from '@survey/presentation/components/dashboard/organ-meta';
 
 interface OrganIconProps {
-  organ: OrganKey;
+  organ: string;
   className?: string;
   size?: number;
   color?: string;
 }
 
-export const OrganIcon = ({ organ, className, size = 24, color }: OrganIconProps) => {
-  const IconComponent = ORGAN_ICON_COMPONENT[organ];
+export function OrganIcon({ organ, className, size = 20, color }: OrganIconProps) {
+  const IconComponent = ORGAN_ICON_COMPONENT[organ as keyof typeof ORGAN_ICON_COMPONENT];
   if (!IconComponent) return null;
 
   return (
@@ -21,4 +18,4 @@ export const OrganIcon = ({ organ, className, size = 24, color }: OrganIconProps
       style={color ? { color } : undefined}
     />
   );
-};
+}

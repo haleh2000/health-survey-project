@@ -100,7 +100,7 @@ export const BACKEND_KEYWORD = {
 } as const;
 
 export const RISK_LEVEL_LABEL = {
-  critical: "گروه ۱: گروه پر ریسک (با بیماری قطعی یا امتیاز بالا)",
+  critical: "گروه ۱: گروه پر ریسک (با بیماری قطعی)",
   elevated: "گروه ۲: گروه در آستانه خطر (کوتاه‌مدت)",
   moderate: "گروه ۳: گروه در معرض خطر (بلندمدت)",
   low: "گروه ۴: گروه افراد سالم",
