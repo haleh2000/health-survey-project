@@ -17,6 +17,16 @@ export interface AssessmentRecord {
   readonly completedOnJalali: string;
   /** Epoch milliseconds, for ordering. */
   readonly completedAt: number;
+  /** قد (سانتی‌متر) — برای تبدیل BMI به وزن در نمودار مقایسه‌ای. */
+  readonly heightCm?: number;
+  /** وزن (کیلوگرم) در زمان ارزیابی. */
+  readonly weightKg?: number;
+}
+
+/** اندازه‌های بدنی که همراه ارزیابی ذخیره می‌شوند. */
+export interface RecordedBodyMetrics {
+  readonly heightCm: number;
+  readonly weightKg: number;
 }
 
 const STORAGE_KEY = "health-assessment-history";
@@ -41,11 +51,15 @@ export function loadAssessmentHistory(): AssessmentRecord[] {
   }
 }
 
-export function saveAssessmentRecord(assessment: RiskAssessment): AssessmentRecord {
+export function saveAssessmentRecord(
+  assessment: RiskAssessment,
+  body?: RecordedBodyMetrics | null,
+): AssessmentRecord {
   const record: AssessmentRecord = {
     assessment,
     completedOnJalali: formatJalaliIso(todayJalali()),
     completedAt: Date.now(),
+    ...(body ? { heightCm: body.heightCm, weightKg: body.weightKg } : {}),
   };
 
   try {
