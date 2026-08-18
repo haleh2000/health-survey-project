@@ -15,7 +15,6 @@ import { useSurveyDependencies } from "@survey/presentation/state/survey-depende
 import { useSurveyWizard } from "@survey/presentation/state/useSurveyWizard";
 import { HealthDashboard } from "@survey/presentation/components/dashboard/HealthDashboard"
 import { loadAssessmentHistory } from "@survey/infrastructure/storage/assessment-history.storage";
-;
 
 const stepSpring = { type: "spring", stiffness: 320, damping: 32 } as const;
 

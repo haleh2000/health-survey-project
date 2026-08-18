@@ -1,5 +1,3 @@
-// src/modules/survey/presentation/components/dashboard/organ-icon-map.ts
-
 import type { ComponentType, CSSProperties } from 'react';
 import {
   HeartIcon,
@@ -10,8 +8,8 @@ import {
   ColonIcon,
   PancreasIcon,
   MetabolicIcon,
-} from '../../modules/survey/presentation/components/dashboard/organ-icons';
-import type { OrganKey } from '../../modules/survey/presentation/components/dashboard/organ-meta';
+} from '@survey/presentation/components/dashboard/organ-icons';
+import type { OrganKey } from '@survey/presentation/components/dashboard/organ-meta';
 
 export const ORGAN_ICON_COMPONENT: Record<OrganKey, ComponentType<{ className?: string; size?: number; style?: CSSProperties }>> = {
   cardiac:   HeartIcon,

@@ -2,9 +2,9 @@
 // SVG آیکون‌های inline برای اندام‌های بدن - بدون dependency خارجی
 // Source: healthicons.org (CC0) + custom brain icon (matching filled style)
 
-import React from 'react';
+import type { CSSProperties } from 'react';
 
-type IconProps = { className?: string; size?: number; style?: React.CSSProperties };
+type IconProps = { className?: string; size?: number; style?: CSSProperties };
 
 export const HeartIcon = ({ className, size = 24, style }: IconProps) => (
   <svg
