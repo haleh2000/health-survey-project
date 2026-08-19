@@ -211,20 +211,6 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
         </AnimatePresence>
       </div>
 
-      {/* ذکر منبع تصاویر — الزام مجوز CC BY 4.0 */}
-      <p className="mt-2 text-center text-[10px] text-ink-subtle/80">
-        تصاویر آناتومی:{' '}
-        <a
-          href="https://smart.servier.com"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="underline decoration-dotted underline-offset-2"
-        >
-          Servier Medical Art
-        </a>{' '}
-        — CC BY 4.0
-      </p>
-
       {/* ردیف انتخاب سریع ارگان‌های مرتبط */}
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         {relevant.map((asset) => {

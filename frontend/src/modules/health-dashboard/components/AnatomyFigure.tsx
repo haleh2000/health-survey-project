@@ -115,20 +115,6 @@ export function AnatomyFigure({ organPercents, highlightedOrgan, onSelectOrgan }
             );
           })()}
       </svg>
-
-      {/* ذکر منبع تصاویر — الزام مجوز CC BY 4.0 */}
-      <p className="mt-2 text-center text-[10px] text-ink-subtle/80">
-        تصاویر آناتومی:{' '}
-        <a
-          href="https://smart.servier.com"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="underline decoration-dotted underline-offset-2"
-        >
-          Servier Medical Art
-        </a>{' '}
-        — CC BY 4.0
-      </p>
     </div>
   );
 }
