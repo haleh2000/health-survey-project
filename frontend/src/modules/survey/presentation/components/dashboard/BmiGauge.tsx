@@ -110,7 +110,7 @@ export function BmiGauge({ bmi }: Props) {
             />
           ))}
 
-          {/* محدودهٔ سالم روی شیشه: BMI ۱۸.۵ تا ۲۴.۹ */}
+          {/* محدوده سالم روی شیشه: BMI ۱۸.۵ تا ۲۴.۹ */}
           <g>
             <rect
               x="14"
@@ -129,9 +129,9 @@ export function BmiGauge({ bmi }: Props) {
         <circle cx="100" cy="100" r="86" fill="url(#bmi-glass)" pointerEvents="none" />
         <ellipse cx="64" cy="42" rx="20" ry="8" fill="white" opacity="0.28" transform="rotate(-28 64 42)" />
 
-        {/* برچسب محدودهٔ سالم */}
-        <text x="52" y={waterY(18.5) - 5} textAnchor="middle" fontSize="8.5" fontWeight="700" fill="#10b981" opacity="0.95">
-          محدودهٔ سالم
+        {/* برچسب محدوده سالم */}
+        <text x="52" y={waterY(18.5) - 5} textAnchor="middle" fontSize="8.5" fontWeight="700" fill="#11a574" opacity="0.95">
+          محدوده سالم
         </text>
       </svg>
 

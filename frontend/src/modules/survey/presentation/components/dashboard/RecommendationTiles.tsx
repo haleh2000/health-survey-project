@@ -1,69 +1,75 @@
 // src/modules/survey/presentation/components/dashboard/RecommendationTiles.tsx
 
 import { motion } from "framer-motion";
-import { Dumbbell, Salad, Smile } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 
-interface Tile {
-  readonly title: string;
-  readonly caption: string;
-  readonly icon: LucideIcon;
-  readonly gradient: string;
+import { toPersianDigits } from "@core/text/digits";
+import { readOrCreateRecommendationSeed } from "@survey/infrastructure/storage/recommendation-seed.storage";
+
+import { resolveStoryGroups, type ResolvedStoryGroup } from "./recommendationStories";
+import { StoryViewer } from "./StoryViewer";
+
+const SCRIM = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.50) 100%)";
+
+interface RecommendationTilesProps {
+  readonly baseDelay?: number;
+  /** شناسه ارزیابی یا کاربر؛ سری پیشنهادها را پایدار می‌کند. */
+  readonly seed?: string;
 }
 
-const TILES: readonly Tile[] = [
-  {
-    title: "تغذیه",
-    caption: "هوشمندانه بخور، سالم زندگی کن",
-    icon: Salad,
-    gradient: "linear-gradient(135deg, #10b98122, #0a9ba422)",
-  },
-  {
-    title: "ورزش",
-    caption: "بیشتر حرکت کن، قوی‌تر شو",
-    icon: Dumbbell,
-    gradient: "linear-gradient(135deg, #0ea5e922, #6366f122)",
-  },
-  {
-    title: "آرامش ذهن",
-    caption: "ذهن آرام، زندگی شاد",
-    icon: Smile,
-    gradient: "linear-gradient(135deg, #f59e0b22, #ec489922)",
-  },
-];
+export function RecommendationTiles({ baseDelay = 0, seed }: RecommendationTilesProps) {
+  const [activeGroup, setActiveGroup] = useState<ResolvedStoryGroup | null>(null);
 
-/** The "Daily Recommendations" strip at the bottom of the reference design. */
-export function RecommendationTiles({ baseDelay = 0 }: { baseDelay?: number }) {
+  const groups = useMemo(
+    () => resolveStoryGroups(seed ?? readOrCreateRecommendationSeed()),
+    [seed],
+  );
+
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-      {TILES.map((tile, index) => {
-        const Icon = tile.icon;
-        return (
-          <motion.div
-            key={tile.title}
+    <>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+        {groups.map((group, index) => (
+          <motion.button
+            key={group.key}
+            type="button"
+            onClick={() => setActiveGroup(group)}
+            aria-label={`مشاهده توصیه‌های ${group.label}`}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 240, damping: 26, delay: baseDelay + index * 0.1 }}
             whileHover={{ y: -4, scale: 1.015 }}
-            className="relative overflow-hidden rounded-2xl border border-line bg-surface/80 p-4 shadow-card backdrop-blur-md"
+            whileTap={{ scale: 0.985 }}
+            className="group relative flex min-h-[200px] cursor-pointer flex-col justify-end
+                       overflow-hidden rounded-2xl border border-line p-4 text-right shadow-card
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                       focus-visible:outline-day-primary lg:min-h-[240px]"
           >
-            <div aria-hidden className="absolute inset-0" style={{ background: tile.gradient }} />
-            <div className="relative flex items-center gap-3">
-              <motion.div
-                whileHover={{ rotate: [0, -8, 8, 0] }}
-                transition={{ duration: 0.45 }}
-                className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface shadow-card"
-              >
-                <Icon className="h-6 w-6 text-day-primary" strokeWidth={2} />
-              </motion.div>
-              <div className="min-w-0">
-                <p className="text-sm font-black text-ink">{tile.title}</p>
-                <p className="truncate text-[11px] text-ink-muted">{tile.caption}</p>
-              </div>
+            <img
+              src={group.cover}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover transition-transform
+                         duration-500 group-hover:scale-105 motion-reduce:transition-none"
+            />
+            <div aria-hidden className="absolute inset-0" style={{ background: SCRIM }} />
+
+            <div className="relative flex items-center justify-between gap-3">
+              <p className="text-sm font-black text-white drop-shadow-sm">{group.label}</p>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+                {toPersianDigits(group.slides.length)} نکته
+              </span>
             </div>
-          </motion.div>
-        );
-      })}
-    </div>
+          </motion.button>
+        ))}
+      </div>
+
+      <StoryViewer
+        key={activeGroup ? `${activeGroup.key}-${activeGroup.variantId}` : "idle"}
+        group={activeGroup}
+        onClose={() => setActiveGroup(null)}
+      />
+    </>
   );
 }
