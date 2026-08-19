@@ -18,6 +18,7 @@
       "@survey/*": ["src/modules/survey/*"],
       "@app/*": ["src/app/*"],
       "@utils/*": ["src/utils/*"],
+      "@assets/*": ["src/assets/*"],
       "@/*": ["src/*"]
     },
     "strict": true,

@@ -142,7 +142,7 @@
             </div>
 
             <div>
-              <h4 className="mb-1 text-xs font-black text-day-primary">مقایسه با محدودهٔ نرمال</h4>
+              <h4 className="mb-1 text-xs font-black text-day-primary">مقایسه با محدوده نرمال</h4>
               <p className="mb-3 text-[11px] text-ink-subtle">
                 آنچه باید باشد در برابر آنچه اکنون هست — و اینکه چقدر بالاتر یا پایین‌تر هستید.
               </p>
@@ -161,7 +161,11 @@
             <span className="text-sm font-black text-ink">پیشنهادهای روزانه</span>
             <span className="text-[11px] text-ink-subtle">قدم‌های کوچک، اثر بزرگ</span>
           </div>
-          <RecommendationTiles baseDelay={0.35} />
+          <RecommendationTiles
+          baseDelay={0.35}
+          seed={record?.completedOnJalali ?? "default"}
+        />
+
         </section>
       </div>
     );

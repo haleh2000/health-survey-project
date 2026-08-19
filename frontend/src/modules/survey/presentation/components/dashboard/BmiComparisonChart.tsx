@@ -1,7 +1,7 @@
 // src/modules/survey/presentation/components/dashboard/BmiComparisonChart.tsx
 // ─────────────────────────────────────────────────────────────────────────────
 // نمودار مقایسهٔ «چیزی که باید باشد» با «چیزی که هست»:
-//   ۱) نوار محدوده‌های BMI با نشانگر مقدار فعلی و هایلایت محدودهٔ سالم
+//   ۱) نوار محدوده‌های BMI با نشانگر مقدار فعلی و هایلایت محدوده سالم
 //   ۲) مقایسهٔ وزن فعلی با بازهٔ وزن سالم (وقتی قد ثبت شده باشد)
 // ─────────────────────────────────────────────────────────────────────────────
 import { motion, useReducedMotion } from "framer-motion";
@@ -29,7 +29,7 @@ const toPct = (bmi: number) => ((clamp(bmi, AXIS_MIN, AXIS_MAX) - AXIS_MIN) / (A
 
 const oneDecimal = (value: number) => toPersianDigits(value.toFixed(1));
 
-/** فاصله تا نزدیک‌ترین لبهٔ محدودهٔ سالم (منفی = پایین‌تر از نرمال) */
+/** فاصله تا نزدیک‌ترین لبهٔ محدوده سالم (منفی = پایین‌تر از نرمال) */
 function deviationOf(bmi: number): number {
   if (bmi < HEALTHY_MIN) return bmi - HEALTHY_MIN;
   if (bmi > HEALTHY_MAX) return bmi - HEALTHY_MAX;
@@ -42,7 +42,7 @@ export function BmiComparisonChart({ bmi, heightCm, weightKg }: Props) {
   if (bmi === null) {
     return (
       <div className="grid h-40 place-items-center rounded-2xl border border-dashed border-line text-xs text-ink-subtle">
-        پس از اولین ارزیابی، نمودار مقایسه با محدودهٔ نرمال اینجا نمایش داده می‌شود.
+        پس از اولین ارزیابی، نمودار مقایسه با محدوده نرمال اینجا نمایش داده می‌شود.
       </div>
     );
   }
@@ -92,7 +92,7 @@ export function BmiComparisonChart({ bmi, heightCm, weightKg }: Props) {
 
           {/* خود نوار */}
           <div className="flex h-4 w-full overflow-hidden rounded-full" role="img"
-               aria-label={`شاخص توده بدنی شما ${bmi.toFixed(1)} است؛ محدودهٔ سالم ۱۸.۵ تا ۲۴.۹`}>
+               aria-label={`شاخص توده بدنی شما ${bmi.toFixed(1)} است؛ محدوده سالم ۱۸.۵ تا ۲۴.۹`}>
             {BMI_RANGES.map((range) => {
               const from = Math.max(range.min, AXIS_MIN);
               const to = Math.min(range.max, AXIS_MAX);
@@ -138,7 +138,7 @@ export function BmiComparisonChart({ bmi, heightCm, weightKg }: Props) {
             className="absolute top-5 whitespace-nowrap text-[10px] font-semibold text-emerald-600"
             style={{ right: `${toPct((HEALTHY_MIN + HEALTHY_MAX) / 2)}%`, transform: "translateX(50%)" }}
           >
-            محدودهٔ سالم
+            محدوده سالم
           </span>
         </div>
 
@@ -153,10 +153,10 @@ export function BmiComparisonChart({ bmi, heightCm, weightKg }: Props) {
           </span>
           <span className="text-[11px] text-ink-muted">
             {inRange ? (
-              "شاخص شما داخل محدودهٔ سالم است."
+              "شاخص شما داخل محدوده سالم است."
             ) : (
               <>
-                {oneDecimal(Math.abs(deviation))} واحد {deviation > 0 ? "بالاتر" : "پایین‌تر"} از محدودهٔ سالم
+                {oneDecimal(Math.abs(deviation))} واحد {deviation > 0 ? "بالاتر" : "پایین‌تر"} از محدوده سالم
                 {deltaKg != null && deltaKg !== 0 && (
                   <> — حدود {toPersianDigits(Math.abs(deltaKg).toFixed(1))} کیلوگرم {deltaKg > 0 ? "بیشتر" : "کمتر"} از وزن متناسب</>
                 )}

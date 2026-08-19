@@ -3,9 +3,8 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import path from "path";
 
-const fromSrc = (segment: string) =>
+const fromSrc = (segment = "") =>
   fileURLToPath(new URL(`./src/${segment}`, import.meta.url));
 
 export default defineConfig({
@@ -13,12 +12,14 @@ export default defineConfig({
   resolve: {
     // Must stay in sync with `compilerOptions.paths` in tsconfig.app.json.
     alias: {
-    "@ds": path.resolve(__dirname, "src/design-system"),
-    "@core": path.resolve(__dirname, "src/core"),
-    "@survey": path.resolve(__dirname, "src/modules/survey"),
+      "@core": fromSrc("core"),
+      "@ds": fromSrc("design-system"),
+      "@survey": fromSrc("modules/survey"),
       "@app": fromSrc("app"),
-      "@utils": path.resolve(__dirname, "./utils"),
-      "@": path.resolve(__dirname, "./src"),
+      "@utils": fromSrc("utils"),
+      "@assets": fromSrc("assets"),
+      // Keep the bare "@" alias last so the specific ones win first.
+      "@": fromSrc(),
     },
   },
 });

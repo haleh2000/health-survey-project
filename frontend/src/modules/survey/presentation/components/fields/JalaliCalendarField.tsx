@@ -18,24 +18,21 @@ function toFarsiPadded(n: number, len = 2): string {
   return toFarsi(n).padStart(len, '۰');
 }
 
-function toGregorianSafe(jy: number, jm: number, jd: number) {
-  const r = jalaali.toGregorian(jy, jm, jd);
-  return { gy: r.gy!, gm: r.gm!, gd: r.gd! };
-}
-
+// ✅ toISO: مستقیم رشته جلالی برمی‌گردونه (بدون تبدیل به گرگوری)
 function toISO(jy: number, jm: number, jd: number): string {
-  const { gy, gm, gd } = toGregorianSafe(jy, jm, jd);
-  return `${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`;
+  return `${jy}-${String(jm).padStart(2, '0')}-${String(jd).padStart(2, '0')}`;
 }
 
-// ✅ fromISO now parses Jalali ISO directly (no Gregorian conversion)
+// ✅ fromISO: مستقیم رشته جلالی رو parse می‌کنه (بدون new Date)
 function fromISO(iso: string): { jy: number; jm: number; jd: number } {
-  const d = new Date(iso);
-  const r = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
-  return { jy: r.jy, jm: r.jm, jd: r.jd };
+  const parts = iso.split('-').map(Number);
+  const jy = parts[0] ?? 0;
+  const jm = parts[1] ?? 1;
+  const jd = parts[2] ?? 1;
+  return { jy, jm, jd };
 }
 
-// ✅ todayISO: toJalaali converts today to Jalali parts, then toISO emits Jalali ISO
+// ✅ todayISO: جلالی امروز رو برمی‌گردونه
 function todayISO(): string {
   const t = new Date();
   const { jy, jm, jd } = jalaali.toJalaali(
@@ -45,6 +42,23 @@ function todayISO(): string {
   );
   return toISO(jy, jm, jd);
 }
+
+// ✅ normalizeToJalaliISO: سال > 1800 یعنی گرگوری → تبدیل به جلالی
+function normalizeToJalaliISO(iso: string): string {
+  const parts = iso.split('-').map(Number);
+  const y = parts[0] ?? 0;
+  if (y > 1800) {
+    const d = new Date(iso);
+    const { jy, jm, jd } = jalaali.toJalaali(
+      d.getFullYear(),
+      d.getMonth() + 1,
+      d.getDate()
+    );
+    return toISO(jy, jm, jd);
+  }
+  return iso;
+}
+
 
 function calcFirstDow(jy: number, jm: number): number {
   const r = jalaali.toGregorian(jy, jm, 1);
