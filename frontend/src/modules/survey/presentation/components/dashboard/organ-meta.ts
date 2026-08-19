@@ -11,14 +11,14 @@ export interface OrganMeta {
 }
 
 export const ORGAN_META: OrganMeta[] = [
-  { key: 'cardiac',   label: 'قلب و عروق',   maxScore: 10, driverLabel: 'فشار خون · کلسترول' },
-  { key: 'stroke',    label: 'مغز و اعصاب',  maxScore: 10, driverLabel: 'فشار خون · استرس'   },
-  { key: 'lung',      label: 'ریه‌ها',        maxScore: 10, driverLabel: 'دخانیات · آلودگی'   },
+  { key: 'cardiac',   label: 'قلب و عروق',   maxScore: 7, driverLabel: 'فشار خون · کلسترول' },
+  { key: 'stroke',    label: 'مغز و اعصاب',  maxScore: 7, driverLabel: 'فشار خون · استرس'   },
+  { key: 'lung',      label: 'ریه‌ها',        maxScore: 9, driverLabel: 'دخانیات · آلودگی'   },
   { key: 'liver',     label: 'کبد',           maxScore: 10, driverLabel: 'الکل · چربی کبد'    },
   { key: 'gastric',   label: 'معده و گوارش',  maxScore: 10, driverLabel: 'رژیم · هلیکوباکتر'  },
-  { key: 'colon',     label: 'روده بزرگ',     maxScore: 10, driverLabel: 'فیبر · سابقه خانوادگی' },
+  { key: 'colon',     label: 'روده بزرگ',     maxScore: 9, driverLabel: 'فیبر · سابقه خانوادگی' },
   { key: 'pancreas',  label: 'پانکراس',       maxScore: 10, driverLabel: 'دخانیات · دیابت'    },
-  { key: 'metabolic', label: 'متابولیک',      maxScore: 10, driverLabel: 'قند · چربی خون'     },
+  { key: 'metabolic', label: 'متابولیک',      maxScore: 5, driverLabel: 'قند · چربی خون'     },
 ];
 
 export const organPercent = (risks: OrganRisks, meta: OrganMeta): number =>

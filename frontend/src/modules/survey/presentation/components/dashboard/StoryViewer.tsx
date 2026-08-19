@@ -6,8 +6,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ResolvedStoryGroup } from "./recommendationStories";
 
-import type { StoryGroup } from "./recommendationStories";
-
 const SLIDE_MS = 6_000;
 const HOLD_MS = 220;
 

@@ -1,38 +1,44 @@
 // src/modules/survey/presentation/components/dashboard/RecommendationTiles.tsx
 
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { toPersianDigits } from "@core/text/digits";
-import { readOrCreateRecommendationSeed } from "@survey/infrastructure/storage/recommendation-seed.storage";
+import type { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
 
-import { resolveStoryGroups, type ResolvedStoryGroup } from "./recommendationStories";
+import {
+  STORY_GROUPS,
+  resolveStoryGroupRandom,
+  type ResolvedStoryGroup,
+} from "./recommendationStories";
 import { StoryViewer } from "./StoryViewer";
 
 const SCRIM = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.50) 100%)";
 
 interface RecommendationTilesProps {
   readonly baseDelay?: number;
-  /** شناسه ارزیابی یا کاربر؛ سری پیشنهادها را پایدار می‌کند. */
-  readonly seed?: string;
+  /** گروه ریسک کاربر — محتوای استوری‌ها بر همین اساس انتخاب می‌شود. */
+  readonly tier?: RiskTier | null;
 }
 
-export function RecommendationTiles({ baseDelay = 0, seed }: RecommendationTilesProps) {
+export function RecommendationTiles({ baseDelay = 0, tier = null }: RecommendationTilesProps) {
   const [activeGroup, setActiveGroup] = useState<ResolvedStoryGroup | null>(null);
 
-  const groups = useMemo(
-    () => resolveStoryGroups(seed ?? readOrCreateRecommendationSeed()),
-    [seed],
-  );
+  /** هر بار کلیک، یک سری تازه و تصادفی متناسب با گروه کاربر ساخته می‌شود */
+  const openGroup = (key: string) => {
+    const groupDef = STORY_GROUPS.find((g) => g.key === key);
+    if (!groupDef) return;
+    setActiveGroup(resolveStoryGroupRandom(groupDef, tier));
+  };
 
   return (
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-        {groups.map((group, index) => (
+        {STORY_GROUPS.map((group, index) => (
           <motion.button
             key={group.key}
             type="button"
-            onClick={() => setActiveGroup(group)}
+            onClick={() => openGroup(group.key)}
             aria-label={`مشاهده توصیه‌های ${group.label}`}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -58,7 +64,7 @@ export function RecommendationTiles({ baseDelay = 0, seed }: RecommendationTiles
             <div className="relative flex items-center justify-between gap-3">
               <p className="text-sm font-black text-white drop-shadow-sm">{group.label}</p>
               <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-                {toPersianDigits(group.slides.length)} نکته
+                {toPersianDigits(group.variants[0]?.slides.length ?? 5)} نکته
               </span>
             </div>
           </motion.button>
