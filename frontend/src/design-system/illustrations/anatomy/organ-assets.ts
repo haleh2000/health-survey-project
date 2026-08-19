@@ -1,8 +1,8 @@
 // src/design-system/illustrations/anatomy/organ-assets.ts
 // ─────────────────────────────────────────────────────────────────────────────
 // چیدمان تصاویر آناتومی روی بدن.
-// مختصات در همان دستگاه BodySilhouette است: viewBox "0 0 400 600"
-// (تنه تقریباً x: ۱۰۶..۲۹۴ و y: ۱۰۸..۳۷۲)
+// مختصات در دستگاه BodyFigure است: viewBox "0 0 400 600"
+// (تنهٔ پیکرهٔ جدید: x ≈ ۱۶۰..۲۴۰ و y ≈ ۱۱۲..۳۴۳ — مرکز x=۲۰۰)
 //
 // تصاویر: Servier Medical Art — CC BY 4.0 (به ATTRIBUTION.md در پوشهٔ تصاویر
 // نگاه کنید؛ ذکر منبع در رابط کاربری الزامی است).
@@ -44,74 +44,74 @@ export const ORGAN_ASSETS: readonly OrganAsset[] = [
     key: 'lung',
     label: 'ریه‌ها',
     layers: [
-      { href: `${BASE}/bronchi.png`, x: 172, y: 122, width: 56, height: 60, muted: true },
-      { href: `${BASE}/lung.png`, x: 143, y: 126, width: 56, height: 94 },
-      { href: `${BASE}/lung.png`, x: 201, y: 126, width: 56, height: 94, mirrored: true },
+      { href: `${BASE}/bronchi.png`, x: 183, y: 131, width: 34, height: 37, muted: true },
+      { href: `${BASE}/lung.png`, x: 166, y: 138, width: 34, height: 57 },
+      { href: `${BASE}/lung.png`, x: 200, y: 138, width: 34, height: 57, mirrored: true },
     ],
-    halo: { x: 200, y: 178, r: 58 },
-    anchor: { x: 150, y: 166 },
+    halo: { x: 200, y: 171, r: 38 },
+    anchor: { x: 168, y: 161 },
     side: 'left',
   },
   {
     key: 'metabolic',
     label: 'متابولیک',
     layers: [
-      { href: `${BASE}/kidney.png`, x: 143, y: 240, width: 27, height: 36, mirrored: true },
-      { href: `${BASE}/kidney.png`, x: 230, y: 240, width: 27, height: 36 },
+      { href: `${BASE}/kidney.png`, x: 164, y: 227, width: 18, height: 24, mirrored: true },
+      { href: `${BASE}/kidney.png`, x: 218, y: 227, width: 18, height: 24 },
     ],
-    halo: { x: 243, y: 258, r: 24 },
-    anchor: { x: 256, y: 250 },
+    halo: { x: 227, y: 239, r: 16 },
+    anchor: { x: 235, y: 232 },
     side: 'right',
   },
   {
     key: 'pancreas',
     label: 'پانکراس',
-    layers: [{ href: `${BASE}/pancreas.png`, x: 158, y: 248, width: 84, height: 49 }],
-    halo: { x: 198, y: 272, r: 38 },
-    anchor: { x: 156, y: 276 },
+    layers: [{ href: `${BASE}/pancreas.png`, x: 172, y: 235, width: 55.4, height: 32.3 }],
+    halo: { x: 199, y: 251, r: 25 },
+    anchor: { x: 172, y: 254 },
     side: 'left',
   },
   {
     key: 'colon',
     label: 'روده بزرگ',
     layers: [
-      { href: `${BASE}/intestine.png`, x: 162, y: 288, width: 76, height: 70, muted: true },
-      { href: `${BASE}/colon.png`, x: 158, y: 250, width: 84, height: 116 },
+      { href: `${BASE}/intestine.png`, x: 175, y: 271, width: 50, height: 46, muted: true },
+      { href: `${BASE}/colon.png`, x: 172, y: 243, width: 55.4, height: 76.6 },
     ],
-    halo: { x: 199, y: 310, r: 56 },
-    anchor: { x: 154, y: 322 },
+    halo: { x: 199, y: 283, r: 37 },
+    anchor: { x: 171, y: 293 },
     side: 'left',
   },
   {
     key: 'liver',
     label: 'کبد',
-    layers: [{ href: `${BASE}/liver.png`, x: 134, y: 202, width: 98, height: 77 }],
-    halo: { x: 176, y: 240, r: 42 },
-    anchor: { x: 140, y: 232 },
+    layers: [{ href: `${BASE}/liver.png`, x: 157, y: 198.6, width: 64.7, height: 50.8 }],
+    halo: { x: 185, y: 223, r: 28 },
+    anchor: { x: 162, y: 217 },
     side: 'left',
   },
   {
     key: 'gastric',
     label: 'معده و گوارش',
-    layers: [{ href: `${BASE}/stomach.png`, x: 196, y: 208, width: 60, height: 62 }],
-    halo: { x: 226, y: 239, r: 34 },
-    anchor: { x: 254, y: 230 },
+    layers: [{ href: `${BASE}/stomach.png`, x: 197, y: 206, width: 38, height: 39 }],
+    halo: { x: 216, y: 223, r: 22 },
+    anchor: { x: 234, y: 215 },
     side: 'right',
   },
   {
     key: 'cardiac',
     label: 'قلب و عروق',
-    layers: [{ href: `${BASE}/heart.png`, x: 186, y: 152, width: 55, height: 72 }],
-    halo: { x: 213, y: 188, r: 36 },
-    anchor: { x: 241, y: 180 },
+    layers: [{ href: `${BASE}/heart.png`, x: 191, y: 158, width: 34, height: 45 }],
+    halo: { x: 208, y: 180, r: 24 },
+    anchor: { x: 226, y: 173 },
     side: 'right',
   },
   {
     key: 'stroke',
     label: 'مغز و اعصاب',
-    layers: [{ href: `${BASE}/brain.png`, x: 169, y: 12, width: 62, height: 56 }],
-    halo: { x: 200, y: 40, r: 34 },
-    anchor: { x: 200, y: 16 },
+    layers: [{ href: `${BASE}/brain.png`, x: 184, y: 27, width: 33, height: 30 }],
+    halo: { x: 200, y: 42, r: 19 },
+    anchor: { x: 200, y: 24 },
     side: 'left',
   },
 ] as const;

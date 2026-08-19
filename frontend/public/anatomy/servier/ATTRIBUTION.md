@@ -21,3 +21,7 @@ https://creativecommons.org/licenses/by/4.0/
 | colon.png | colon |
 | intestine.png | intestin |
 | kidney.png | rein_02 |
+
+## Body silhouette
+- "Female shadow.svg" — Mikael Häggström, Wikimedia Commons, Public Domain.
+  Used (restyled) in `src/design-system/illustrations/anatomy/BodyFigure.tsx`.
