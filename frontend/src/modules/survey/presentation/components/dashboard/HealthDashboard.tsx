@@ -132,13 +132,7 @@
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               {/* بدن — هنگام اسکرولِ کارت‌ها ثابت می‌ماند */}
-              <div className="md:sticky md:top-4 md:self-start">
-                <AnatomyFigure
-                  organPercents={organPercents}
-                  highlightedOrgan={expandedOrgan}
-                  onSelectOrgan={handleSelectOrgan}
-                />
-              </div>
+           
 
               {/* کارت‌های توصیه */}
               <div>
@@ -158,6 +152,13 @@
                     کارت‌های توصیه پس از اولین ارزیابی ساخته می‌شوند.
                   </p>
                 )}
+              </div>
+                 <div className="md:sticky md:top-4 md:self-start">
+                <AnatomyFigure
+                  organPercents={organPercents}
+                  highlightedOrgan={expandedOrgan}
+                  onSelectOrgan={handleSelectOrgan}
+                />
               </div>
             </div>
           </div>
