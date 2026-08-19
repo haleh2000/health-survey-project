@@ -24,4 +24,4 @@ https://creativecommons.org/licenses/by/4.0/
 
 ## Body silhouette
 - "Human body silhouette.svg" — Mikael Häggström / RexxS, Wikimedia Commons, Public Domain.
-  Used (restyled, with symbolic vessels added) in `src/design-system/illustrations/anatomy/BodyFigure.tsx`.
+  Used (restyled) in `src/design-system/illustrations/anatomy/BodyFigure.tsx`.

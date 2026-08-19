@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { pickBySeed } from "@core/random/seeded-pick";
+import type { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
 
 import exerciseImg from "@assets/exercise.png";
 import nutritionImg from "@assets/nutrition.png";
@@ -170,28 +170,115 @@ export const STORY_GROUPS: readonly StoryGroup[] = [
   },
 ];
 
-/** یک سری را بر اساس seed انتخاب می‌کند؛ برای یک seed ثابت، نتیجه همیشه یکی است. */
-export const resolveStoryGroup = (
+/**
+ * اسلاید آغازینِ هر دسته، مخصوص گروه ریسک کاربر — محتوای هر گروه با لحن و
+ * اولویت همان گروه (مطابق بروشورهای توصیه) شروع می‌شود.
+ */
+const TIER_INTROS: Record<string, Record<RiskTier, { title: string; body: string }>> = {
+  nutrition: {
+    low: {
+      title: "تثبیت سلامت با تغذیه",
+      body: "شما در گروه افراد سالم هستید. هدف این هفته: تنوع رنگ میوه و سبزیجات برای دریافت طیف کامل آنتی‌اکسیدان‌ها و تقویت ایمنی.",
+    },
+    moderate: {
+      title: "اصلاح تدریجی الگوی غذایی",
+      body: "شما در گروه در معرض خطر بلندمدت هستید. تغییرهای کوچک اما پیوسته در بشقاب، بیشترین اثر را روی آیندهٔ سلامت شما دارد.",
+    },
+    elevated: {
+      title: "تغذیه، اولویت این فصل شما",
+      body: "شما در آستانهٔ خطر کوتاه‌مدت هستید. کاهش نمک، قند و غذاهای فرآوری‌شده از همین هفته، ریسک شما را قابل‌اندازه‌گیری پایین می‌آورد.",
+    },
+    critical: {
+      title: "تغذیه در کنار درمان",
+      body: "با توجه به سابقهٔ بالینی شما، این توصیه‌ها مکمل نظر پزشک شماست؛ هر تغییر بزرگ در رژیم را با پزشک هماهنگ کنید.",
+    },
+  },
+  exercise: {
+    low: {
+      title: "تحرک برای ماندن در اوج",
+      body: "شما در گروه افراد سالم هستید. برنامهٔ هفتگی منظم — هوازی، قدرتی و کشش — سرمایه‌گذاری برای دهه‌های بعدی است.",
+    },
+    moderate: {
+      title: "حرکت، سپر بلندمدت شما",
+      body: "کم‌تحرکی یکی از عوامل ریسک شماست. با قدم‌های کوچک روزانه شروع کنید؛ پیوستگی مهم‌تر از شدت است.",
+    },
+    elevated: {
+      title: "فعال شدن از همین امروز",
+      body: "شما در آستانهٔ خطر هستید. ۱۵۰ دقیقه فعالیت متوسط در هفته، مؤثرترین کاری است که می‌توانید برای قلب و متابولیسم خود بکنید.",
+    },
+    critical: {
+      title: "تحرک ایمن با نظر پزشک",
+      body: "با توجه به سابقهٔ بالینی شما، پیش از شروع برنامهٔ ورزشی با پزشک مشورت کنید؛ حرکت ملایم و منظم همچنان بهترین دوست شماست.",
+    },
+  },
+  peace: {
+    low: {
+      title: "آرامش، حلقهٔ تکمیل سلامت",
+      body: "شما در گروه افراد سالم هستید. خواب باکیفیت و تمرین ذهن‌آگاهی، همین وضعیت خوب را پایدار می‌کند.",
+    },
+    moderate: {
+      title: "استرس را جدی بگیرید",
+      body: "استرس مزمن بی‌سروصدا روی قلب و متابولیسم اثر می‌گذارد. چند عادت کوچک شبانه، کیفیت خواب و خلق شما را عوض می‌کند.",
+    },
+    elevated: {
+      title: "ذهن آرام، ریسک کمتر",
+      body: "شما در آستانهٔ خطر هستید. مدیریت استرس و خواب منظم، به اندازهٔ تغذیه در پایین آوردن ریسک شما نقش دارد.",
+    },
+    critical: {
+      title: "آرامش در کنار درمان",
+      body: "با توجه به شرایط شما، مدیریت استرس بخشی از مسیر درمان است؛ اگر اضطراب یا خلق پایین ادامه‌دار شد حتماً با متخصص در میان بگذارید.",
+    },
+  },
+};
+
+/** برخلاف pickBySeed، هر بار خروجی متفاوت است — مخصوص باز شدن استوری. */
+const shuffle = <T,>(items: readonly T[]): T[] => {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i] as T;
+    copy[i] = copy[j] as T;
+    copy[j] = tmp;
+  }
+  return copy;
+};
+
+/**
+ * نسخهٔ گروه-محور و تصادفی: سری نکته‌ها بر اساس گروه ریسک کاربر ساخته می‌شود
+ * (اسلاید آغازین مخصوص گروه + یک سری تصادفی با ترتیب تصادفی).
+ * هر بار باز کردن، چیدمان متفاوتی دارد.
+ */
+export const resolveStoryGroupRandom = (
   group: StoryGroup,
-  seed: string,
+  tier: RiskTier | null,
 ): ResolvedStoryGroup | null => {
-  const variant = pickBySeed(group.variants, `${seed}:${group.key}`);
+  const variant = group.variants[Math.floor(Math.random() * group.variants.length)];
   if (!variant) return null;
+
+  const intro = tier ? TIER_INTROS[group.key]?.[tier] : undefined;
+  const introSlide: ResolvedStorySlide[] = intro
+    ? [
+        {
+          id: `${group.key}-intro-${tier}`,
+          title: intro.title,
+          body: intro.body,
+          icon: group.icon,
+          image: group.cover,
+        },
+      ]
+    : [];
+
+  const shuffled = shuffle(variant.slides).map((slide) => ({
+    ...slide,
+    image: slide.image ?? group.cover,
+  }));
 
   return {
     key: group.key,
     label: group.label,
     cover: group.cover,
     icon: group.icon,
-    variantId: variant.id,
-    slides: variant.slides.map((slide) => ({
-      ...slide,
-      image: slide.image ?? group.cover,
-    })),
+    variantId: `${variant.id}-${Date.now()}`,
+    slides: [...introSlide, ...shuffled],
   };
 };
-
-export const resolveStoryGroups = (seed: string): readonly ResolvedStoryGroup[] =>
-  STORY_GROUPS.map((group) => resolveStoryGroup(group, seed)).filter(
-    (group): group is ResolvedStoryGroup => group !== null,
-  );

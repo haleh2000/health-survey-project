@@ -11,14 +11,15 @@
   import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
   import { BmiComparisonChart } from "./BmiComparisonChart";
   import { RecommendationTiles } from "./RecommendationTiles";
-  import { AnatomyExplorer } from "../../../../health-dashboard/components/AnatomyExplorer";
-  import { StatusPanel } from "./StatusPanel";
+  import { AnatomyFigure } from "../../../../health-dashboard/components/AnatomyFigure";
+  import { OrganAdviceList } from "./OrganAdviceList";
+  import { ProfilePanel } from "./ProfilePanel";
   import type { OrganKey } from "./organ-meta";
   import { ORGAN_META, organPercent } from "./organ-meta";
 
   interface Props {
     record: AssessmentRecord | null;
-    historyCount: number;
+    history: readonly AssessmentRecord[];
   }
 
 
@@ -45,21 +46,40 @@
     );
   }
 
-  export function HealthDashboard({ record, historyCount }: Props) {
+  export function HealthDashboard({ record, history }: Props) {
     const assessment = record?.assessment ?? null;
+    const historyCount = history.length;
 
-    const [selectedOrgan, setSelectedOrgan] = useState<OrganKey | null>(null);
+    /** کارتِ بازِ آکاردئون؛ کلیک روی ارگان بدن هم همین را باز می‌کند */
+    const [expandedOrgan, setExpandedOrgan] = useState<OrganKey | null>(null);
+    const [showAllCards, setShowAllCards] = useState(false);
 
-    /** درصد ریسک ارگان‌های مرتبط — کلید موجود = ارگان مرتبط با گروه کاربر */
-    const organPercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
-      if (!assessment) return {};
-      const ranked = ORGAN_META
+    /** همهٔ ارگان‌ها مرتب از پرریسک به مطلوب — منبع کارت‌های توصیه */
+    const rankedOrgans = useMemo(() => {
+      if (!assessment) return [];
+      return ORGAN_META
         .map((meta) => ({ key: meta.key, percent: organPercent(assessment.organRisks, meta) }))
         .sort((a, b) => b.percent - a.percent);
-      const relevant = ranked.filter((item) => item.percent >= RELEVANCE_THRESHOLD);
-      const picked = relevant.length >= MIN_VISIBLE_ORGANS ? relevant : ranked.slice(0, MIN_VISIBLE_ORGANS);
-      return Object.fromEntries(picked.map((item) => [item.key, item.percent]));
     }, [assessment]);
+
+    /** درصد ریسک ارگان‌های مرتبط — کلید موجود = ارگان فعال روی بدن */
+    const organPercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
+      const relevant = rankedOrgans.filter((item) => item.percent >= RELEVANCE_THRESHOLD);
+      const picked = relevant.length >= MIN_VISIBLE_ORGANS ? relevant : rankedOrgans.slice(0, MIN_VISIBLE_ORGANS);
+      return Object.fromEntries(picked.map((item) => [item.key, item.percent]));
+    }, [rankedOrgans]);
+
+    /** کلیک روی ارگان بدن: کارتش را باز کن و به آن اسکرول کن */
+    const handleSelectOrgan = (key: OrganKey) => {
+      const index = rankedOrgans.findIndex((item) => item.key === key);
+      if (index >= 3) setShowAllCards(true);
+      setExpandedOrgan((current) => (current === key ? null : key));
+      requestAnimationFrame(() => {
+        document
+          .getElementById(`organ-card-${key}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    };
 
     return (
       <div className="flex flex-col gap-5">
@@ -100,25 +120,56 @@
           </div>
         </motion.section>
 
-        {/* ✅ مدل دوبعدی آناتومی + پنل وضعیت */}
+        {/* ✅ مدل دوبعدی آناتومی + کارت‌های توصیه + پروفایل */}
         <section className="grid grid-cols-1 gap-5 rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
           <div>
             <SectionLabel>نقشهٔ سلامت اندام‌ها</SectionLabel>
-            <p className="mb-2 text-[11px] text-ink-subtle">
+            <p className="mb-3 text-[11px] text-ink-subtle">
               {assessment
-                ? "روی هر اندام بزنید تا کارت توصیه‌های همان اندام باز شود."
+                ? "کارت‌ها به ترتیب از «نیاز به پیگیری» تا «وضعیت مطلوب» مرتب شده‌اند. برای دیدن توصیه‌های هر اندام، کارت آن را باز کنید."
                 : "پس از اولین ارزیابی، اندام‌های مرتبط با وضعیت شما اینجا فعال می‌شوند."}
             </p>
-            <AnatomyExplorer
-              organPercents={organPercents}
-              selectedOrgan={selectedOrgan}
-              onSelectOrgan={setSelectedOrgan}
-            />
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              {/* بدن — هنگام اسکرولِ کارت‌ها ثابت می‌ماند */}
+              <div className="md:sticky md:top-4 md:self-start">
+                <AnatomyFigure
+                  organPercents={organPercents}
+                  highlightedOrgan={expandedOrgan}
+                  onSelectOrgan={handleSelectOrgan}
+                />
+              </div>
+
+              {/* کارت‌های توصیه */}
+              <div>
+                {assessment ? (
+                  <OrganAdviceList
+                    ranked={rankedOrgans}
+                    visibleCount={3}
+                    expandedKey={expandedOrgan}
+                    onToggle={(key) =>
+                      setExpandedOrgan((current) => (current === key ? null : key))
+                    }
+                    showAll={showAllCards}
+                    onShowMore={() => setShowAllCards((v) => !v)}
+                  />
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-line p-6 text-center text-[11px] text-ink-subtle">
+                    کارت‌های توصیه پس از اولین ارزیابی ساخته می‌شوند.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           <div>
-            <SectionLabel>سوابق و وضعیت</SectionLabel>
-            <StatusPanel flags={assessment?.flags ?? null} baseDelay={0.2} />
+            <SectionLabel>پروفایل من</SectionLabel>
+            <ProfilePanel
+              assessment={assessment}
+              record={record}
+              history={history}
+              baseDelay={0.2}
+            />
           </div>
         </section>
 
@@ -161,10 +212,7 @@
             <span className="text-sm font-black text-ink">پیشنهادهای روزانه</span>
             <span className="text-[11px] text-ink-subtle">قدم‌های کوچک، اثر بزرگ</span>
           </div>
-          <RecommendationTiles
-          baseDelay={0.35}
-          seed={record?.completedOnJalali ?? "default"}
-        />
+          <RecommendationTiles baseDelay={0.35} tier={assessment?.tier ?? null} />
 
         </section>
       </div>
