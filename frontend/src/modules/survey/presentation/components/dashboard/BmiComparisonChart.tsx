@@ -200,7 +200,12 @@ export function BmiComparisonChart({ bmi, heightCm, weightKg }: Props) {
   );
 }
 
-/** یک ردیف میله‌ای؛ با دادن `from` به‌جای میله، یک بازه رسم می‌شود. */
+/**
+ * یک ردیف میله‌ای. میله همیشه از ابتدای محور (سمت راست در RTL) شروع می‌شود و
+ * تا مقدارِ داده‌شده پر می‌شود — نه اینکه وسط نوار شناور بماند.
+ * اگر `from` داده شود، بازه‌ای رسم می‌شود: بخشِ زیرِ کفِ بازه کم‌رنگ و بخشِ
+ * داخلِ بازه پررنگ است، تا هم نقطهٔ شروعِ بازه دیده شود و هم انتهای آن.
+ */
 function WeightBar({
   label,
   value,
@@ -218,8 +223,10 @@ function WeightBar({
   reduceMotion: boolean;
   delay: number;
 }) {
-  const start = ((from ?? 0) / max) * 100;
-  const width = (value / max) * 100 - start;
+  /** کل طول میله: از صفر تا `value` */
+  const fillPercent = (value / max) * 100;
+  /** سهمِ «زیرِ بازهٔ سالم» از همین طول — فقط وقتی بازه داریم */
+  const belowSharePercent = from != null && value > 0 ? (from / value) * 100 : 0;
 
   return (
     <div className="mb-3 last:mb-0">
@@ -231,14 +238,26 @@ function WeightBar({
             : `${toPersianDigits(value.toFixed(1))} kg`}
         </span>
       </div>
-      <div className="h-2.5 w-full rounded-full bg-surface-muted">
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-muted">
         <motion.div
-          className="h-full rounded-full"
-          style={{ backgroundColor: color, marginInlineStart: `${start}%` }}
+          className="flex h-full overflow-hidden rounded-full"
           initial={reduceMotion ? false : { width: 0 }}
-          animate={{ width: `${width}%` }}
+          animate={{ width: `${fillPercent}%` }}
           transition={{ type: "spring", stiffness: 120, damping: 22, delay }}
-        />
+        >
+          {from != null && (
+            <div
+              className="h-full shrink-0"
+              style={{
+                width: `${belowSharePercent}%`,
+                backgroundColor: color,
+                opacity: 0.3,
+              }}
+              aria-hidden
+            />
+          )}
+          <div className="h-full flex-1" style={{ backgroundColor: color }} aria-hidden />
+        </motion.div>
       </div>
     </div>
   );
