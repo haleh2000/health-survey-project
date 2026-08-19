@@ -159,15 +159,6 @@
                 />
               )}
 
-              {/* بدن — هنگام اسکرولِ کارت‌ها ثابت می‌ماند */}
-              <div className="relative z-10 md:sticky md:top-4 md:self-start">
-                <AnatomyFigure
-                  organPercents={organPercents}
-                  highlightedOrgan={expandedOrgan}
-                  onSelectOrgan={handleSelectOrgan}
-                />
-              </div>
-
               {/* کارت‌های توصیه — روی لایهٔ فلش‌ها می‌نشینند */}
               <div className="relative z-10">
                 {assessment ? (
@@ -186,6 +177,14 @@
                     کارت‌های توصیه پس از اولین ارزیابی ساخته می‌شوند.
                   </p>
                 )}
+              </div>
+              {/* بدن — هنگام اسکرولِ کارت‌ها ثابت می‌ماند */}
+              <div className="relative z-10 md:sticky md:top-4 md:self-start">
+                <AnatomyFigure
+                  organPercents={organPercents}
+                  highlightedOrgan={expandedOrgan}
+                  onSelectOrgan={handleSelectOrgan}
+                />
               </div>
             </div>
           </div>
