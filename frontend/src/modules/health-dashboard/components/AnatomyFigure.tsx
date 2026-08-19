@@ -79,7 +79,9 @@ export function AnatomyFigure({ organPercents, highlightedOrgan, onSelectOrgan }
               {asset.layers.map((layer, i) => (
                 <OrganImage key={i} layer={layer} highlighted={isActive} glow={severity.hex} />
               ))}
+              {/* نقطهٔ اتصالِ فلش به کارتِ همین اندام — با data-attribute پیدا می‌شود */}
               <circle
+                data-organ-anchor={asset.key}
                 cx={asset.anchor.x}
                 cy={asset.anchor.y}
                 r={4}

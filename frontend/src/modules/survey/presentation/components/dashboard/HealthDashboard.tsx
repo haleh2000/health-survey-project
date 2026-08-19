@@ -2,7 +2,7 @@
 
   import { motion } from "framer-motion";
   import { CalendarCheck, History, ShieldPlus } from "lucide-react";
-  import { useMemo, useState } from "react";
+  import { useMemo, useRef, useState } from "react";
 
   import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
   import { toPersianDigits } from "@core/text/digits";
@@ -12,10 +12,11 @@
   import { BmiComparisonChart } from "./BmiComparisonChart";
   import { RecommendationTiles } from "./RecommendationTiles";
   import { AnatomyFigure } from "../../../../health-dashboard/components/AnatomyFigure";
+  import { OrganConnectors, type ConnectorTarget } from "../../../../health-dashboard/components/OrganConnectors";
   import { OrganAdviceList } from "./OrganAdviceList";
   import { ProfilePanel } from "./ProfilePanel";
   import type { OrganKey } from "./organ-meta";
-  import { ORGAN_META, organPercent } from "./organ-meta";
+  import { ORGAN_META, organPercent, severityOf } from "./organ-meta";
 
   interface Props {
     record: AssessmentRecord | null;
@@ -50,6 +51,9 @@
     const assessment = record?.assessment ?? null;
     const historyCount = history.length;
 
+    /** ناحیه‌ای که فلش‌های «اندام → کارت» رویش کشیده می‌شوند */
+    const connectorHostRef = useRef<HTMLDivElement | null>(null);
+
     /** کارتِ بازِ آکاردئون؛ کلیک روی ارگان بدن هم همین را باز می‌کند */
     const [expandedOrgan, setExpandedOrgan] = useState<OrganKey | null>(null);
     const [showAllCards, setShowAllCards] = useState(false);
@@ -68,6 +72,17 @@
       const picked = relevant.length >= MIN_VISIBLE_ORGANS ? relevant : rankedOrgans.slice(0, MIN_VISIBLE_ORGANS);
       return Object.fromEntries(picked.map((item) => [item.key, item.percent]));
     }, [rankedOrgans]);
+
+    /**
+     * فلش‌ها فقط برای اندام‌هایی کشیده می‌شوند که هم روی بدن فعال‌اند و هم
+     * کارتشان همین حالا در لیست دیده می‌شود.
+     */
+    const connectorTargets = useMemo<ConnectorTarget[]>(() => {
+      const visible = showAllCards ? rankedOrgans : rankedOrgans.slice(0, 3);
+      return visible
+        .filter((item) => organPercents[item.key] != null)
+        .map((item) => ({ key: item.key, color: severityOf(item.percent).hex }));
+    }, [rankedOrgans, organPercents, showAllCards]);
 
     /** کلیک روی ارگان بدن: کارتش را باز کن و به آن اسکرول کن */
     const handleSelectOrgan = (key: OrganKey) => {
@@ -130,9 +145,22 @@
                 : "پس از اولین ارزیابی، اندام‌های مرتبط با وضعیت شما اینجا فعال می‌شوند."}
             </p>
 
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div
+              ref={connectorHostRef}
+              className="relative grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+            >
+              {/* فلش‌های اتصال هر اندام به کارت خودش — پشتِ کارت‌ها رسم می‌شوند */}
+              {assessment && (
+                <OrganConnectors
+                  hostRef={connectorHostRef}
+                  targets={connectorTargets}
+                  highlightedOrgan={expandedOrgan}
+                  layoutSignal={`${showAllCards}-${connectorTargets.length}`}
+                />
+              )}
+
               {/* بدن — هنگام اسکرولِ کارت‌ها ثابت می‌ماند */}
-              <div className="md:sticky md:top-4 md:self-start">
+              <div className="relative z-10 md:sticky md:top-4 md:self-start">
                 <AnatomyFigure
                   organPercents={organPercents}
                   highlightedOrgan={expandedOrgan}
@@ -140,8 +168,8 @@
                 />
               </div>
 
-              {/* کارت‌های توصیه */}
-              <div>
+              {/* کارت‌های توصیه — روی لایهٔ فلش‌ها می‌نشینند */}
+              <div className="relative z-10">
                 {assessment ? (
                   <OrganAdviceList
                     ranked={rankedOrgans}
