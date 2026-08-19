@@ -190,7 +190,7 @@
           </div>
 
           <div>
-            <SectionLabel>پروفایل من</SectionLabel>
+            <SectionLabel>سوابق و وضعیت</SectionLabel>
             <ProfilePanel
               assessment={assessment}
               record={record}
