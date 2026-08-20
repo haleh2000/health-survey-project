@@ -1,18 +1,3 @@
-// src/modules/health-dashboard/components/OrganConnectors.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// فلش‌های اتصال: هر اندام روی نقشهٔ بدن با یک منحنی به کارتِ توصیهٔ خودش
-// وصل می‌شود.
-//
-// چون بدن و کارت‌ها دو ستون جدا در گرید هستند، مسیرها را نمی‌شود داخل SVG بدن
-// کشید؛ به‌جایش یک لایهٔ SVG روی کل ناحیه قرار می‌گیرد و مختصات دو سر هر فلش
-// از روی DOM اندازه‌گیری می‌شود:
-//   • مبدأ  → دایرهٔ `data-organ-anchor="<key>"` داخل SVG بدن
-//   • مقصد → لبهٔ نزدیکِ کارتِ `#organ-card-<key>`
-//
-// در چیدمان موبایل (وقتی کارت‌ها زیر بدن می‌آیند و افقی از هم جدا نیستند)
-// هیچ فلشی رسم نمی‌شود.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
@@ -20,19 +5,14 @@ import type { OrganKey } from '@survey/presentation/components/dashboard/organ-m
 
 export interface ConnectorTarget {
   readonly key: OrganKey;
-  /** رنگ فلش — معمولاً رنگِ شدتِ ریسکِ همان اندام */
   readonly color: string;
 }
 
 interface Props {
-  /** ناحیه‌ای که فلش‌ها رویش کشیده می‌شوند (باید `position: relative` باشد) */
   readonly hostRef: React.RefObject<HTMLElement | null>;
   readonly targets: readonly ConnectorTarget[];
   readonly highlightedOrgan: OrganKey | null;
-  /**
-   * هر تغییری که ممکن است چیدمان را جابه‌جا کند (باز/بسته شدن کارت، نمایش
-   * بیشتر و …). با تغییرش، مسیرها دوباره اندازه‌گیری می‌شوند.
-   */
+
   readonly layoutSignal?: unknown;
 }
 
@@ -40,7 +20,6 @@ interface Connector {
   readonly key: OrganKey;
   readonly color: string;
   readonly path: string;
-  /** نوکِ فلش: مختصات و جهت افقی (‎+۱ به راست، ‎-۱ به چپ) */
   readonly tipX: number;
   readonly tipY: number;
   readonly direction: 1 | -1;
@@ -48,14 +27,16 @@ interface Connector {
   readonly originY: number;
 }
 
-/** فاصلهٔ نوک فلش از لبهٔ کارت */
 const CARD_GAP = 6;
 /** نقطهٔ اتصال روی کارت: هم‌ترازِ سطرِ عنوان، نه وسطِ کارتِ باز */
 const CARD_ANCHOR_OFFSET = 26;
-/** حداقل فاصلهٔ افقی لازم تا فلش معنا داشته باشد (چیدمان ستونی = بدون فلش) */
+/** حداقل فاصلهٔ افقی لازم تا خط اتصال معنا داشته باشد (چیدمان ستونی = بدون خط) */
 const MIN_HORIZONTAL_GAP = 24;
 /** مدت دنبال کردنِ انیمیشن‌های چیدمان بعد از هر تغییر */
 const FOLLOW_MS = 900;
+/** شعاع نقطهٔ توپر در انتهای خط (حالت عادی / فعال) */
+const DOT_RADIUS = 3;
+const DOT_RADIUS_ACTIVE = 4;
 
 export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSignal }: Props) {
   const [connectors, setConnectors] = useState<readonly Connector[]>([]);
@@ -87,7 +68,7 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
       const originY = anchorRect.top + anchorRect.height / 2 - hostRect.top;
 
       // کارت سمت چپِ بدن است یا سمت راستش؟ اگر هم‌پوشانی افقی داشتند،
-      // یعنی چیدمان ستونی است و فلش رسم نمی‌شود.
+      // یعنی چیدمان ستونی است و خط رسم نمی‌شود.
       let tipX: number;
       let direction: 1 | -1;
       if (cardRect.left - anchorRect.right >= MIN_HORIZONTAL_GAP) {
@@ -150,7 +131,7 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
 
     const onViewportChange = () => measure();
     window.addEventListener('resize', onViewportChange);
-    // بدن sticky است؛ با اسکرول، مبدأ فلش‌ها جابه‌جا می‌شود.
+    // بدن sticky است؛ با اسکرول، مبدأ خط‌ها جابه‌جا می‌شود.
     window.addEventListener('scroll', onViewportChange, true);
 
     const observer = new ResizeObserver(() => measure());
@@ -177,7 +158,6 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
         {connectors.map((connector) => {
           const isActive = highlightedOrgan === connector.key;
           const dim = highlightedOrgan !== null && !isActive;
-          const head = 5;
 
           return (
             <motion.g
@@ -198,14 +178,15 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
                 animate={{ pathLength: 1 }}
                 transition={{ type: 'spring', stiffness: 90, damping: 20 }}
               />
-              {/* نوک فلش، رو به کارت */}
-              <polygon
-                points={`${connector.tipX},${connector.tipY} ${
-                  connector.tipX - connector.direction * head * 1.6
-                },${connector.tipY - head} ${
-                  connector.tipX - connector.direction * head * 1.6
-                },${connector.tipY + head}`}
+              {/* نقطهٔ توپر در انتهای خط، سمتِ کارت */}
+              <motion.circle
+                cx={connector.tipX}
+                cy={connector.tipY}
+                r={isActive ? DOT_RADIUS_ACTIVE : DOT_RADIUS}
                 fill={connector.color}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 18, delay: 0.15 }}
               />
             </motion.g>
           );
