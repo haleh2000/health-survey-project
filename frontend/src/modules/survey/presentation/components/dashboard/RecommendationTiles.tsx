@@ -1,7 +1,3 @@
-// src/modules/survey/presentation/components/dashboard/RecommendationTiles.tsx
-// کارت‌های «پیشنهادهای روزانه» — فقط دسته‌هایی که برای گروه ریسک کاربر
-// محتوا دارند نمایش داده می‌شوند و تعداد روی هر کارت، تعدادِ واقعیِ
-// استوری‌های همان گروه است.
 
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
