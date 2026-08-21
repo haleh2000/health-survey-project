@@ -2,10 +2,11 @@
 
 import { motion } from "framer-motion";
 import { CalendarCheck, History, ShieldPlus } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
 import { toPersianDigits } from "@core/text/digits";
+import { ORGAN_ASSETS } from "@ds/illustrations/anatomy/organ-assets";
 import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 
 import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
@@ -13,7 +14,6 @@ import { BmiComparisonChart } from "./BmiComparisonChart";
 import { RecommendationTiles } from "./RecommendationTiles";
 import { AnatomyFigure } from "../../../../health-dashboard/components/AnatomyFigure";
 import { OrganConnectors, type ConnectorTarget } from "../../../../health-dashboard/components/OrganConnectors";
-import { OrganAdviceList } from "./OrganAdviceList";
 import { ProfilePanel } from "./ProfilePanel";
 import type { OrganKey } from "./organ-meta";
 import { ORGAN_META, organPercent, severityOf } from "./organ-meta";
@@ -40,19 +40,35 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * تقسیم آرایه‌ی ranked به دو ستون چپ و راست به‌صورت متناوب
- * (ایندکس زوج → راست، ایندکس فرد → چپ تا چیدمان متقارن باشد)
- */
-function splitColumns<T>(items: readonly T[]): { left: T[]; right: T[] } {
-  const right: T[] = [];
-  const left: T[] = [];
-  items.forEach((item, i) => {
-    if (i % 2 === 0) right.push(item);
-    else left.push(item);
-  });
-  return { left, right };
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const onChange = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return isDesktop;
 }
+
+/**
+ * جای‌گذاری کارت‌ها: هر کارت در ستونِ سمتِ خودِ اندامش می‌نشیند و ترتیب عمودی
+ * هر ستون از روی ارتفاع واقعی اندام روی بدن تعیین می‌شود (اندام بالاتر → کارت
+ * بالاتر). برای اندام‌های هم‌سطح، رتبهٔ شدت (بد → خوب) اولویت دارد.
+ */
+const ORGAN_SIDE = Object.fromEntries(
+  ORGAN_ASSETS.map((asset) => [asset.key, asset.side]),
+) as Record<OrganKey, "left" | "right">;
+
+const ORGAN_ANCHOR_Y = Object.fromEntries(
+  ORGAN_ASSETS.map((asset) => [asset.key, asset.anchor.y]),
+) as Record<OrganKey, number>;
+
+/** فاصلهٔ عمودی کارت‌ها و حاشیهٔ بالا/پایین هنگام چیدمان مطلق (دسکتاپ) */
+const CARD_LAYOUT_GAP = 12;
+const CARD_LAYOUT_PAD = 8;
 
 export function HealthDashboard({ record, history }: Props) {
   const assessment = record?.assessment ?? null;
@@ -61,6 +77,13 @@ export function HealthDashboard({ record, history }: Props) {
   const connectorHostRef = useRef<HTMLDivElement | null>(null);
   const [expandedOrgan, setExpandedOrgan] = useState<OrganKey | null>(null);
   const [showAllCards, setShowAllCards] = useState(false);
+  const isDesktop = useIsDesktop();
+
+  /** top محاسبه‌شدهٔ هر کارت نسبت به بالای ظرف سه‌ستونه (فقط دسکتاپ) */
+  const [cardTops, setCardTops] = useState<Partial<Record<OrganKey, number>>>({});
+  const [minHostHeight, setMinHostHeight] = useState(0);
+  const followUntilRef = useRef(0);
+  const frameRef = useRef<number | null>(null);
 
   const rankedOrgans = useMemo(() => {
     if (!assessment) return [];
@@ -93,6 +116,115 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
 }, [organPercents, rankedOrgans, showAllCards]);
 
 
+  // کارت‌های قابل نمایش (۳ تا یا همه)
+  const visibleRanked = showAllCards ? rankedOrgans : rankedOrgans.slice(0, 3);
+  const hiddenCount = rankedOrgans.length - 3;
+
+  /** رتبهٔ سراسری هر اندام در میان همهٔ اندام‌ها (۰ = بیشترین نیاز به پیگیری) */
+  const rankIndex = useMemo(
+    () => new Map(rankedOrgans.map((item, index) => [item.key, index])),
+    [rankedOrgans],
+  );
+
+  /**
+   * تقسیم کارت‌ها بین دو ستون بر اساس سمتِ خودِ اندام روی بدن؛ داخل هر ستون
+   * ترتیب از روی ارتفاع اندام است (مغز بالای بدن → کارتش بالای ستون) و
+   * اندام‌های هم‌سطح با رتبهٔ شدت مرتب می‌شوند.
+   */
+  const sideGroups = useMemo(() => {
+    const build = (side: "left" | "right") =>
+      visibleRanked
+        .filter((item) => ORGAN_SIDE[item.key] === side)
+        .sort(
+          (a, b) =>
+            ORGAN_ANCHOR_Y[a.key] - ORGAN_ANCHOR_Y[b.key] ||
+            (rankIndex.get(a.key) ?? 0) - (rankIndex.get(b.key) ?? 0),
+        );
+    return { right: build("right"), left: build("left") };
+  }, [visibleRanked, rankIndex]);
+
+  /**
+   * اندازه‌گیریِ موقعیت واقعی هر اندام روی نقشه و چیدن کارتش دقیقاً هم‌سطحِ آن.
+   * کارت‌ها در انتهای خط اتصال می‌نشینند؛ اگر جا تنگ باشد کارت‌های بعدی کمی
+   * پایین می‌روند تا همپوشانی رخ ندهد.
+   */
+  const measureCards = useCallback(() => {
+    const host = connectorHostRef.current;
+    if (!host || !assessment || !isDesktop) return;
+
+    const hostRect = host.getBoundingClientRect();
+    if (hostRect.width === 0) return;
+
+    const tops: Partial<Record<OrganKey, number>> = {};
+    let needed = 0;
+
+    for (const side of ["right", "left"] as const) {
+      let cursor = CARD_LAYOUT_PAD;
+      for (const item of sideGroups[side]) {
+        const anchor = host.querySelector<SVGCircleElement>(
+          `[data-organ-anchor="${item.key}"]`,
+        );
+        const card = document.getElementById(`organ-card-${item.key}`);
+        if (!anchor || !card) continue;
+
+        const anchorRect = anchor.getBoundingClientRect();
+        const cardHeight = card.offsetHeight;
+        if (anchorRect.width === 0 || cardHeight === 0) continue;
+
+        const anchorY = anchorRect.top + anchorRect.height / 2 - hostRect.top;
+        const top = Math.max(anchorY - cardHeight / 2, cursor);
+        tops[item.key] = top;
+        cursor = top + cardHeight + CARD_LAYOUT_GAP;
+      }
+      if (cursor > CARD_LAYOUT_GAP) needed = Math.max(needed, cursor);
+    }
+
+    setCardTops(tops);
+    setMinHostHeight(needed);
+  }, [assessment, isDesktop, sideGroups]);
+
+  /** دنبال کردنِ چیدمان بعد از هر تغییر (باز/بسته شدن کارت، نمایش بیشتر و …) */
+  const startFollowing = useCallback(() => {
+    followUntilRef.current = performance.now() + 900;
+    if (frameRef.current !== null) return;
+
+    const tick = () => {
+      measureCards();
+      if (performance.now() < followUntilRef.current) {
+        frameRef.current = requestAnimationFrame(tick);
+      } else {
+        frameRef.current = null;
+      }
+    };
+    frameRef.current = requestAnimationFrame(tick);
+  }, [measureCards]);
+
+  useLayoutEffect(() => {
+    startFollowing();
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+    };
+  }, [startFollowing, expandedOrgan, showAllCards]);
+
+  useEffect(() => {
+    const host = connectorHostRef.current;
+    if (!host || !isDesktop) return;
+
+    const onViewportChange = () => measureCards();
+    window.addEventListener("resize", onViewportChange);
+
+    const observer = new ResizeObserver(onViewportChange);
+    observer.observe(host);
+
+    return () => {
+      window.removeEventListener("resize", onViewportChange);
+      observer.disconnect();
+    };
+  }, [isDesktop, measureCards]);
+
   const handleSelectOrgan = (key: OrganKey) => {
     const index = rankedOrgans.findIndex((item) => item.key === key);
     if (index >= 3) setShowAllCards(true);
@@ -103,11 +235,6 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   };
-
-  // کارت‌های قابل نمایش (۳ تا یا همه)
-  const visibleRanked = showAllCards ? rankedOrgans : rankedOrgans.slice(0, 3);
-  const { left: leftCards, right: rightCards } = splitColumns(visibleRanked);
-  const hiddenCount = rankedOrgans.length - 3;
 
   return (
     <div className="flex flex-col gap-5">
@@ -167,7 +294,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
           <SectionLabel>نقشهٔ سلامت اندام‌ها</SectionLabel>
           <p className="mb-4 text-[11px] text-ink-subtle">
             {assessment
-              ? "کارت‌ها به ترتیب از «نیاز به پیگیری» تا «وضعیت مطلوب» مرتب شده‌اند. برای دیدن توصیه‌های هر اندام، کارت آن را باز کنید."
+              ? "کارت هر اندام کنار همان اندام روی نقشه نشسته و خطِ همرنگ آن را به نقشه وصل می‌کند. شمارهٔ روی هر کارت اولویت پیگیری است: ۱ یعنی بیشترین نیاز."
               : "پس از اولین ارزیابی، اندام‌های مرتبط با وضعیت شما اینجا فعال می‌شوند."}
           </p>
 
@@ -175,10 +302,12 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
             چیدمان سه‌ستونه:
               موبایل  → یک ستون (کارت‌ها بالا، بدن پایین)
               دسکتاپ → [ستون‌کارت-راست | بدن | ستون‌کارت-چپ]
+            در دسکتاپ هر کارت با top محاسبه‌شده، هم‌سطحِ اندام خودش روی بدن می‌نشیند.
           */}
           <div
             ref={connectorHostRef}
             className="relative grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)]"
+            style={isDesktop && minHostHeight > 0 ? { minHeight: `${minHostHeight}px` } : undefined}
           >
             {/* فلش‌های اتصال */}
             {assessment && (
@@ -190,32 +319,36 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
               />
             )}
 
-            {/* ستون راست — ایندکس‌های زوج (۰، ۲، ۴، …) */}
+            {/* ستون راست — اندام‌هایی که سمت راست بدن هستند */}
             <div className="relative z-10 flex flex-col gap-3">
               {assessment ? (
-                <>
-                  {rightCards.map((item, index) => {
-                    // رندر تک‌کارت با OrganAdviceList با ranked={[item]}
-                    return (
-                      <SingleOrganCard
-                        key={item.key}
-                        item={item}
-                        index={index * 2}
-                        expandedKey={expandedOrgan}
-                        onToggle={(key) =>
-                          setExpandedOrgan((current) => (current === key ? null : key))
-                        }
-                      />
-                    );
-                  })}
-                </>
+                sideGroups.right.map((item) => (
+                  <div
+                    key={item.key}
+                    className="transition-[top] duration-300 ease-out md:absolute md:inset-x-0"
+                    style={
+                      isDesktop && cardTops[item.key] != null
+                        ? { top: `${cardTops[item.key]}px` }
+                        : undefined
+                    }
+                  >
+                    <SingleOrganCard
+                      item={item}
+                      rank={rankIndex.get(item.key)}
+                      expandedKey={expandedOrgan}
+                      onToggle={(key) =>
+                        setExpandedOrgan((current) => (current === key ? null : key))
+                      }
+                    />
+                  </div>
+                ))
               ) : (
                 <EmptyCardPlaceholder />
               )}
             </div>
 
-            {/* ستون وسط — نقشه آناتومی (sticky در دسکتاپ) */}
-            <div className="relative z-10 md:sticky md:top-4 md:self-start">
+            {/* ستون وسط — نقشه آناتومی */}
+            <div className="relative z-10">
               <AnatomyFigure
                 organPercents={figurePercents}
                 highlightedOrgan={expandedOrgan}
@@ -223,22 +356,29 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
               />
             </div>
 
-            {/* ستون چپ — ایندکس‌های فرد (۱، ۳، ۵، …) */}
+            {/* ستون چپ — اندام‌هایی که سمت چپ بدن هستند */}
             <div className="relative z-10 flex flex-col gap-3">
               {assessment ? (
-                <>
-                  {leftCards.map((item, index) => (
+                sideGroups.left.map((item) => (
+                  <div
+                    key={item.key}
+                    className="transition-[top] duration-300 ease-out md:absolute md:inset-x-0"
+                    style={
+                      isDesktop && cardTops[item.key] != null
+                        ? { top: `${cardTops[item.key]}px` }
+                        : undefined
+                    }
+                  >
                     <SingleOrganCard
-                      key={item.key}
                       item={item}
-                      index={index * 2 + 1}
+                      rank={rankIndex.get(item.key)}
                       expandedKey={expandedOrgan}
                       onToggle={(key) =>
                         setExpandedOrgan((current) => (current === key ? null : key))
                       }
                     />
-                  ))}
-                </>
+                  </div>
+                ))
               ) : (
                 <EmptyCardPlaceholder />
               )}
@@ -321,12 +461,13 @@ const cardSpring = { type: "spring", stiffness: 260, damping: 28 } as const;
 
 interface SingleCardProps {
   item: RankedOrgan;
-  index: number;
+  /** رتبهٔ سراسری شدت (۰ = بیشترین نیاز به پیگیری) */
+  rank?: number;
   expandedKey: OrganKey | null;
   onToggle: (key: OrganKey) => void;
 }
 
-function SingleOrganCard({ item, index, expandedKey, onToggle }: SingleCardProps) {
+function SingleOrganCard({ item, rank, expandedKey, onToggle }: SingleCardProps) {
   const meta = OM.find((m) => m.key === item.key);
   const content = ORGAN_CONTENT[item.key];
   const severity = sev(item.percent);
@@ -337,7 +478,7 @@ function SingleOrganCard({ item, index, expandedKey, onToggle }: SingleCardProps
       id={`organ-card-${item.key}`}
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ ...cardSpring, delay: Math.min(index, 5) * 0.05 }}
+      transition={{ ...cardSpring, delay: Math.min(rank ?? 0, 5) * 0.05 }}
       className="overflow-hidden rounded-2xl border bg-surface/90 shadow-card backdrop-blur-md"
       style={{ borderColor: isOpen ? `${severity.hex}66` : "var(--color-line, #e5e7eb)" }}
     >
@@ -349,6 +490,15 @@ function SingleOrganCard({ item, index, expandedKey, onToggle }: SingleCardProps
       >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
+            {rank != null && (
+              <span
+                className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-black text-white"
+                style={{ backgroundColor: severity.hex }}
+                title={`اولویت ${tpd(rank + 1)}`}
+              >
+                {tpd(rank + 1)}
+              </span>
+            )}
             <span
               className="h-2.5 w-2.5 rounded-full"
               style={{ backgroundColor: severity.hex }}
