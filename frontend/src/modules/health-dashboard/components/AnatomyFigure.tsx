@@ -1,6 +1,3 @@
-// src/modules/health-dashboard/components/AnatomyFigure.tsx
-// نسخهٔ نمایشیِ بدن: پیکره + ارگان‌ها + هالهٔ ریسک، بدون کارت داخلی.
-// کلیک روی هر ارگان فقط به والد اطلاع می‌دهد (برای باز کردن کارت آکاردئون).
 
 import { motion } from 'framer-motion';
 
