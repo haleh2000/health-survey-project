@@ -1,6 +1,7 @@
 // src/modules/survey/presentation/components/dashboard/OrganAdviceList.tsx
-// کارت‌های توصیهٔ اندام‌ها: مرتب از «نیاز به پیگیری» تا «مطلوب».
-// سه کارت اول همیشه دیده می‌شوند؛ بقیه با «نمایش بیشتر» باز می‌شوند.
+// یک ستون از کارت‌های توصیهٔ اندام‌ها. داشبورد کارت‌ها را بین دو ستونِ چپ و
+// راستِ بدن پخش می‌کند، پس این کامپوننت فقط همان چیزی را که به آن داده می‌شود
+// می‌چیند — مرتب‌سازی و تقسیم، کارِ والد است.
 // هر کارت آکاردئون است: بسته = نوار پیشرفت + لیبل + توضیح کوتاه؛
 // باز = توصیه‌ها و علائم هشدار.
 
@@ -18,30 +19,19 @@ export interface RankedOrgan {
 }
 
 interface Props {
-  readonly ranked: readonly RankedOrgan[];
-  readonly visibleCount: number;
+  readonly items: readonly RankedOrgan[];
   readonly expandedKey: OrganKey | null;
   readonly onToggle: (key: OrganKey) => void;
-  readonly onShowMore: () => void;
-  readonly showAll: boolean;
+  /** تأخیر شروع انیمیشن — برای اینکه دو ستون هم‌زمان بالا نیایند. */
+  readonly baseDelay?: number;
 }
 
 const spring = { type: "spring", stiffness: 260, damping: 28 } as const;
 
-export function OrganAdviceList({
-  ranked,
-  visibleCount,
-  expandedKey,
-  onToggle,
-  onShowMore,
-  showAll,
-}: Props) {
-  const visible = showAll ? ranked : ranked.slice(0, visibleCount);
-  const hiddenCount = ranked.length - visibleCount;
-
+export function OrganAdviceList({ items, expandedKey, onToggle, baseDelay = 0 }: Props) {
   return (
     <div className="flex flex-col gap-3">
-      {visible.map((item, index) => {
+      {items.map((item, index) => {
         const meta = ORGAN_META.find((m) => m.key === item.key);
         const content = ORGAN_CONTENT[item.key];
         const severity = severityOf(item.percent);
@@ -53,7 +43,7 @@ export function OrganAdviceList({
             id={`organ-card-${item.key}`}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: Math.min(index, 3) * 0.06 }}
+            transition={{ ...spring, delay: baseDelay + Math.min(index, 3) * 0.06 }}
             className="overflow-hidden rounded-2xl border bg-surface/90 shadow-card backdrop-blur-md"
             style={{ borderColor: isOpen ? `${severity.hex}66` : "var(--color-line, #e5e7eb)" }}
           >
@@ -153,22 +143,6 @@ export function OrganAdviceList({
         );
       })}
 
-      {hiddenCount > 0 && (
-        <motion.button
-          type="button"
-          onClick={onShowMore}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }}
-          className="mt-1 cursor-pointer rounded-2xl border border-dashed border-day-primary/40
-                     bg-day-primary/5 py-2.5 text-xs font-bold text-day-primary transition
-                     hover:bg-day-primary/10"
-        >
-          {showAll
-            ? "نمایش کمتر"
-            : `نمایش ${toPersianDigits(hiddenCount)} مورد دیگر`}
-        </motion.button>
-      )}
     </div>
   );
 }

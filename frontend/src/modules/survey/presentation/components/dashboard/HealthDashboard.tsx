@@ -2,13 +2,14 @@
 
   import { motion } from "framer-motion";
   import { CalendarCheck, History, ShieldPlus } from "lucide-react";
-  import { useMemo, useRef, useState } from "react";
+  import { useEffect, useMemo, useRef, useState } from "react";
 
   import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
   import { toPersianDigits } from "@core/text/digits";
   import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 
   import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
+  import { DashboardActions } from "./DashboardActions";
   import { BmiComparisonChart } from "./BmiComparisonChart";
   import { RecommendationTiles } from "./RecommendationTiles";
   import { AnatomyFigure } from "../../../../health-dashboard/components/AnatomyFigure";
@@ -35,6 +36,21 @@
   const RELEVANCE_THRESHOLD = 12;
   const MIN_VISIBLE_ORGANS = 3;
 
+  /** آیا چیدمان تک‌ستونه است؟ (موبایل — کارت‌ها دو طرف بدن جا نمی‌شوند) */
+  function useIsCompact(): boolean {
+    const query = "(max-width: 767px)";
+    const [compact, setCompact] = useState(
+      () => typeof window !== "undefined" && window.matchMedia(query).matches,
+    );
+    useEffect(() => {
+      const mq = window.matchMedia(query);
+      const onChange = (event: MediaQueryListEvent) => setCompact(event.matches);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    }, []);
+    return compact;
+  }
+
   const readableJalali = (iso: string): string => {
     const parts = parseJalaliIso(iso);
     if (!parts) return iso;
@@ -51,12 +67,16 @@
     const assessment = record?.assessment ?? null;
     const historyCount = history.length;
 
+    const compact = useIsCompact();
+
     /** ناحیه‌ای که فلش‌های «اندام → کارت» رویش کشیده می‌شوند */
     const connectorHostRef = useRef<HTMLDivElement | null>(null);
 
+    /** ناحیه‌ای که در PDF خروجی گرفته می‌شود — همان سکشن‌های داشبورد */
+    const summaryRef = useRef<HTMLDivElement | null>(null);
+
     /** کارتِ بازِ آکاردئون؛ کلیک روی ارگان بدن هم همین را باز می‌کند */
     const [expandedOrgan, setExpandedOrgan] = useState<OrganKey | null>(null);
-    const [showAllCards, setShowAllCards] = useState(false);
 
     /** همهٔ ارگان‌ها مرتب از پرریسک به مطلوب — منبع کارت‌های توصیه */
     const rankedOrgans = useMemo(() => {
@@ -66,6 +86,21 @@
         .sort((a, b) => b.percent - a.percent);
     }, [assessment]);
 
+    /**
+     * کارت‌ها به‌طور مساوی دو طرف بدن پخش می‌شوند و در هر ستون، از «نیاز به
+     * بهبود» به سمت «وضعیت مطلوب» پیش می‌روند: پرریسک‌ترین کارت بالای ستون
+     * راست می‌نشیند، بعدی بالای ستون چپ، و همین‌طور یکی‌درمیان.
+     * در موبایل ستونی در کار نیست، پس همهٔ کارت‌ها پشت‌سرهم و به همان ترتیب
+     * می‌آیند تا ترتیبِ «نیاز به بهبود → مطلوب» به‌هم نخورد.
+     */
+    const [rightColumn, leftColumn] = useMemo(() => {
+      if (compact) return [rankedOrgans, [] as typeof rankedOrgans] as const;
+      const right: typeof rankedOrgans = [];
+      const left: typeof rankedOrgans = [];
+      rankedOrgans.forEach((item, index) => (index % 2 === 0 ? right : left).push(item));
+      return [right, left] as const;
+    }, [rankedOrgans, compact]);
+
     /** درصد ریسک ارگان‌های مرتبط — کلید موجود = ارگان فعال روی بدن */
     const organPercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
       const relevant = rankedOrgans.filter((item) => item.percent >= RELEVANCE_THRESHOLD);
@@ -73,21 +108,17 @@
       return Object.fromEntries(picked.map((item) => [item.key, item.percent]));
     }, [rankedOrgans]);
 
-    /**
-     * فلش‌ها فقط برای اندام‌هایی کشیده می‌شوند که هم روی بدن فعال‌اند و هم
-     * کارتشان همین حالا در لیست دیده می‌شود.
-     */
-    const connectorTargets = useMemo<ConnectorTarget[]>(() => {
-      const visible = showAllCards ? rankedOrgans : rankedOrgans.slice(0, 3);
-      return visible
-        .filter((item) => organPercents[item.key] != null)
-        .map((item) => ({ key: item.key, color: severityOf(item.percent).hex }));
-    }, [rankedOrgans, organPercents, showAllCards]);
+    /** فلش فقط برای اندام‌هایی که روی بدن فعال‌اند (بقیه کارتشان بدون خط است). */
+    const connectorTargets = useMemo<ConnectorTarget[]>(
+      () =>
+        rankedOrgans
+          .filter((item) => organPercents[item.key] != null)
+          .map((item) => ({ key: item.key, color: severityOf(item.percent).hex })),
+      [rankedOrgans, organPercents],
+    );
 
     /** کلیک روی ارگان بدن: کارتش را باز کن و به آن اسکرول کن */
     const handleSelectOrgan = (key: OrganKey) => {
-      const index = rankedOrgans.findIndex((item) => item.key === key);
-      if (index >= 3) setShowAllCards(true);
       setExpandedOrgan((current) => (current === key ? null : key));
       requestAnimationFrame(() => {
         document
@@ -97,7 +128,7 @@
     };
 
     return (
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5" ref={summaryRef}>
         {/* Header card. */}
         <motion.section
           initial={{ opacity: 0, y: -16 }}
@@ -135,42 +166,50 @@
           </div>
         </motion.section>
 
-        {/* ✅ مدل دوبعدی آناتومی + کارت‌های توصیه + پروفایل */}
-        <section className="grid grid-cols-1 gap-5 rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
+        {/* پروفایل کاربر */}
+        <section className="rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6">
+          <SectionLabel>پروفایل من</SectionLabel>
+          <ProfilePanel
+            assessment={assessment}
+            record={record}
+            history={history}
+            baseDelay={0.2}
+          />
+        </section>
+
+        {/* ✅ نقشهٔ آناتومی: بدن در وسط، کارت‌های توصیه دو طرفش */}
+        <section className="rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6">
           <div>
             <SectionLabel>نقشهٔ سلامت اندام‌ها</SectionLabel>
             <p className="mb-3 text-[11px] text-ink-subtle">
               {assessment
-                ? "کارت‌ها به ترتیب از «نیاز به پیگیری» تا «وضعیت مطلوب» مرتب شده‌اند. برای دیدن توصیه‌های هر اندام، کارت آن را باز کنید."
+                ? "کارت‌ها دو طرف بدن و به ترتیب از «نیاز به بهبود» تا «وضعیت مطلوب» چیده شده‌اند و هرکدام با یک خط به اندام خودش وصل است. برای دیدن توصیه‌ها، کارت را باز کنید."
                 : "پس از اولین ارزیابی، اندام‌های مرتبط با وضعیت شما اینجا فعال می‌شوند."}
             </p>
 
             <div
               ref={connectorHostRef}
-              className="relative grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+              className="relative grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,1fr)] md:gap-3"
             >
-              {/* فلش‌های اتصال هر اندام به کارت خودش — پشتِ کارت‌ها رسم می‌شوند */}
+              {/* فلش‌های اتصال هر اندام به کارتش — روی بدن رد می‌شوند، زیر کارت‌ها */}
               {assessment && (
                 <OrganConnectors
                   hostRef={connectorHostRef}
                   targets={connectorTargets}
                   highlightedOrgan={expandedOrgan}
-                  layoutSignal={`${showAllCards}-${connectorTargets.length}`}
+                  layoutSignal={`${expandedOrgan}-${connectorTargets.length}-${compact}`}
                 />
               )}
 
-              {/* کارت‌های توصیه — روی لایهٔ فلش‌ها می‌نشینند */}
-              <div className="relative z-10">
+              {/* ستون راست (در RTL اول می‌آید) */}
+              <div className="relative z-20 order-2 md:order-1">
                 {assessment ? (
                   <OrganAdviceList
-                    ranked={rankedOrgans}
-                    visibleCount={3}
+                    items={rightColumn}
                     expandedKey={expandedOrgan}
                     onToggle={(key) =>
                       setExpandedOrgan((current) => (current === key ? null : key))
                     }
-                    showAll={showAllCards}
-                    onShowMore={() => setShowAllCards((v) => !v)}
                   />
                 ) : (
                   <p className="rounded-2xl border border-dashed border-line p-6 text-center text-[11px] text-ink-subtle">
@@ -178,25 +217,30 @@
                   </p>
                 )}
               </div>
-              {/* بدن — هنگام اسکرولِ کارت‌ها ثابت می‌ماند */}
-              <div className="relative z-10 md:sticky md:top-4 md:self-start">
+
+              {/* بدن — وسط، بین دو ستون کارت */}
+              <div className="relative z-0 order-1 md:order-2 md:sticky md:top-4 md:self-start">
                 <AnatomyFigure
                   organPercents={organPercents}
                   highlightedOrgan={expandedOrgan}
                   onSelectOrgan={handleSelectOrgan}
                 />
               </div>
-            </div>
-          </div>
 
-          <div>
-            <SectionLabel>پروفایل من</SectionLabel>
-            <ProfilePanel
-              assessment={assessment}
-              record={record}
-              history={history}
-              baseDelay={0.2}
-            />
+              {/* ستون چپ — در موبایل خالی است */}
+              {assessment && leftColumn.length > 0 && (
+                <div className="relative z-20 order-3">
+                  <OrganAdviceList
+                    items={leftColumn}
+                    expandedKey={expandedOrgan}
+                    onToggle={(key) =>
+                      setExpandedOrgan((current) => (current === key ? null : key))
+                    }
+                    baseDelay={0.08}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
@@ -240,7 +284,11 @@
             <span className="text-[11px] text-ink-subtle">قدم‌های کوچک، اثر بزرگ</span>
           </div>
           <RecommendationTiles baseDelay={0.35} tier={assessment?.tier ?? null} />
+        </section>
 
+        {/* دانلود PDF و اشتراک‌گذاری */}
+        <section className="pt-2">
+          <DashboardActions captureRef={summaryRef} personName={assessment?.fullName ?? null} />
         </section>
       </div>
     );

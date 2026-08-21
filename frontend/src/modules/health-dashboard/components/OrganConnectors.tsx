@@ -3,9 +3,9 @@
 // فلش‌های اتصال: هر اندام روی نقشهٔ بدن با یک منحنی به کارتِ توصیهٔ خودش
 // وصل می‌شود.
 //
-// چون بدن و کارت‌ها دو ستون جدا در گرید هستند، مسیرها را نمی‌شود داخل SVG بدن
-// کشید؛ به‌جایش یک لایهٔ SVG روی کل ناحیه قرار می‌گیرد و مختصات دو سر هر فلش
-// از روی DOM اندازه‌گیری می‌شود:
+// کارت‌ها دو طرفِ بدن می‌نشینند، پس مسیرها را نمی‌شود داخل SVG بدن کشید؛
+// به‌جایش یک لایهٔ SVG روی کل ناحیه (و روی خودِ بدن) قرار می‌گیرد و مختصات دو
+// سر هر فلش از روی DOM اندازه‌گیری می‌شود:
 //   • مبدأ  → دایرهٔ `data-organ-anchor="<key>"` داخل SVG بدن
 //   • مقصد → لبهٔ نزدیکِ کارتِ `#organ-card-<key>`
 //
@@ -50,12 +50,55 @@ interface Connector {
 
 /** فاصلهٔ نوک فلش از لبهٔ کارت */
 const CARD_GAP = 6;
+/** فاصلهٔ ریلِ عمودی از لبهٔ کارت — همان «شکستگیِ» طرحِ دستی */
+const RAIL_INSET = 26;
+/** اگر اختلاف ارتفاع کمتر از این باشد، خط مستقیم کشیده می‌شود (شکستگی لازم نیست) */
+const MIN_ELBOW_DROP = 14;
+/** شعاع گِردیِ گوشه‌های شکستگی */
+const CORNER = 9;
 /** نقطهٔ اتصال روی کارت: هم‌ترازِ سطرِ عنوان، نه وسطِ کارتِ باز */
 const CARD_ANCHOR_OFFSET = 26;
 /** حداقل فاصلهٔ افقی لازم تا فلش معنا داشته باشد (چیدمان ستونی = بدون فلش) */
 const MIN_HORIZONTAL_GAP = 24;
 /** مدت دنبال کردنِ انیمیشن‌های چیدمان بعد از هر تغییر */
 const FOLLOW_MS = 900;
+
+/**
+ * مسیرِ «شکسته» از اندام تا کارت.
+ *
+ * از اندام افقی بیرون می‌آید، روی یک ریلِ عمودیِ نزدیک به کارت بالا/پایین
+ * می‌رود و بعد افقی وارد کارت می‌شود — همان چیزی که در طرح دستی خواسته شده.
+ * وقتی کارت تقریباً هم‌ارتفاعِ اندام است، شکستگی معنا ندارد و خط مستقیم می‌شود.
+ */
+function elbowPath(
+  originX: number,
+  originY: number,
+  tipX: number,
+  tipY: number,
+  direction: 1 | -1,
+): string {
+  const drop = tipY - originY;
+  if (Math.abs(drop) < MIN_ELBOW_DROP) {
+    return `M ${originX} ${originY} L ${tipX} ${tipY}`;
+  }
+
+  // ریلِ عمودی کمی قبل از کارت؛ اگر جا نبود، وسطِ فاصله را ریل می‌کنیم.
+  const available = Math.abs(tipX - originX);
+  const inset = Math.min(RAIL_INSET, available / 2);
+  const railX = tipX - direction * inset;
+
+  const radius = Math.min(CORNER, available / 2, Math.abs(drop) / 2);
+  const vSign = Math.sign(drop);
+
+  return [
+    `M ${originX} ${originY}`,
+    `L ${railX - direction * radius} ${originY}`,
+    `Q ${railX} ${originY} ${railX} ${originY + vSign * radius}`,
+    `L ${railX} ${tipY - vSign * radius}`,
+    `Q ${railX} ${tipY} ${railX + direction * radius} ${tipY}`,
+    `L ${tipX} ${tipY}`,
+  ].join(' ');
+}
 
 export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSignal }: Props) {
   const [connectors, setConnectors] = useState<readonly Connector[]>([]);
@@ -105,11 +148,7 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
         hostRect.top +
         Math.min(CARD_ANCHOR_OFFSET, cardRect.height / 2);
 
-      const dx = tipX - originX;
-      const curve = Math.max(Math.abs(dx) * 0.45, 28);
-      const path = `M ${originX} ${originY} C ${originX + direction * curve} ${originY}, ${
-        tipX - direction * curve
-      } ${tipY}, ${tipX} ${tipY}`;
+      const path = elbowPath(originX, originY, tipX, tipY, direction);
 
       next.push({ key: target.key, color: target.color, path, tipX, tipY, direction, originX, originY });
     }
@@ -167,7 +206,7 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
 
   return (
     <svg
-      className="pointer-events-none absolute inset-0 z-0 h-full w-full"
+      className="pointer-events-none absolute inset-0 z-10 h-full w-full"
       width={size.width}
       height={size.height}
       viewBox={`0 0 ${size.width} ${size.height}`}
@@ -193,6 +232,7 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
                 stroke={connector.color}
                 strokeWidth={isActive ? 2 : 1.4}
                 strokeLinecap="round"
+                strokeLinejoin="round"
                 strokeDasharray={isActive ? undefined : '4 4'}
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
