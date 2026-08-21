@@ -44,13 +44,15 @@ interface Connector {
 
 const CARD_GAP = 6;
 /** فاصلهٔ ریلِ عمودی از لبهٔ کارت — همان «شکستگیِ» طرحِ دستی */
-const RAIL_INSET = 26;
+const RAIL_INSET = 24;
+/** فاصلهٔ ریل‌های هم‌جهت از هم، تا خط‌های عمودی روی هم نیفتند */
+const RAIL_STEP = 13;
 /** اگر اختلاف ارتفاع کمتر از این باشد، خط مستقیم کشیده می‌شود (شکستگی لازم نیست) */
 const MIN_ELBOW_DROP = 14;
 /** شعاع گِردیِ گوشه‌های شکستگی */
 const CORNER = 9;
-/** نقطهٔ اتصال روی کارت: هم‌ترازِ سطرِ عنوان، نه وسطِ کارتِ باز */
-const CARD_ANCHOR_OFFSET = 26;
+/** حداقل فاصلهٔ نقطهٔ ورودِ خط از لبهٔ بالا/پایینِ کارت */
+const CARD_EDGE_INSET = 22;
 /** حداقل فاصلهٔ افقی لازم تا خط اتصال معنا داشته باشد (چیدمان ستونی = بدون خط) */
 const MIN_HORIZONTAL_GAP = 24;
 /** مدت دنبال کردنِ انیمیشن‌های چیدمان بعد از هر تغییر */
@@ -72,6 +74,7 @@ function elbowPath(
   tipX: number,
   tipY: number,
   direction: 1 | -1,
+  railInset: number,
 ): string {
   const drop = tipY - originY;
   if (Math.abs(drop) < MIN_ELBOW_DROP) {
@@ -80,7 +83,7 @@ function elbowPath(
 
   // ریلِ عمودی کمی قبل از کارت؛ اگر جا نبود، وسطِ فاصله را ریل می‌کنیم.
   const available = Math.abs(tipX - originX);
-  const inset = Math.min(RAIL_INSET, available / 2);
+  const inset = Math.min(railInset, available / 2);
   const railX = tipX - direction * inset;
 
   const radius = Math.min(CORNER, available / 2, Math.abs(drop) / 2);
@@ -110,6 +113,7 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
     if (hostRect.width === 0) return;
 
     const next: Connector[] = [];
+    const raw: Omit<Connector, 'path'>[] = [];
 
     for (const target of targets) {
       const anchor = host.querySelector<SVGCircleElement>(
@@ -139,14 +143,38 @@ export function OrganConnectors({ hostRef, targets, highlightedOrgan, layoutSign
         continue;
       }
 
-      const tipY =
-        cardRect.top -
-        hostRect.top +
-        Math.min(CARD_ANCHOR_OFFSET, cardRect.height / 2);
+      // کارت‌ها هم‌سطحِ اندامشان چیده می‌شوند، پس خط باید مستقیم و افقی به کارت
+      // برسد. نقطهٔ ورود، هم‌ارتفاعِ خودِ اندام است و فقط وقتی از بدنهٔ کارت
+      // بیرون بزند به نزدیک‌ترین لبه (با کمی فاصله) محدود می‌شود — همان‌جاست که
+      // خط شکسته می‌شود.
+      const cardTopY = cardRect.top - hostRect.top;
+      const cardBottomY = cardTopY + cardRect.height;
+      const inset = Math.min(CARD_EDGE_INSET, cardRect.height / 2);
+      const tipY = Math.min(Math.max(originY, cardTopY + inset), cardBottomY - inset);
 
-      const path = elbowPath(originX, originY, tipX, tipY, direction);
+      raw.push({ key: target.key, color: target.color, tipX, tipY, direction, originX, originY });
+    }
 
-      next.push({ key: target.key, color: target.color, path, tipX, tipY, direction, originX, originY });
+    // هر خطِ شکسته ریلِ عمودیِ خودش را می‌گیرد تا خط‌های یک سمت روی هم نیفتند؛
+    // خط‌هایی که مسیر عمودی کوتاه‌تری دارند، ریلِ نزدیک‌تر به کارت را می‌گیرند.
+    for (const direction of [1, -1] as const) {
+      const sameSide = raw
+        .filter((item) => item.direction === direction)
+        .sort((a, b) => Math.abs(a.tipY - a.originY) - Math.abs(b.tipY - b.originY));
+
+      sameSide.forEach((item, index) => {
+        next.push({
+          ...item,
+          path: elbowPath(
+            item.originX,
+            item.originY,
+            item.tipX,
+            item.tipY,
+            item.direction,
+            RAIL_INSET + index * RAIL_STEP,
+          ),
+        });
+      });
     }
 
     setSize({ width: hostRect.width, height: hostRect.height });
