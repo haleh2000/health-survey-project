@@ -4,91 +4,16 @@
 // پیگیری، و دکمهٔ «مشاهده ارزیابی‌های من».
 
 import { motion } from "framer-motion";
-import {
-  AlertTriangle,
-  Cake,
-  Check,
-  Cigarette,
-  Dumbbell,
-  History,
-  Ruler,
-  Salad,
-  Scale,
-  Soup,
-  Stethoscope,
-  User,
-  Weight,
-} from "lucide-react";
+import { AlertTriangle, Cake, Check, History, Ruler, Scale, User, Weight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { toPersianDigits } from "@core/text/digits";
-import type { AssessmentFlags, RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
+import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 
 import { AssessmentHistoryModal } from "./AssessmentHistoryModal";
-
-interface StatusItem {
-  readonly title: string;
-  readonly icon: LucideIcon;
-  /** پرچم‌های مربوط به این حوزه — تعدادِ فعال = شدت */
-  readonly flagsOf: (flags: AssessmentFlags) => readonly boolean[];
-  readonly goodLabel: string;
-  readonly badLabel: string;
-}
-
-const STATUS_ITEMS: readonly StatusItem[] = [
-  {
-    title: "دخانیات",
-    icon: Cigarette,
-    flagsOf: (f) => [f.heavy_smoker, f.hookah_ecig],
-    goodLabel: "بدون مصرف پرخطر",
-    badLabel: "مصرف پرخطر",
-  },
-  {
-    title: "الگوی تغذیه",
-    icon: Salad,
-    flagsOf: (f) => [f.junk_food, f.low_fiber, f.processed_meat_high],
-    goodLabel: "الگوی سالم",
-    badLabel: "نیاز به اصلاح",
-  },
-  {
-    title: "نمک و غذای دودی",
-    icon: Soup,
-    flagsOf: (f) => [f.salty_food, f.smoked_food, f.hot_drink],
-    goodLabel: "در محدوده ایمن",
-    badLabel: "مراقب مصرف باشید",
-  },
-  {
-    title: "فعالیت بدنی",
-    icon: Dumbbell,
-    flagsOf: (f) => [f.low_physical_activity],
-    goodLabel: "تحرک کافی",
-    badLabel: "تحرک کم",
-  },
-  {
-    title: "وزن و تناسب",
-    icon: Scale,
-    flagsOf: (f) => [f.obesity],
-    goodLabel: "محدوده سالم",
-    badLabel: "خارج از محدوده",
-  },
-  {
-    title: "سوابق بالینی",
-    icon: Stethoscope,
-    flagsOf: (f) => [
-      f.diabetes,
-      f.hypertension,
-      f.heart_disease,
-      f.chronic_pancreatitis,
-      f.infectious_disease,
-      f.brain_stroke_history,
-      f.heart_attack_history,
-    ],
-    goodLabel: "بدون سابقه",
-    badLabel: "نیازمند پیگیری",
-  },
-];
+import { rankStatuses } from "./profile-status";
 
 interface Props {
   readonly assessment: RiskAssessment | null;
@@ -105,12 +30,7 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
   const flags = assessment?.flags ?? null;
 
   /** وضعیت‌ها به ترتیب شدت (تعداد پرچم فعال) از زیاد به کم */
-  const rankedStatuses = useMemo(() => {
-    return STATUS_ITEMS.map((item) => {
-      const fired = flags ? item.flagsOf(flags).filter(Boolean).length : 0;
-      return { item, fired };
-    }).sort((a, b) => b.fired - a.fired);
-  }, [flags]);
+  const rankedStatuses = useMemo(() => rankStatuses(flags), [flags]);
 
   const flaggedCount = rankedStatuses.filter((s) => s.fired > 0).length;
 
