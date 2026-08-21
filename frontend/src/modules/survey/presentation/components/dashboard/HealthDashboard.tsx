@@ -135,15 +135,26 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
    * اندام‌های هم‌سطح با رتبهٔ شدت مرتب می‌شوند.
    */
   const sideGroups = useMemo(() => {
-    const build = (side: "left" | "right") =>
-      visibleRanked
-        .filter((item) => ORGAN_SIDE[item.key] === side)
-        .sort(
-          (a, b) =>
-            ORGAN_ANCHOR_Y[a.key] - ORGAN_ANCHOR_Y[b.key] ||
-            (rankIndex.get(a.key) ?? 0) - (rankIndex.get(b.key) ?? 0),
-        );
-    return { right: build("right"), left: build("left") };
+    const byHeight = (a: RankedOrgan, b: RankedOrgan) =>
+      ORGAN_ANCHOR_Y[a.key] - ORGAN_ANCHOR_Y[b.key] ||
+      (rankIndex.get(a.key) ?? 0) - (rankIndex.get(b.key) ?? 0);
+
+    const columns: Record<"left" | "right", RankedOrgan[]> = { left: [], right: [] };
+    for (const item of visibleRanked) columns[ORGAN_SIDE[item.key]].push(item);
+
+    // تعادلِ دو ستون: اگر یک طرف شلوغ‌تر شد، کم‌اولویت‌ترین کارت‌هایش به طرف
+    // دیگر می‌روند تا کارت‌ها تقریباً مساوی دو طرف بدن بنشینند.
+    while (columns.left.length - columns.right.length >= 2 || columns.right.length - columns.left.length >= 2) {
+      const from = columns.left.length > columns.right.length ? "left" : "right";
+      const to = from === "left" ? "right" : "left";
+      const lowestPriority = columns[from].reduce((worst, item) =>
+        (rankIndex.get(item.key) ?? 0) > (rankIndex.get(worst.key) ?? 0) ? item : worst,
+      );
+      columns[from] = columns[from].filter((item) => item.key !== lowestPriority.key);
+      columns[to].push(lowestPriority);
+    }
+
+    return { right: columns.right.sort(byHeight), left: columns.left.sort(byHeight) };
   }, [visibleRanked, rankIndex]);
 
   /**
@@ -302,8 +313,8 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
           </p>
 
           {/*
-            چیدمان سه‌ستونه:
-              موبایل  → یک ستون (کارت‌ها بالا، بدن پایین)
+            چیدمان:
+              موبایل  → یک ستون (بدن بالا، کارت‌ها زیرش به ترتیب اولویت)
               دسکتاپ → [ستون‌کارت-راست | بدن | ستون‌کارت-چپ]
             در دسکتاپ هر کارت با top محاسبه‌شده، هم‌سطحِ اندام خودش روی بدن می‌نشیند.
           */}
@@ -322,70 +333,94 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
               />
             )}
 
-            {/* ستون راست — اندام‌هایی که سمت راست بدن هستند */}
-            <div className="relative z-20 flex flex-col gap-3">
-              {assessment ? (
-                sideGroups.right.map((item) => (
-                  <div
-                    key={item.key}
-                    className="transition-[top] duration-300 ease-out md:absolute md:inset-x-0"
-                    style={
-                      isDesktop && cardTops[item.key] != null
-                        ? { top: `${cardTops[item.key]}px` }
-                        : undefined
-                    }
-                  >
-                    <SingleOrganCard
-                      item={item}
-                      rank={rankIndex.get(item.key)}
-                      expandedKey={expandedOrgan}
-                      onToggle={(key) =>
-                        setExpandedOrgan((current) => (current === key ? null : key))
-                      }
-                    />
-                  </div>
-                ))
-              ) : (
-                <EmptyCardPlaceholder />
-              )}
-            </div>
+            {/* موبایل: بدن بالا و بعد یک ستون کارت، به ترتیب «نیاز به بهبود → مطلوب» */}
+            {!isDesktop ? (
+              <>
+                <div className="relative z-0">
+                  <AnatomyFigure
+                    organPercents={figurePercents}
+                    highlightedOrgan={expandedOrgan}
+                    onSelectOrgan={handleSelectOrgan}
+                  />
+                </div>
+                <div className="relative z-20 flex flex-col gap-3">
+                  {assessment ? (
+                    visibleRanked.map((item) => (
+                      <SingleOrganCard
+                        key={item.key}
+                        item={item}
+                        rank={rankIndex.get(item.key)}
+                        expandedKey={expandedOrgan}
+                        onToggle={(key) =>
+                          setExpandedOrgan((current) => (current === key ? null : key))
+                        }
+                      />
+                    ))
+                  ) : (
+                    <EmptyCardPlaceholder />
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* ستون راست — اندام‌هایی که سمت راست بدن هستند */}
+                <div className="relative z-20 flex flex-col gap-3">
+                  {assessment ? (
+                    sideGroups.right.map((item) => (
+                      <div
+                        key={item.key}
+                        className="transition-[top] duration-300 ease-out md:absolute md:inset-x-0"
+                        style={cardTops[item.key] != null ? { top: `${cardTops[item.key]}px` } : undefined}
+                      >
+                        <SingleOrganCard
+                          item={item}
+                          rank={rankIndex.get(item.key)}
+                          expandedKey={expandedOrgan}
+                          onToggle={(key) =>
+                            setExpandedOrgan((current) => (current === key ? null : key))
+                          }
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <EmptyCardPlaceholder />
+                  )}
+                </div>
 
-            {/* ستون وسط — نقشه آناتومی (زیرِ خط‌های اتصال) */}
-            <div className="relative z-0">
-              <AnatomyFigure
-                organPercents={figurePercents}
-                highlightedOrgan={expandedOrgan}
-                onSelectOrgan={handleSelectOrgan}
-              />
-            </div>
+                {/* ستون وسط — نقشه آناتومی (زیرِ خط‌های اتصال) */}
+                <div className="relative z-0">
+                  <AnatomyFigure
+                    organPercents={figurePercents}
+                    highlightedOrgan={expandedOrgan}
+                    onSelectOrgan={handleSelectOrgan}
+                  />
+                </div>
 
-            {/* ستون چپ — اندام‌هایی که سمت چپ بدن هستند */}
-            <div className="relative z-20 flex flex-col gap-3">
-              {assessment ? (
-                sideGroups.left.map((item) => (
-                  <div
-                    key={item.key}
-                    className="transition-[top] duration-300 ease-out md:absolute md:inset-x-0"
-                    style={
-                      isDesktop && cardTops[item.key] != null
-                        ? { top: `${cardTops[item.key]}px` }
-                        : undefined
-                    }
-                  >
-                    <SingleOrganCard
-                      item={item}
-                      rank={rankIndex.get(item.key)}
-                      expandedKey={expandedOrgan}
-                      onToggle={(key) =>
-                        setExpandedOrgan((current) => (current === key ? null : key))
-                      }
-                    />
-                  </div>
-                ))
-              ) : (
-                <EmptyCardPlaceholder />
-              )}
-            </div>
+                {/* ستون چپ — اندام‌هایی که سمت چپ بدن هستند */}
+                <div className="relative z-20 flex flex-col gap-3">
+                  {assessment ? (
+                    sideGroups.left.map((item) => (
+                      <div
+                        key={item.key}
+                        className="transition-[top] duration-300 ease-out md:absolute md:inset-x-0"
+                        style={cardTops[item.key] != null ? { top: `${cardTops[item.key]}px` } : undefined}
+                      >
+                        <SingleOrganCard
+                          item={item}
+                          rank={rankIndex.get(item.key)}
+                          expandedKey={expandedOrgan}
+                          onToggle={(key) =>
+                            setExpandedOrgan((current) => (current === key ? null : key))
+                          }
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <EmptyCardPlaceholder />
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* دکمه نمایش بیشتر/کمتر — زیر سه‌ستون */}
