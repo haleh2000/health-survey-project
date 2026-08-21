@@ -1,7 +1,7 @@
 // src/modules/survey/presentation/components/dashboard/RecommendationTiles.tsx
-// کارت‌های «پیشنهادهای روزانه» — فقط دسته‌هایی که برای گروه ریسک کاربر
-// محتوا دارند نمایش داده می‌شوند و تعداد روی هر کارت، تعدادِ واقعیِ
-// استوری‌های همان گروه است.
+// کارت‌های «پیشنهادهای روزانه» — هر گروه ریسک سه دسته دارد (تغذیه، ورزش/کاهش
+// وزن و روان‌شناسی/آرامش ذهن) و با هر بار باز کردن، دو استوریِ تازه از همان
+// دسته نمایش داده می‌شود.
 
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
@@ -11,6 +11,7 @@ import type { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
 
 import {
   resolveStoryGroupRandom,
+  STORIES_PER_VIEW,
   storyGroupsFor,
   type ResolvedStoryGroup,
   type StoryGroupKey,
@@ -28,22 +29,18 @@ interface RecommendationTilesProps {
 export function RecommendationTiles({ baseDelay = 0, tier = null }: RecommendationTilesProps) {
   const [activeGroup, setActiveGroup] = useState<ResolvedStoryGroup | null>(null);
 
-  /** دسته‌های دارای محتوا برای این گروه ریسک */
+  /** سه دستهٔ استوریِ گروه ریسک کاربر */
   const groups = useMemo(() => storyGroupsFor(tier), [tier]);
 
-  /** هر بار کلیک، همان محتوای گروه با ترتیبی تازه و تصادفی ساخته می‌شود */
+  /** هر بار کلیک، دو استوریِ بعدیِ همان دسته انتخاب می‌شود */
   const openGroup = (key: StoryGroupKey) => {
     setActiveGroup(resolveStoryGroupRandom(key, tier));
   };
 
   return (
     <>
-      {/* تعداد ستون‌ها با تعداد دسته‌های موجود هماهنگ می‌شود (گروه پرریسک ورزش ندارد) */}
-      <div
-        className={`grid grid-cols-1 gap-3 sm:gap-4 ${
-          groups.length >= 3 ? "sm:grid-cols-3" : groups.length === 2 ? "sm:grid-cols-2" : ""
-        }`}
-      >
+      {/* هر گروه ریسک دقیقاً سه دسته دارد؛ عنوان دسته‌ها بین گروه‌ها فرق می‌کند */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         {groups.map((group, index) => (
             <motion.button
               key={group.key}
@@ -74,7 +71,7 @@ export function RecommendationTiles({ baseDelay = 0, tier = null }: Recommendati
               <div className="relative flex items-center justify-between gap-3">
                 <p className="text-sm font-black text-white drop-shadow-sm">{group.label}</p>
                 <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-                  {toPersianDigits(group.count)} استوری
+                  {toPersianDigits(STORIES_PER_VIEW)} از {toPersianDigits(group.count)} استوری
                 </span>
               </div>
             </motion.button>

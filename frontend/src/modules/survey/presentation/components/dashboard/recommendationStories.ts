@@ -2,12 +2,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // محتوای استوری‌های «پیشنهادهای روزانه».
 //
-// ساختار: هر گروهِ ریسک (low / moderate / elevated / critical) مجموعهٔ استوریِ
-// مخصوص خودش را در سه دستهٔ «تغذیه»، «ورزش» و «آرامش ذهن» دارد.
-// تعداد استوری‌ها دقیقاً برابر تعداد پیشنهادهای همان گروه است — نه بیشتر، نه کمتر.
-// دسته‌ای که برای یک گروه محتوا ندارد اصلاً نمایش داده نمی‌شود.
+// ساختار: هر گروهِ ریسک (low / moderate / elevated / critical) دقیقاً سه دسته
+// دارد — «تغذیه»، «ورزش/کاهش وزن» و «روان‌شناسی/آرامش ذهن». عنوان دسته‌ها بین
+// گروه‌ها فرق می‌کند (مثلاً برای گروه پرریسک، دستهٔ دوم «کاهش وزن» است) اما
+// کلیدشان ثابت است تا آیکون و تصویر پیش‌فرضشان یکی بماند.
 //
-// ترتیب نمایش هر بار تصادفی است تا کاربرِ یک گروه، هر بار تجربهٔ یکسانی نبیند.
+// هر بار باز کردن یک دسته، فقط «دو» استوری نمایش داده می‌شود؛ اما نه همیشه
+// همان دو تا: یک نشانگرِ چرخشی روی دستگاه ذخیره می‌شود تا دفعهٔ بعد دو استوریِ
+// بعدیِ همان دسته دیده شود و به‌مرور همهٔ محتوا به کاربر برسد.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -20,27 +22,29 @@ import type { LucideIcon } from "lucide-react";
 
 import { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
 
-import exerciseImg from "@assets/exercise.png";
-import nutritionImg from "@assets/nutrition.png";
-import peaceImg from "@assets/peace.png";
+import { CATEGORY_FALLBACK_IMAGE, STORY_IMAGES } from "./story-images";
+import { nextRotationOffset } from "./story-rotation.storage";
 
 export type StoryGroupKey = "nutrition" | "exercise" | "peace";
+
+/** تعداد استوریِ نمایش‌داده‌شده در هر بار باز کردن یک دسته. */
+export const STORIES_PER_VIEW = 2;
 
 export interface StorySlide {
   readonly id: string;
   readonly title: string;
   readonly body: string;
   readonly icon: LucideIcon;
-  /** اگر خالی بماند، از cover دسته پر می‌شود. */
+  /** اگر خالی بماند، از `STORY_IMAGES` و سپس تصویر پیش‌فرضِ دسته پر می‌شود. */
   readonly image?: string;
 }
 
-/** تعریف ثابتِ یک دسته (بدون محتوا — محتوا وابسته به گروه ریسک است). */
-export interface StoryGroupMeta {
+/** تعریفِ یک دسته برای یک گروه ریسک مشخص. */
+export interface TierCategory {
   readonly key: StoryGroupKey;
+  /** عنوانی که به کاربرِ همین گروه نشان داده می‌شود. */
   readonly label: string;
-  readonly cover: string;
-  readonly icon: LucideIcon;
+  readonly slides: readonly StorySlide[];
 }
 
 /** چیزی که به UI می‌رسد: دستهٔ آمادهٔ نمایش با اسلایدهای قطعی. */
@@ -56,13 +60,16 @@ export interface ResolvedStoryGroup {
   /** شناسهٔ یکتای این «چیدمان» — با هر بار باز کردن عوض می‌شود. */
   readonly variantId: string;
   readonly slides: readonly ResolvedStorySlide[];
+  /** شمارهٔ اسلایدها در کلِ دسته (برای نمایش «۲ از ۵»). */
+  readonly totalInCategory: number;
 }
 
-export const STORY_GROUP_META: readonly StoryGroupMeta[] = [
-  { key: "nutrition", label: "تغذیه",       cover: nutritionImg, icon: Salad },
-  { key: "exercise",  label: "ورزش",        cover: exerciseImg,  icon: Dumbbell },
-  { key: "peace",     label: "آرامش ذهن",   cover: peaceImg,     icon: Smile },
-];
+/** ظاهرِ ثابتِ هر دسته: آیکون و تصویر پیش‌فرض. عنوان از خودِ گروه ریسک می‌آید. */
+const GROUP_APPEARANCE: Record<StoryGroupKey, { readonly icon: LucideIcon; readonly cover: string }> = {
+  nutrition: { icon: Salad, cover: CATEGORY_FALLBACK_IMAGE.nutrition },
+  exercise: { icon: Dumbbell, cover: CATEGORY_FALLBACK_IMAGE.exercise },
+  peace: { icon: Smile, cover: CATEGORY_FALLBACK_IMAGE.peace },
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // گروه پرریسک  →  RiskTier.Critical
@@ -93,32 +100,35 @@ const CRITICAL_NUTRITION: readonly StorySlide[] = [
     body: "عاشق برنج و نانی؟ لازم نیست حذف کنی؛ فقط سهمش را نصف کن! فضای خالی بشقابت را با سبزیجات پر کن. با همین تغییر ساده در کربوهیدرات‌ها، ۱۵۰ تا ۲۰۰ کالریِ دریافتی‌ات کمتر می‌شود.",
     icon: Utensils,
   },
+];
+
+const CRITICAL_WEIGHT: readonly StorySlide[] = [
   {
-    id: "c-n5",
+    id: "c-w1",
     title: "یک تغییر کوچک، ۱۵۰ کالریِ کمتر",
     body: "نوشیدنی‌های قندی را کنار بگذار. برای اینکه هم هیدراته بمانی و هم ۱۵۰ کالری اضافه دریافت نکنی، سراغ آب، آب گازدار با کمی لیمو، یا چای بدون قند برو. همین انتخاب ساده، برای سلامتی‌ات عالی است.",
     icon: CupSoda,
   },
   {
-    id: "c-n6",
+    id: "c-w2",
     title: "روش پخت، کلید سلامت قلب",
     body: "غذاهای سرخ‌کردنی را حذف کن. با جایگزین کردن روش‌های بخارپز، گریل یا کبابی، هم طعم واقعی مواد را حفظ می‌کنی و هم ۱۵۰ کالری دیگر صرفه‌جویی می‌کنی. برای سلامت عروقت، این بهترین روش پخت است.",
     icon: Flame,
   },
   {
-    id: "c-n7",
+    id: "c-w3",
     title: "هوس شیرینی کردی؟",
     body: "به جای دسر و شیرینی، یک واحد میوه کامل انتخاب کن. با این کار هم فیبر بدنت را تامین کرده‌ای و هم ۲۰۰ کالریِ مازاد را از برنامه حذف کردی. لذتِ شیرینی طبیعی، ماندگارتر است.",
     icon: Apple,
   },
   {
-    id: "c-n8",
+    id: "c-w4",
     title: "سس‌های پرچرب، خداحافظ!",
     body: "مایونز را فراموش کن. برای طعم دادن به سالاد یا غذا، از آبلیمو، بالزامیک یا ماست یونانی استفاده کن. با این جابه‌جایی هوشمندانه، ۱۰۰ تا ۱۵۰ کالریِ غیرضروری را حذف می‌کنی.",
     icon: Soup,
   },
   {
-    id: "c-n9",
+    id: "c-w5",
     title: "انتخاب لبنیات سبک‌تر",
     body: "اگر در انتخاب لبنیات، نسخه‌های کم‌چرب را جایگزین پرچرب کنی، به سادگی ۱۰۰ کالری صرفه‌جویی کرده‌ای. طعمش همان است، اما بارِ چربی‌اش برای بدنت بسیار کمتر است.",
     icon: Milk,
@@ -360,83 +370,88 @@ const LOW_PEACE: readonly StorySlide[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
+// نگاشتِ گروه ریسک → سه دستهٔ استوری، با عنوان‌های مخصوص همان گروه.
+// (عنوان‌ها از سند محتوا می‌آیند؛ مثلاً گروه پرریسک به‌جای «ورزش»، «کاهش وزن» دارد.)
+// ─────────────────────────────────────────────────────────────────────────────
 
-/** محتوای هر گروه ریسک، تفکیک‌شده بر اساس دسته. آرایهٔ خالی = دسته نمایش داده نمی‌شود. */
-const TIER_STORIES: Record<RiskTier, Record<StoryGroupKey, readonly StorySlide[]>> = {
-  [RiskTier.Low]: {
-    nutrition: LOW_NUTRITION,
-    exercise: LOW_EXERCISE,
-    peace: LOW_PEACE,
-  },
-  [RiskTier.Moderate]: {
-    nutrition: MODERATE_NUTRITION,
-    exercise: MODERATE_EXERCISE,
-    peace: MODERATE_PEACE,
-  },
-  [RiskTier.Elevated]: {
-    nutrition: ELEVATED_NUTRITION,
-    exercise: ELEVATED_EXERCISE,
-    peace: ELEVATED_PEACE,
-  },
-  [RiskTier.Critical]: {
-    nutrition: CRITICAL_NUTRITION,
-    // گروه پرریسک برنامهٔ ورزشی اختصاصی ندارد — این دسته برایش نمایش داده نمی‌شود.
-    exercise: [],
-    peace: CRITICAL_PEACE,
-  },
+const TIER_CATEGORIES: Record<RiskTier, readonly TierCategory[]> = {
+  [RiskTier.Low]: [
+    { key: "nutrition", label: "تغذیه", slides: LOW_NUTRITION },
+    { key: "exercise", label: "فعالیت بدنی", slides: LOW_EXERCISE },
+    { key: "peace", label: "روان‌شناسی و سبک زندگی", slides: LOW_PEACE },
+  ],
+  [RiskTier.Moderate]: [
+    { key: "nutrition", label: "تغذیه", slides: MODERATE_NUTRITION },
+    { key: "exercise", label: "ورزش و کاهش وزن", slides: MODERATE_EXERCISE },
+    { key: "peace", label: "روان‌شناسی و خودمراقبتی", slides: MODERATE_PEACE },
+  ],
+  [RiskTier.Elevated]: [
+    { key: "nutrition", label: "تغذیه", slides: ELEVATED_NUTRITION },
+    { key: "exercise", label: "ورزش و فعالیت بدنی", slides: ELEVATED_EXERCISE },
+    { key: "peace", label: "آرامش ذهن و اهداف SMART", slides: ELEVATED_PEACE },
+  ],
+  [RiskTier.Critical]: [
+    { key: "nutrition", label: "تغذیه", slides: CRITICAL_NUTRITION },
+    { key: "exercise", label: "کاهش وزن", slides: CRITICAL_WEIGHT },
+    { key: "peace", label: "روان‌شناسی و آرامش ذهن", slides: CRITICAL_PEACE },
+  ],
 };
 
 /** وقتی هنوز ارزیابی‌ای انجام نشده، محتوای گروه سالم نمایش داده می‌شود. */
 const DEFAULT_TIER: RiskTier = RiskTier.Low;
 
-/** اسلایدهای یک دسته برای گروه ریسک داده‌شده. */
-export const slidesFor = (key: StoryGroupKey, tier: RiskTier | null): readonly StorySlide[] =>
-  TIER_STORIES[tier ?? DEFAULT_TIER][key];
+const tierOf = (tier: RiskTier | null): RiskTier => tier ?? DEFAULT_TIER;
 
-/** دسته‌هایی که برای این گروه ریسک محتوا دارند — بقیه اصلاً رندر نمی‌شوند. */
+/** هر سه دستهٔ گروه ریسک کاربر، با عنوان و تعداد کلِ استوری‌هایشان. */
 export const storyGroupsFor = (
   tier: RiskTier | null,
-): readonly (StoryGroupMeta & { readonly count: number })[] =>
-  STORY_GROUP_META
-    .map((meta) => ({ ...meta, count: slidesFor(meta.key, tier).length }))
-    .filter((meta) => meta.count > 0);
+): readonly (TierCategory & { readonly icon: LucideIcon; readonly cover: string; readonly count: number })[] =>
+  TIER_CATEGORIES[tierOf(tier)]
+    .filter((category) => category.slides.length > 0)
+    .map((category) => ({
+      ...category,
+      ...GROUP_APPEARANCE[category.key],
+      count: category.slides.length,
+    }));
 
-/** جابه‌جایی تصادفی (Fisher–Yates) — هر بار خروجی متفاوت است. */
-const shuffle = <T,>(items: readonly T[]): T[] => {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = copy[i] as T;
-    copy[i] = copy[j] as T;
-    copy[j] = tmp;
-  }
-  return copy;
-};
+/** اسلایدهای یک دسته برای گروه ریسک داده‌شده. */
+export const slidesFor = (key: StoryGroupKey, tier: RiskTier | null): readonly StorySlide[] =>
+  TIER_CATEGORIES[tierOf(tier)].find((category) => category.key === key)?.slides ?? [];
+
+const withImage = (slide: StorySlide, groupKey: StoryGroupKey): ResolvedStorySlide => ({
+  ...slide,
+  image: slide.image ?? STORY_IMAGES[slide.id] ?? CATEGORY_FALLBACK_IMAGE[groupKey],
+});
 
 /**
- * دستهٔ آمادهٔ نمایش برای گروه ریسک کاربر، با ترتیبِ تصادفیِ اسلایدها.
- * هر بار باز کردن، چیدمان متفاوتی می‌دهد؛ اما مجموعهٔ اسلایدها همان محتوای
- * مخصوص گروه ریسک کاربر است.
+ * دو استوریِ این دفعه را برمی‌گرداند.
+ *
+ * انتخاب «چرخشی» است نه کاملاً تصادفی: نشانگرِ ذخیره‌شده روی دستگاه هر بار
+ * `STORIES_PER_VIEW` تا جلو می‌رود، پس کاربر هر بار دو استوریِ تازه می‌بیند و
+ * بعد از یک دور کامل، دوباره از ابتدا شروع می‌شود. نقطهٔ شروعِ اولین بار برای
+ * هر کاربر تصادفی است تا کاربرهای مختلف از جای متفاوتی شروع کنند.
  */
 export const resolveStoryGroupRandom = (
   key: StoryGroupKey,
   tier: RiskTier | null,
 ): ResolvedStoryGroup | null => {
-  const meta = STORY_GROUP_META.find((item) => item.key === key);
-  if (!meta) return null;
+  const category = TIER_CATEGORIES[tierOf(tier)].find((item) => item.key === key);
+  if (!category || category.slides.length === 0) return null;
 
-  const slides = slidesFor(key, tier);
-  if (slides.length === 0) return null;
+  const total = category.slides.length;
+  const offset = nextRotationOffset(`${tierOf(tier)}:${key}`, total, STORIES_PER_VIEW);
+
+  const picked: StorySlide[] = [];
+  for (let step = 0; step < Math.min(STORIES_PER_VIEW, total); step += 1) {
+    picked.push(category.slides[(offset + step) % total] as StorySlide);
+  }
 
   return {
-    key: meta.key,
-    label: meta.label,
-    cover: meta.cover,
-    icon: meta.icon,
-    variantId: `${tier ?? DEFAULT_TIER}-${Date.now()}`,
-    slides: shuffle(slides).map((slide) => ({
-      ...slide,
-      image: slide.image ?? meta.cover,
-    })),
+    key: category.key,
+    label: category.label,
+    ...GROUP_APPEARANCE[category.key],
+    variantId: `${tierOf(tier)}-${key}-${offset}`,
+    slides: picked.map((slide) => withImage(slide, category.key)),
+    totalInCategory: total,
   };
 };

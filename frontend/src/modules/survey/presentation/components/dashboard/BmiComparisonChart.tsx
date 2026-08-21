@@ -166,99 +166,149 @@ export function BmiComparisonChart({ bmi, heightCm, weightKg }: Props) {
         </div>
       </div>
 
-      {/* ── ۲) مقایسهٔ وزن فعلی با بازهٔ سالم ───────────────────────────── */}
+      {/* ── ۲) بازهٔ وزن سالم روی یک خطِ عددی ──────────────────────────── */}
       {currentKg != null && healthyMinKg != null && healthyMaxKg != null && (
-        <div className="rounded-2xl border border-line bg-surface/60 p-4">
-          <h4 className="mb-3 text-[11px] font-black text-ink">وزن فعلی در برابر وزن متناسب</h4>
-
-          <WeightBar
-            label="وزن فعلی شما"
-            value={currentKg}
-            max={Math.max(currentKg, healthyMaxKg) * 1.15}
-            color={category.hex}
-            reduceMotion={!!reduceMotion}
-            delay={0.15}
-          />
-          <WeightBar
-            label="بازهٔ وزن سالم"
-            value={healthyMaxKg}
-            from={healthyMinKg}
-            max={Math.max(currentKg, healthyMaxKg) * 1.15}
-            color="#10b981"
-            reduceMotion={!!reduceMotion}
-            delay={0.3}
-          />
-
-          <p className="mt-3 text-[11px] leading-relaxed text-ink-subtle">
-            برای قد {toPersianDigits(String(Math.round(heightCm ?? 0)))} سانتی‌متر، وزن متناسب بین{" "}
-            <b className="text-ink">{toPersianDigits(healthyMinKg.toFixed(1))}</b> تا{" "}
-            <b className="text-ink">{toPersianDigits(healthyMaxKg.toFixed(1))}</b> کیلوگرم است.
-          </p>
-        </div>
+        <HealthyWeightRange
+          currentKg={currentKg}
+          healthyMinKg={healthyMinKg}
+          healthyMaxKg={healthyMaxKg}
+          heightCm={heightCm ?? null}
+          deltaKg={deltaKg ?? 0}
+          currentColor={category.hex}
+          reduceMotion={!!reduceMotion}
+        />
       )}
     </div>
   );
 }
 
 /**
- * یک ردیف میله‌ای. میله همیشه از ابتدای محور (سمت راست در RTL) شروع می‌شود و
- * تا مقدارِ داده‌شده پر می‌شود — نه اینکه وسط نوار شناور بماند.
- * اگر `from` داده شود، بازه‌ای رسم می‌شود: بخشِ زیرِ کفِ بازه کم‌رنگ و بخشِ
- * داخلِ بازه پررنگ است، تا هم نقطهٔ شروعِ بازه دیده شود و هم انتهای آن.
+ * بازهٔ وزن سالم روی یک «خطِ عددی» ساده.
+ *
+ * به‌جای دو میلهٔ جدا (که معلوم نمی‌کرد بازه از کجا تا کجاست)، همه چیز روی یک
+ * محورِ واحد نشان داده می‌شود: باندِ سبز = بازهٔ سالم با عددِ دو سرش، و نشانگرِ
+ * وزن فعلی دقیقاً روی همان محور. پس کاربر با یک نگاه می‌بیند داخل بازه است یا
+ * بیرونش — و چقدر فاصله دارد.
  */
-function WeightBar({
-  label,
-  value,
-  from,
-  max,
-  color,
+function HealthyWeightRange({
+  currentKg,
+  healthyMinKg,
+  healthyMaxKg,
+  heightCm,
+  deltaKg,
+  currentColor,
   reduceMotion,
-  delay,
 }: {
-  label: string;
-  value: number;
-  from?: number;
-  max: number;
-  color: string;
+  currentKg: number;
+  healthyMinKg: number;
+  healthyMaxKg: number;
+  heightCm: number | null;
+  deltaKg: number;
+  currentColor: string;
   reduceMotion: boolean;
-  delay: number;
 }) {
-  /** کل طول میله: از صفر تا `value` */
-  const fillPercent = (value / max) * 100;
-  /** سهمِ «زیرِ بازهٔ سالم» از همین طول — فقط وقتی بازه داریم */
-  const belowSharePercent = from != null && value > 0 ? (from / value) * 100 : 0;
+  /** محور کمی از بازهٔ سالم و وزن فعلی بازتر است تا هر دو با حاشیه دیده شوند. */
+  const span = Math.max(healthyMaxKg - healthyMinKg, 1);
+  const axisMin = Math.floor(Math.min(healthyMinKg, currentKg) - span * 0.55);
+  const axisMax = Math.ceil(Math.max(healthyMaxKg, currentKg) + span * 0.55);
+  const pos = (kg: number) => ((clamp(kg, axisMin, axisMax) - axisMin) / (axisMax - axisMin)) * 100;
+
+  const bandStart = pos(healthyMinKg);
+  const bandWidth = pos(healthyMaxKg) - bandStart;
+  const inRange = deltaKg === 0;
+  const kg = (value: number) => toPersianDigits(value.toFixed(1));
 
   return (
-    <div className="mb-3 last:mb-0">
-      <div className="mb-1 flex items-baseline justify-between">
-        <span className="text-[11px] font-semibold text-ink-muted">{label}</span>
-        <span className="text-[11px] font-bold tabular-nums text-ink">
-          {from != null
-            ? `${toPersianDigits(from.toFixed(1))} – ${toPersianDigits(value.toFixed(1))} kg`
-            : `${toPersianDigits(value.toFixed(1))} kg`}
+    <div className="rounded-2xl border border-line bg-surface/60 p-4">
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+        <h4 className="text-[11px] font-black text-ink">بازهٔ وزن سالم شما</h4>
+        <span className="text-[11px] font-bold tabular-nums text-emerald-600">
+          {kg(healthyMinKg)} تا {kg(healthyMaxKg)} کیلوگرم
         </span>
       </div>
-      <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-muted">
+      <p className="mb-6 text-[11px] leading-relaxed text-ink-subtle">
+        {heightCm != null && heightCm > 0 && (
+          <>برای قد {toPersianDigits(String(Math.round(heightCm)))} سانتی‌متر — </>
+        )}
+        هر وزنی داخل نوار سبز، وزنِ متناسب با قد شماست.
+      </p>
+
+      {/* خطِ عددی */}
+      <div className="relative mb-2 h-3">
+        {/* محور خاکستری = کل بازهٔ نمایش */}
+        <div className="absolute inset-x-0 top-0 h-3 rounded-full bg-surface-muted" />
+
+        {/* باندِ سبز = بازهٔ سالم */}
         <motion.div
-          className="flex h-full overflow-hidden rounded-full"
+          className="absolute top-0 h-3 rounded-full bg-emerald-500/90"
+          style={{ right: `${bandStart}%` }}
           initial={reduceMotion ? false : { width: 0 }}
-          animate={{ width: `${fillPercent}%` }}
-          transition={{ type: "spring", stiffness: 120, damping: 22, delay }}
+          animate={{ width: `${bandWidth}%` }}
+          transition={{ type: "spring", stiffness: 120, damping: 22, delay: 0.15 }}
+        />
+
+        {/* لبه‌های بازه با عدد */}
+        {[
+          { value: healthyMinKg, at: bandStart },
+          { value: healthyMaxKg, at: bandStart + bandWidth },
+        ].map((edge) => (
+          <span
+            key={edge.value}
+            className="absolute top-3 flex flex-col items-center"
+            style={{ right: `${edge.at}%`, transform: "translateX(50%)" }}
+          >
+            <span className="h-2 w-px bg-emerald-600/70" aria-hidden />
+            <span className="text-[10px] font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+              {kg(edge.value)}
+            </span>
+          </span>
+        ))}
+
+        {/* نشانگر وزن فعلی */}
+        <motion.div
+          className="absolute -top-7 z-10 flex flex-col items-center"
+          style={{ transform: "translateX(50%)" }}
+          initial={reduceMotion ? false : { right: `${bandStart + bandWidth / 2}%`, opacity: 0 }}
+          animate={{ right: `${pos(currentKg)}%`, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 90, damping: 18, delay: 0.25 }}
         >
-          {from != null && (
-            <div
-              className="h-full shrink-0"
-              style={{
-                width: `${belowSharePercent}%`,
-                backgroundColor: color,
-                opacity: 0.3,
-              }}
-              aria-hidden
-            />
-          )}
-          <div className="h-full flex-1" style={{ backgroundColor: color }} aria-hidden />
+          <span
+            className="whitespace-nowrap rounded-lg px-2 py-0.5 text-[10px] font-black tabular-nums text-white shadow-sm"
+            style={{ backgroundColor: currentColor }}
+          >
+            وزن شما {kg(currentKg)}
+          </span>
+          <span
+            className="h-0 w-0 border-x-4 border-t-4 border-x-transparent"
+            style={{ borderTopColor: currentColor }}
+            aria-hidden
+          />
+          <span className="h-3 w-[3px] rounded-full" style={{ backgroundColor: currentColor }} aria-hidden />
         </motion.div>
       </div>
+
+      {/* جمع‌بندی به زبان ساده */}
+      <p className="mt-6 flex flex-wrap items-center gap-1.5 text-[11px] leading-relaxed">
+        {inRange ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 font-bold text-emerald-700 dark:text-emerald-400">
+            <Check className="h-3.5 w-3.5" />
+            وزن شما داخل بازهٔ سالم است
+          </span>
+        ) : (
+          <>
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-bold text-white"
+              style={{ backgroundColor: currentColor }}
+            >
+              {deltaKg > 0 ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+              {kg(Math.abs(deltaKg))} کیلوگرم {deltaKg > 0 ? "بیشتر" : "کمتر"} از بازهٔ سالم
+            </span>
+            <span className="text-ink-subtle">
+              با {deltaKg > 0 ? "کاهش" : "افزایش"} {kg(Math.abs(deltaKg))} کیلوگرم، وارد نوار سبز می‌شوید.
+            </span>
+          </>
+        )}
+      </p>
     </div>
   );
 }
