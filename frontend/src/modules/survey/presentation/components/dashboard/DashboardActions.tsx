@@ -1,18 +1,20 @@
 // src/modules/survey/presentation/components/dashboard/DashboardActions.tsx
 // دو دکمهٔ پایانِ داشبورد: «دانلود PDF» و «اشتراک‌گذاری».
 //
-// دانلود: از همان ناحیه‌ای که کاربر می‌بیند (سه سکشن داشبورد) یک PDF چندصفحه‌ای
-// A4 ساخته می‌شود. اشتراک‌گذاری: اول شیتِ بومیِ سیستم؛ اگر نبود، لیست شبکه‌های
+// دانلود: از داشبورد عکس گرفته نمی‌شود؛ سندِ اختصاصیِ گزارش ساخته می‌شود که
+// همهٔ محتوا (از جمله متنِ استوری‌ها) را در قالب استاندارد A4 و بدون بریدنِ
+// عناصر می‌چیند. اشتراک‌گذاری: اول شیتِ بومیِ سیستم؛ اگر نبود، لیست شبکه‌های
 // اجتماعی و «کپی لینک».
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Download, Link2, Share2, X } from "lucide-react";
-import { useState, type RefObject } from "react";
+import { useState } from "react";
 
 import {
-  buildHealthSummaryPdf,
-  downloadHealthSummaryPdf,
-} from "@survey/infrastructure/export/health-summary-pdf.service";
+  buildHealthReportPdf,
+  downloadHealthReportPdf,
+} from "@survey/infrastructure/export/health-report-pdf.service";
+import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 import {
   copyLink,
   shareNatively,
@@ -20,8 +22,10 @@ import {
 } from "@survey/infrastructure/export/share.service";
 
 interface Props {
-  /** ناحیه‌ای که باید در PDF بیاید. */
-  readonly captureRef: RefObject<HTMLElement | null>;
+  /** آخرین ارزیابی — محتوای گزارش از همین ساخته می‌شود. */
+  readonly record: AssessmentRecord | null;
+  /** سوابق قبلی — برای شمارش ارزیابی‌ها در جلد گزارش. */
+  readonly history: readonly AssessmentRecord[];
   /** نام کاربر — برای عنوان فایل و متن اشتراک‌گذاری. */
   readonly personName?: string | null;
 }
@@ -29,23 +33,22 @@ interface Props {
 const SHARE_TITLE = "خلاصه سلامت من";
 const SHARE_TEXT = "خلاصهٔ وضعیت سلامتم را در «دی‌دار» ببین — نقشهٔ اندام‌ها، شاخص توده بدنی و پیشنهادهای روزانه.";
 
-export function DashboardActions({ captureRef, personName }: Props) {
+export function DashboardActions({ record, history, personName }: Props) {
   const [busy, setBusy] = useState<"pdf" | "share" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fallbackOpen, setFallbackOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
-  const fileBase = personName ? `health-summary-${personName.replace(/\s+/g, "-")}` : "health-summary";
+  const fileBase = personName ? `health-report-${personName.replace(/\s+/g, "-")}` : "health-report";
 
   const handleDownload = async () => {
-    const element = captureRef.current;
-    if (!element || busy) return;
+    if (busy) return;
 
     setBusy("pdf");
     setError(null);
     try {
-      await downloadHealthSummaryPdf({ element, fileName: fileBase });
+      await downloadHealthReportPdf({ record, history, fileName: fileBase });
     } catch {
       setError("ساخت PDF ناموفق بود. لطفاً دوباره تلاش کنید.");
     } finally {
@@ -61,10 +64,9 @@ export function DashboardActions({ captureRef, personName }: Props) {
     try {
       // اگر بشود، خودِ PDF هم همراه اشتراک‌گذاری فرستاده می‌شود.
       let file: File | undefined;
-      const element = captureRef.current;
-      if (element && typeof navigator.canShare === "function") {
+      if (typeof navigator.canShare === "function") {
         try {
-          const pdf = await buildHealthSummaryPdf({ element, fileName: fileBase });
+          const pdf = await buildHealthReportPdf({ record, history, fileName: fileBase });
           file = new File([pdf.blob], pdf.fileName, { type: "application/pdf" });
         } catch {
           // بدون فایل هم اشتراک‌گذاری معنا دارد.
@@ -120,7 +122,7 @@ export function DashboardActions({ captureRef, personName }: Props) {
       </div>
 
       <p className="text-[11px] text-ink-subtle">
-        فایل PDF شامل نقشهٔ سلامت اندام‌ها، شاخص توده بدنی و پیشنهادهای روزانه است.
+        فایل PDF شامل مشخصات، نقشهٔ سلامت اندام‌ها، شاخص توده بدنی و متنِ کاملِ پیشنهادهای روزانه است.
       </p>
 
       {error && <p className="text-[11px] font-bold text-risk-critical">{error}</p>}

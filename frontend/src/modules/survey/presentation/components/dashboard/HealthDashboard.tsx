@@ -76,8 +76,6 @@ export function HealthDashboard({ record, history }: Props) {
   const historyCount = history.length;
 
   const connectorHostRef = useRef<HTMLDivElement | null>(null);
-  /** ناحیه‌ای که در PDF خروجی گرفته می‌شود — همان سکشن‌های داشبورد */
-  const summaryRef = useRef<HTMLDivElement | null>(null);
   const [expandedOrgan, setExpandedOrgan] = useState<OrganKey | null>(null);
   const [showAllCards, setShowAllCards] = useState(false);
   const isDesktop = useIsDesktop();
@@ -251,7 +249,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
   };
 
   return (
-    <div className="flex flex-col gap-5" ref={summaryRef}>
+    <div className="flex flex-col gap-5">
       {/* ── Header ── */}
       <motion.section
         initial={{ opacity: 0, y: -16 }}
@@ -486,7 +484,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
 
       {/* ── دانلود PDF و اشتراک‌گذاری ── */}
       <section className="pt-2">
-        <DashboardActions captureRef={summaryRef} personName={assessment?.fullName ?? null} />
+        <DashboardActions record={record} history={history} personName={assessment?.fullName ?? null} />
       </section>
     </div>
   );
