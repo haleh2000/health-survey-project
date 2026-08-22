@@ -1,60 +1,65 @@
 // src/modules/survey/presentation/components/dashboard/story-rotation.storage.ts
 // ─────────────────────────────────────────────────────────────────────────────
-// نشانگرِ چرخشِ استوری‌ها.
+// انتخابِ ثابتِ استوری برای هر کاربر.
 //
-// هر بار که کاربر یک دستهٔ استوری را باز می‌کند فقط دو اسلاید می‌بیند؛ برای
-// اینکه دفعهٔ بعد دو اسلاید *دیگر* ببیند، محلِ توقف روی دستگاه ذخیره می‌شود.
-// نقطهٔ شروعِ اولین بار برای هر کاربر تصادفی است تا دو کاربرِ هم‌گروه هم لزوماً
-// یک جفت استوریِ یکسان نبینند.
+// هر دستگاه/کاربر یک «بذرِ» تصادفی می‌گیرد که یک‌بار ساخته و ذخیره می‌شود؛
+// از روی همان بذر، نقطهٔ شروعِ هر دسته به‌صورت قطعی حساب می‌شود. نتیجه:
+// دو کاربرِ هم‌گروه استوری‌های متفاوتی می‌بینند، ولی یک کاربر با رفرشِ صفحه یا
+// باز کردنِ دوبارهٔ همان دسته، همیشه همان استوری‌ها را می‌بیند.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "health-story-rotation";
+const SEED_KEY = "health-story-seed";
 
-type Cursors = Record<string, number>;
+/** بذرِ درون‌حافظه‌ای — وقتی localStorage در دسترس نیست، دستِ‌کم در همین نشست ثابت بماند. */
+let memorySeed: string | null = null;
 
-function readCursors(): Cursors {
+function createSeed(): string {
+  return `${Math.floor(Math.random() * 2 ** 32).toString(36)}-${Math.floor(Math.random() * 2 ** 32).toString(36)}`;
+}
+
+/** بذرِ یکتای این کاربر؛ اولین بار ساخته و ذخیره می‌شود. */
+function userSeed(): string {
+  if (memorySeed) return memorySeed;
+
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== "object" || parsed === null) return {};
-    return parsed as Cursors;
+    const stored = localStorage.getItem(SEED_KEY);
+
+    if (stored) {
+      memorySeed = stored;
+      return stored;
+    }
+
+    const fresh = createSeed();
+    localStorage.setItem(SEED_KEY, fresh);
+    memorySeed = fresh;
+    return fresh;
   } catch {
-    // مرور خصوصی یا دادهٔ خراب — مثل «هیچ سابقه‌ای نیست» رفتار کن.
-    return {};
+    // مرور خصوصی یا ذخیره‌سازیِ غیرفعال — بذر فقط تا پایان همین نشست می‌ماند.
+    memorySeed = createSeed();
+    return memorySeed;
   }
 }
 
-function writeCursors(cursors: Cursors): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cursors));
-  } catch {
-    // ذخیره‌سازی در دسترس نیست؛ چرخش فقط تا پایان همین نشست کار می‌کند.
-  }
-}
+/** هشِ ساده و پایدار (FNV-1a) برای تبدیلِ «بذر + دسته» به یک عدد. */
+function hash(value: string): number {
+  let result = 0x811c9dc5;
 
-/** نشانگرهای درون‌حافظه‌ای — وقتی localStorage در دسترس نیست هم چرخش کار کند. */
-const memoryCursors: Cursors = {};
+  for (let i = 0; i < value.length; i += 1) {
+    result ^= value.charCodeAt(i);
+    result = Math.imul(result, 0x01000193);
+  }
+
+  return result >>> 0;
+}
 
 /**
- * شمارهٔ اولین اسلایدِ این دفعه را برمی‌گرداند و نشانگر را برای دفعهٔ بعد جلو می‌برد.
+ * شمارهٔ اولین اسلایدِ این کاربر برای یک دسته — همیشه ثابت.
  *
- * @param bucket   شناسهٔ یکتای «گروه ریسک + دسته»
- * @param total    تعداد کل اسلایدهای آن دسته
- * @param stride   تعداد اسلایدی که این دفعه نمایش داده می‌شود
+ * @param bucket شناسهٔ یکتای «گروه ریسک + دسته»
+ * @param total  تعداد کل اسلایدهای آن دسته
  */
-export function nextRotationOffset(bucket: string, total: number, stride: number): number {
+export function stableStoryOffset(bucket: string, total: number): number {
   if (total <= 0) return 0;
 
-  const stored = readCursors();
-  const current = stored[bucket] ?? memoryCursors[bucket];
-
-  // اولین بار: از یک نقطهٔ تصادفی شروع کن تا کاربرهای مختلف هم‌شروع نباشند.
-  const offset = typeof current === "number" ? current % total : Math.floor(Math.random() * total);
-
-  const next = (offset + stride) % total;
-  memoryCursors[bucket] = next;
-  writeCursors({ ...stored, [bucket]: next });
-
-  return offset;
+  return hash(`${userSeed()}:${bucket}`) % total;
 }
