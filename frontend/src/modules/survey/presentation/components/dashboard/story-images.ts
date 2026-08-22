@@ -1,23 +1,28 @@
 // src/modules/survey/presentation/components/dashboard/story-images.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// 📸 جای تصویر استوری‌ها
-//
-// هر استوری یک تصویر کوچک دارد که داخل کارت استوری (نه به‌عنوان پس‌زمینه)
-// نمایش داده می‌شود. کلیدِ هر ردیف، همان `id` اسلاید در `recommendationStories`
-// است.
-//
-// برای جایگزینی با تصویر واقعی:
-//   ۱) فایل تصویر را در `src/assets/stories/` بگذارید (مثلاً `c-n1.png`).
-//   ۲) بالای همین فایل import کنید:  import cN1 from "@assets/stories/c-n1.png";
-//   ۳) مقدار همان کلید را به `cN1` تغییر دهید.
-//
-// هر کلیدی که مقدار نداشته باشد، به‌صورت خودکار از تصویر پیش‌فرضِ دستهٔ خودش
-// (تغذیه / ورزش / آرامش ذهن) استفاده می‌کند — پس لازم نیست همه را یک‌جا پر کنید.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import exerciseImg from "@assets/exercise.png";
 import nutritionImg from "@assets/nutrition.png";
 import peaceImg from "@assets/peace.png";
+
+
+import waterImg from "@assets/stories/Critical/nutrition/آب گروه پر ریسک.png";
+import proImg from "@assets/stories/Critical/nutrition/پروتئین گروه پر ریسک.png";
+import riceImg from "@assets/stories/Critical/nutrition/برنج گروه پر ریسک.png";
+import plateImg from "@assets/stories/Critical/nutrition/بشقاب ضدالتهابی گروه پر ریسک.png";
+
+import susImg from "@assets/stories/Critical/exercise/حذف سس-گروه پر ریسک.png";
+import sweetImg from "@assets/stories/Critical/exercise/حذف شیرینی-گروه پر ریسک.png";
+import sugarImg from "@assets/stories/Critical/exercise/حذف_قند-گروه_پر_ریسک.png";
+import dairyImg from "@assets/stories/Critical/exercise/لبنیات سبک‌تر-گروه پر ریسک.png";
+import bakingImg from "@assets/stories/Critical/exercise/روش پخت-گروه پر ریسک.png";
+
+import peaceMindImg from "@assets/stories/Critical/peace/آرامش فکر-گروه پرریسک.png";
+import happyEnd from "@assets/stories/Critical/peace/پایان خوش-گروه پرریسک.png";
+import temperamentImg from "@assets/stories/Critical/peace/ردیابی خلق و خو-گروه پرریسک.png";
+
+import mediterraneanPlatetImg from "@assets/stories/Elevated/nutrition/بشقاب مدیترانه ای-گروه در آستانه خطر در بلند مدت.png";
+import homeTableImg from "@assets/stories/Elevated/nutrition/سفره خانگی-گروه در آستانه خطر در بلند مدت.png";
+
+
 
 import type { StoryGroupKey } from "./recommendationStories";
 
@@ -28,26 +33,22 @@ export const CATEGORY_FALLBACK_IMAGE: Record<StoryGroupKey, string> = {
   peace: peaceImg,
 };
 
-/**
- * تصویر اختصاصی هر اسلاید. فعلاً همگی تصویرِ نمونهٔ دستهٔ خودشان هستند؛
- * هر ردیف را که خواستید با تصویر واقعی جایگزین کنید.
- */
 export const STORY_IMAGES: Readonly<Record<string, string>> = {
   // ── گروه پرریسک · تغذیه ───────────────────────────────────────────────
-  "c-n1": nutritionImg,
-  "c-n2": nutritionImg,
-  "c-n3": nutritionImg,
-  "c-n4": nutritionImg,
+  "c-n1": plateImg,
+  "c-n2": proImg,
+  "c-n3": waterImg,
+  "c-n4": riceImg,
   // ── گروه پرریسک · کاهش وزن ────────────────────────────────────────────
-  "c-w1": exerciseImg,
-  "c-w2": exerciseImg,
-  "c-w3": exerciseImg,
-  "c-w4": exerciseImg,
-  "c-w5": exerciseImg,
+  "c-w1": sugarImg,
+  "c-w2": bakingImg,
+  "c-w3": sweetImg,
+  "c-w4": susImg,
+  "c-w5": dairyImg,
   // ── گروه پرریسک · آرامش ذهن ───────────────────────────────────────────
-  "c-p1": peaceImg,
-  "c-p2": peaceImg,
-  "c-p3": peaceImg,
+  "c-p1": peaceMindImg,
+  "c-p2": happyEnd,
+  "c-p3": temperamentImg,
 
   // ── آستانهٔ خطر (کوتاه‌مدت) ────────────────────────────────────────────
   "e-n1": nutritionImg,
@@ -63,10 +64,8 @@ export const STORY_IMAGES: Readonly<Record<string, string>> = {
   "e-p5": peaceImg,
 
   // ── آستانهٔ خطر (بلندمدت) ──────────────────────────────────────────────
-  "m-n1": nutritionImg,
-  "m-n2": nutritionImg,
-  "m-n3": nutritionImg,
-  "m-n4": nutritionImg,
+  "m-n1": homeTableImg,
+  "m-n2": mediterraneanPlatetImg,
   "m-e1": exerciseImg,
   "m-e2": exerciseImg,
   "m-e3": exerciseImg,
