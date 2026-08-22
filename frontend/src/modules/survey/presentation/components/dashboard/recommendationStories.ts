@@ -10,7 +10,7 @@ import type { LucideIcon } from "lucide-react";
 import { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
 
 import { CATEGORY_FALLBACK_IMAGE, STORY_IMAGES } from "./story-images";
-import { nextRotationOffset } from "./story-rotation.storage";
+import { stableStoryOffset } from "./story-rotation.storage";
 
 export type StoryGroupKey = "nutrition" | "exercise" | "peace";
 
@@ -32,6 +32,8 @@ export interface TierCategory {
   /** عنوانی که به کاربرِ همین گروه نشان داده می‌شود. */
   readonly label: string;
   readonly slides: readonly StorySlide[];
+  /** اگر true باشد، بدون انتخابِ تصادفی، همهٔ اسلایدهای دسته نمایش داده می‌شوند. */
+  readonly showAll?: boolean;
 }
 
 /** چیزی که به UI می‌رسد: دستهٔ آمادهٔ نمایش با اسلایدهای قطعی. */
@@ -369,13 +371,13 @@ const TIER_CATEGORIES: Record<RiskTier, readonly TierCategory[]> = {
   ],
   [RiskTier.Moderate]: [
     { key: "nutrition", label: "تغذیه", slides: MODERATE_NUTRITION },
-    { key: "exercise", label: "ورزش و کاهش وزن", slides: MODERATE_EXERCISE },
+    { key: "exercise", label: "ورزش و کاهش وزن", slides: MODERATE_EXERCISE, showAll: true },
     { key: "peace", label: "روان‌شناسی و خودمراقبتی", slides: MODERATE_PEACE },
   ],
   [RiskTier.Elevated]: [
     { key: "nutrition", label: "تغذیه", slides: ELEVATED_NUTRITION },
     { key: "exercise", label: "ورزش و فعالیت بدنی", slides: ELEVATED_EXERCISE },
-    { key: "peace", label: "آرامش ذهن و اهداف SMART", slides: ELEVATED_PEACE },
+    { key: "peace", label: "آرامش ذهن و اهداف SMART", slides: ELEVATED_PEACE, showAll: true },
   ],
   [RiskTier.Critical]: [
     { key: "nutrition", label: "تغذیه", slides: CRITICAL_NUTRITION },
@@ -418,7 +420,23 @@ export const resolveStoryGroupRandom = (
   if (!category || category.slides.length === 0) return null;
 
   const total = category.slides.length;
-  const offset = nextRotationOffset(`${tierOf(tier)}:${key}`, total, STORIES_PER_VIEW);
+
+  // دسته‌هایی که باید کامل دیده شوند (مثل «ورزش و کاهش وزن» یا «اهداف SMART»)
+  // بدون انتخابِ جزئی، همهٔ اسلایدهایشان در یک ست نمایش داده می‌شود.
+  if (category.showAll) {
+    return {
+      key: category.key,
+      label: category.label,
+      ...GROUP_APPEARANCE[category.key],
+      variantId: `${tierOf(tier)}-${key}-all`,
+      slides: category.slides.map((slide) => withImage(slide, category.key)),
+      totalInCategory: total,
+    };
+  }
+
+  // برای بقیهٔ دسته‌ها: نقطهٔ شروع برای هر کاربر ثابت است (با رفرش عوض نمی‌شود)
+  // ولی بین کاربرهای مختلف فرق می‌کند.
+  const offset = stableStoryOffset(`${tierOf(tier)}:${key}`, total);
 
   const picked: StorySlide[] = [];
   for (let step = 0; step < Math.min(STORIES_PER_VIEW, total); step += 1) {

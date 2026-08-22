@@ -10,7 +10,7 @@ import { toPersianDigits } from "@core/text/digits";
 
 import type { ResolvedStoryGroup } from "./recommendationStories";
 
-const SLIDE_MS = 6_000;
+const SLIDE_MS = 10_000;
 const HOLD_MS = 220;
 
 interface StoryViewerProps {
@@ -305,7 +305,9 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
             </button>
           </div>
 
-          {/* نواحی لمسی */}
+          {/* نواحی لمسی — مثل استوریِ اینستاگرام:
+              کلیک روی نیمهٔ چپ (سمتِ جلو در RTL) = استوری بعدی
+              کلیک روی نیمهٔ راست = استوری قبلی */}
           <button
             type="button"
             onClick={() => handleZone("next")}
@@ -313,9 +315,9 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
             className="
               absolute
               inset-y-0
-              right-0
-              z-10
-              w-2/3
+              left-0
+              z-20
+              w-1/2
               cursor-default
               focus:outline-none
             "
@@ -328,16 +330,16 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
             className="
               absolute
               inset-y-0
-              left-0
-              z-10
-              w-1/3
+              right-0
+              z-20
+              w-1/2
               cursor-default
               focus:outline-none
             "
           />
 
           {/* محتوای اسلاید */}
-          <div className="relative z-20 flex min-h-0 flex-1 flex-col justify-center px-6 pb-24 pt-2">
+          <div className="pointer-events-none relative z-10 flex min-h-0 flex-1 flex-col justify-center px-6 pb-24 pt-2">
             <AnimatePresence mode="wait">
               <motion.div
                 key={slide.id}
