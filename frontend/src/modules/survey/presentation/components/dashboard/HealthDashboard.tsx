@@ -386,7 +386,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
                 </div>
 
                 {/* ستون وسط — نقشه آناتومی (زیرِ خط‌های اتصال) */}
-                <div className="relative z-0">
+                <div className="relative z-0 sticky top-20 md:top-24">
                   <AnatomyFigure
                     organPercents={figurePercents}
                     highlightedOrgan={expandedOrgan}

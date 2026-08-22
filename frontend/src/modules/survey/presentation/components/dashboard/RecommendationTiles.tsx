@@ -70,9 +70,9 @@ export function RecommendationTiles({ baseDelay = 0, tier = null }: Recommendati
 
               <div className="relative flex items-center justify-between gap-3">
                 <p className="text-sm font-black text-white drop-shadow-sm">{group.label}</p>
-                <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+                {/* <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
                   {toPersianDigits(STORIES_PER_VIEW)} از {toPersianDigits(group.count)} استوری
-                </span>
+                </span> */}
               </div>
             </motion.button>
         ))}
