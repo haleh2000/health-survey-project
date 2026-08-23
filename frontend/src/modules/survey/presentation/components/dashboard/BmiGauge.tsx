@@ -193,11 +193,11 @@ export function BmiRangeLegend({ bmi }: Props) {
           </motion.li>
         );
       })}
-      {bmi !== null && (
+      {/* {bmi !== null && (
         <li className="mt-1 text-center text-[11px] text-ink-subtle">
           محدوده سالم: {toPersianDigits("18.5")} تا {toPersianDigits("24.9")}
         </li>
-      )}
+      )} */}
     </ul>
   );
 }

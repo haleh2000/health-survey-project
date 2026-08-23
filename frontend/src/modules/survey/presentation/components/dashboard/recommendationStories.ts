@@ -14,7 +14,6 @@ import { stableStoryOffset } from "./story-rotation.storage";
 
 export type StoryGroupKey = "nutrition" | "exercise" | "peace";
 
-/** تعداد استوریِ نمایش‌داده‌شده در هر بار باز کردن یک دسته. */
 export const STORIES_PER_VIEW = 2;
 
 export interface StorySlide {
@@ -22,21 +21,16 @@ export interface StorySlide {
   readonly title: string;
   readonly body: string;
   readonly icon: LucideIcon;
-  /** اگر خالی بماند، از `STORY_IMAGES` و سپس تصویر پیش‌فرضِ دسته پر می‌شود. */
   readonly image?: string;
 }
 
-/** تعریفِ یک دسته برای یک گروه ریسک مشخص. */
 export interface TierCategory {
   readonly key: StoryGroupKey;
-  /** عنوانی که به کاربرِ همین گروه نشان داده می‌شود. */
   readonly label: string;
   readonly slides: readonly StorySlide[];
-  /** اگر true باشد، بدون انتخابِ تصادفی، همهٔ اسلایدهای دسته نمایش داده می‌شوند. */
   readonly showAll?: boolean;
 }
 
-/** چیزی که به UI می‌رسد: دستهٔ آمادهٔ نمایش با اسلایدهای قطعی. */
 export interface ResolvedStorySlide extends StorySlide {
   readonly image: string;
 }
@@ -46,14 +40,11 @@ export interface ResolvedStoryGroup {
   readonly label: string;
   readonly cover: string;
   readonly icon: LucideIcon;
-  /** شناسهٔ یکتای این «چیدمان» — با هر بار باز کردن عوض می‌شود. */
   readonly variantId: string;
   readonly slides: readonly ResolvedStorySlide[];
-  /** شمارهٔ اسلایدها در کلِ دسته (برای نمایش «۲ از ۵»). */
   readonly totalInCategory: number;
 }
 
-/** ظاهرِ ثابتِ هر دسته: آیکون و تصویر پیش‌فرض. عنوان از خودِ گروه ریسک می‌آید. */
 const GROUP_APPEARANCE: Record<StoryGroupKey, { readonly icon: LucideIcon; readonly cover: string }> = {
   nutrition: { icon: Salad, cover: CATEGORY_FALLBACK_IMAGE.nutrition },
   exercise: { icon: Dumbbell, cover: CATEGORY_FALLBACK_IMAGE.exercise },
@@ -241,47 +232,50 @@ const MODERATE_NUTRITION: readonly StorySlide[] = [
     body: "نیازی به حذف یا شمارش نیست؛ کافیست بشقابت را این‌طور بچینی: نیمی سبزیجات، یک‌چهارم پروتئین و یک‌چهارم غلات کامل. به‌جای کره یا دنبه، روغن زیتون را جایگزین کن. همین یک تغییر کوچک، انتخاب‌هایت را سالم‌تر می‌کند.",
     icon: Salad,
   },
-  {
-    id: "m-n3",
+
+];
+
+const MODERATE_EXERCISE: readonly StorySlide[] = [
+
+    {
+    id: "m-e1",
     title: "اصلاحِ کوچک، نتیجه‌ی پایدار ⚖️",
     body: "اگر BMI تو بیشتر از ۲۵ است، مسیر کاهش وزن را با اصلاحات کوچک و تدریجی شروع کن؛ نه با شوک. هدف، تغییرِ پایدار است؛ بدون گرسنگی و بدون افت انرژی.",
     icon: Scale,
   },
-  {
-    id: "m-n4",
-    title: "جایگزین‌های هوشمند؛ بدون از دست دادن لذت 🌱",
-    body: "به‌جای نوشابه و آب‌میوه‌های پاکتی، آب یا چای سبز بنوش. به‌جای سرخ‌کردن، گریل و بخارپز را انتخاب کن. سس چرب؟ ماست یونانی، سرکه یا بالزامیک. و به‌جای شیرینی، یک مشت آجیل خام یا میوه‌ی تازه.",
-    icon: Nut,
-  },
-];
-
-const MODERATE_EXERCISE: readonly StorySlide[] = [
-  {
-    id: "m-e1",
+    {
+    id: "m-e2",
     title: "قدم‌های منظم، همراهِ تو 🚶‍♀️",
     body: "برای اینکه مسیر کاهش وزن سریع‌تر پیش برود، حدود ۳۰ دقیقه پیاده‌روی با سرعت متوسط را به روتین روزانه‌ات اضافه کن؛ قدم‌های کوچک اما منظم.",
     icon: Footprints,
   },
   {
-    id: "m-e2",
+    id: "m-e3",
+    title: "جایگزین‌های هوشمند؛ بدون از دست دادن لذت 🌱",
+    body: "به‌جای نوشابه و آب‌میوه‌های پاکتی، آب یا چای سبز بنوش. به‌جای سرخ‌کردن، گریل و بخارپز را انتخاب کن. سس چرب؟ ماست یونانی، سرکه یا بالزامیک. و به‌جای شیرینی، یک مشت آجیل خام یا میوه‌ی تازه.",
+    icon: Nut,
+  },
+
+  {
+    id: "m-e4",
     title: "نقشه‌راه ۱۲ هفته‌ایِ تو 🗺️",
     body: "مسیر تغییر ترکیب بدنی، یک‌باره نیست؛ سه فاز دارد: اول «سازگاری»، بعد «شتاب‌دهنده‌ی متابولیک» و در پایان «بهینه‌سازی و کات». با هر فاز، بدنت آرام‌آرام قوی‌تر می‌شود.",
     icon: Timer,
   },
   {
-    id: "m-e3",
+    id: "m-e5",
     title: "فاز اول؛ آشنایی با بدنت 🧘‍♀️",
     body: "در هفته‌های اول، روی تمرین قدرتی، پیاده‌روی سریع و استراحت فعال تمرکز کن. کشش را فراموش نکن؛ این زمانِ آشنایی و هماهنگی بدن است.",
     icon: Waves,
   },
   {
-    id: "m-e4",
+    id: "m-e6",
     title: "فاز دوم؛ شتابِ متابولیک 🔥",
     body: "از هفته‌ی پنجم به بعد، هوازی ۳۰ دقیقه‌ای را وارد برنامه کن و کنارش تمرین قدرتی با وزن بدن را ادامه بده. متابولیسم تو این‌جا فعال‌تر می‌شود.",
     icon: Flame,
   },
   {
-    id: "m-e5",
+    id: "m-e7",
     title: "فاز سوم؛ بهینه‌سازی ✨",
     body: "هفته‌های پایانی، زمانِ تمرین قدرتی چرخشی و هوازی اینتروال (HIIT) است. هدف این است که حجم عضلانی حفظ شود و چربی‌سوزی افزایش یابد؛ بدون اینکه متابولیسمت افت کند.",
     icon: TrendingUp,
