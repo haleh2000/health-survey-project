@@ -74,9 +74,9 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
             <p className="truncate text-sm font-black text-ink">
               {assessment?.fullName ?? "پروفایل سلامت"}
             </p>
-            <p className="text-[11px] text-ink-subtle">
+            {/* <p className="text-[11px] text-ink-subtle">
               {assessment ? assessment.levelLabel : "پس از ارزیابی تکمیل می‌شود"}
-            </p>
+            </p> */}
           </div>
         </div>
 
@@ -86,10 +86,10 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
               key={b.label}
               className="flex items-center gap-2 rounded-xl bg-surface-muted/70 px-2.5 py-2"
             >
-              <b.icon className="h-3.5 w-3.5 shrink-0 text-day-primary" />
+              <b.icon className="h-5 w-5 shrink-0 text-day-primary" />
               <div className="min-w-0">
-                <p className="text-[10px] text-ink-subtle">{b.label}</p>
-                <p className="truncate text-[11px] font-bold text-ink tabular-nums">{b.value}</p>
+                <p className="text-[15px] text-ink-subtle">{b.label}</p>
+                <p className="truncate text-[16px] font-bold text-ink tabular-nums">{b.value}</p>
               </div>
             </div>
           ))}
@@ -112,7 +112,7 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
             >
               <div className="flex items-center justify-between gap-1">
                 <div
-                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${
                     empty
                       ? "bg-surface-muted text-ink-subtle"
                       : flagged
@@ -136,9 +136,9 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
                   </span>
                 )}
               </div>
-              <p className="truncate text-[12px] font-bold text-ink">{item.title}</p>
+              <p className="truncate text-[16px] font-bold text-ink">{item.title}</p>
               <p
-                className={`truncate text-[10px] font-medium ${
+                className={`truncate text-[14px] font-medium ${
                   empty ? "text-ink-subtle" : flagged ? "text-amber-600" : "text-emerald-600"
                 }`}
               >

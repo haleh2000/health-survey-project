@@ -26,9 +26,6 @@ interface Props {
 
 const sectionSpring = { type: "spring", stiffness: 220, damping: 26 } as const;
 
-const RELEVANCE_THRESHOLD = 12;
-const MIN_VISIBLE_ORGANS = 3;
-
 const readableJalali = (iso: string): string => {
   const parts = parseJalaliIso(iso);
   if (!parts) return iso;
@@ -37,7 +34,7 @@ const readableJalali = (iso: string): string => {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-3 text-xs font-black tracking-wide text-day-primary">{children}</h3>
+    <h3 className="mb-3 text-lg font-black tracking-wide text-day-primary">{children}</h3>
   );
 }
 
@@ -54,11 +51,6 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-/**
- * جای‌گذاری کارت‌ها: هر کارت در ستونِ سمتِ خودِ اندامش می‌نشیند و ترتیب عمودی
- * هر ستون از روی ارتفاع واقعی اندام روی بدن تعیین می‌شود (اندام بالاتر → کارت
- * بالاتر). برای اندام‌های هم‌سطح، رتبهٔ شدت (بد → خوب) اولویت دارد.
- */
 const ORGAN_SIDE = Object.fromEntries(
   ORGAN_ASSETS.map((asset) => [asset.key, asset.side]),
 ) as Record<OrganKey, "left" | "right">;
@@ -77,7 +69,6 @@ export function HealthDashboard({ record, history }: Props) {
 
   const connectorHostRef = useRef<HTMLDivElement | null>(null);
   const [expandedOrgan, setExpandedOrgan] = useState<OrganKey | null>(null);
-  const [showAllCards, setShowAllCards] = useState(false);
   const isDesktop = useIsDesktop();
 
   /** top محاسبه‌شدهٔ هر کارت نسبت به بالای ظرف سه‌ستونه (فقط دسکتاپ) */
@@ -93,33 +84,24 @@ export function HealthDashboard({ record, history }: Props) {
       .sort((a, b) => b.percent - a.percent);
   }, [assessment]);
 
-  const organPercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
-    const relevant = rankedOrgans.filter((item) => item.percent >= RELEVANCE_THRESHOLD);
-    const picked = relevant.length >= MIN_VISIBLE_ORGANS ? relevant : rankedOrgans.slice(0, MIN_VISIBLE_ORGANS);
-    return Object.fromEntries(picked.map((item) => [item.key, item.percent]));
-  }, [rankedOrgans]);
-  
-const connectorTargets = useMemo<ConnectorTarget[]>(() => {
-  const visible = showAllCards ? rankedOrgans : rankedOrgans.slice(0, 3);
-  return visible.map((item) => ({ key: item.key, color: severityOf(item.percent).hex }));
-}, [rankedOrgans, showAllCards]);
+  const organPercents = useMemo<Partial<Record<OrganKey, number>>>(
+    () => Object.fromEntries(rankedOrgans.map((item) => [item.key, item.percent])),
+    [rankedOrgans],
+  );
+
+  const connectorTargets = useMemo<ConnectorTarget[]>(
+    () => rankedOrgans.map((item) => ({ key: item.key, color: severityOf(item.percent).hex })),
+    [rankedOrgans],
+  );
 
 /**
- * ارگان‌های فعال روی تصویر بدن: علاوه بر ارگان‌های مرتبط، هر ارگانی که کارتش
- * نمایان است (حالت «نمایش بیشتر») هم باید نقطهٔ اتصال روی بدن داشته باشد،
- * وگرنه خط راهنمای آن رسم نمی‌شود.
+ * ارگان‌های فعال روی تصویر بدن: همهٔ ارگان‌های رتبه‌بندی‌شده نقطهٔ اتصال روی
+ * بدن دارند تا خط راهنمای هر کارت رسم شود.
  */
-const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
-  const visible = showAllCards ? rankedOrgans : rankedOrgans.slice(0, 3);
-  const merged: Partial<Record<OrganKey, number>> = { ...organPercents };
-  for (const item of visible) merged[item.key] = item.percent;
-  return merged;
-}, [organPercents, rankedOrgans, showAllCards]);
+const figurePercents = organPercents;
 
-
-  // کارت‌های قابل نمایش (۳ تا یا همه)
-  const visibleRanked = showAllCards ? rankedOrgans : rankedOrgans.slice(0, 3);
-  const hiddenCount = rankedOrgans.length - 3;
+  // کارت‌های قابل نمایش (همهٔ اندام‌ها)
+  const visibleRanked = rankedOrgans;
 
   /** رتبهٔ سراسری هر اندام در میان همهٔ اندام‌ها (۰ = بیشترین نیاز به پیگیری) */
   const rankIndex = useMemo(
@@ -195,7 +177,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
     setMinHostHeight(needed);
   }, [assessment, isDesktop, sideGroups]);
 
-  /** دنبال کردنِ چیدمان بعد از هر تغییر (باز/بسته شدن کارت، نمایش بیشتر و …) */
+  /** دنبال کردنِ چیدمان بعد از هر تغییر (باز/بسته شدن کارت و …) */
   const startFollowing = useCallback(() => {
     followUntilRef.current = performance.now() + 900;
     if (frameRef.current !== null) return;
@@ -219,7 +201,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
         frameRef.current = null;
       }
     };
-  }, [startFollowing, expandedOrgan, showAllCards]);
+  }, [startFollowing, expandedOrgan]);
 
   useEffect(() => {
     const host = connectorHostRef.current;
@@ -238,8 +220,6 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
   }, [isDesktop, measureCards]);
 
   const handleSelectOrgan = (key: OrganKey) => {
-    const index = rankedOrgans.findIndex((item) => item.key === key);
-    if (index >= 3) setShowAllCards(true);
     setExpandedOrgan((current) => (current === key ? null : key));
     requestAnimationFrame(() => {
       document
@@ -301,21 +281,15 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
           />
         </div>
 
-        {/* نقشه بدن + کارت‌های دو ستون */}
         <div>
           <SectionLabel>نقشهٔ سلامت اندام‌ها</SectionLabel>
-          <p className="mb-4 text-[11px] text-ink-subtle">
+          <p className="mb-4 text-[15px] text-ink-subtle">
             {assessment
-              ? "کارت هر اندام کنار همان اندام روی نقشه نشسته و خطِ همرنگ آن را به نقشه وصل می‌کند. شمارهٔ روی هر کارت اولویت پیگیری است: ۱ یعنی بیشترین نیاز."
+              ? " شمارهٔ روی هر کارت اولویت پیگیری است: ۱ یعنی بیشترین نیاز."
               : "پس از اولین ارزیابی، اندام‌های مرتبط با وضعیت شما اینجا فعال می‌شوند."}
           </p>
 
-          {/*
-            چیدمان:
-              موبایل  → یک ستون (بدن بالا، کارت‌ها زیرش به ترتیب اولویت)
-              دسکتاپ → [ستون‌کارت-راست | بدن | ستون‌کارت-چپ]
-            در دسکتاپ هر کارت با top محاسبه‌شده، هم‌سطحِ اندام خودش روی بدن می‌نشیند.
-          */}
+
           <div
             ref={connectorHostRef}
             className="relative grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)]"
@@ -327,7 +301,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
                 hostRef={connectorHostRef}
                 targets={connectorTargets}
                 highlightedOrgan={expandedOrgan}
-                layoutSignal={`${showAllCards}-${connectorTargets.length}`}
+                layoutSignal={`${connectorTargets.length}`}
               />
             )}
 
@@ -420,24 +394,6 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
               </>
             )}
           </div>
-
-          {/* دکمه نمایش بیشتر/کمتر — زیر سه‌ستون */}
-          {assessment && hiddenCount > 0 && (
-            <motion.button
-              type="button"
-              onClick={() => setShowAllCards((v) => !v)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.25 }}
-              className="mt-4 w-full cursor-pointer rounded-2xl border border-dashed border-day-primary/40
-                         bg-day-primary/5 py-2.5 text-xs font-bold text-day-primary transition
-                         hover:bg-day-primary/10"
-            >
-              {showAllCards
-                ? "نمایش کمتر"
-                : `نمایش ${toPersianDigits(hiddenCount)} مورد دیگر`}
-            </motion.button>
-          )}
         </div>
       </section>
 
@@ -461,13 +417,13 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
           </div>
           <div>
             <h4 className="mb-1 text-xs font-black text-day-primary">مقایسه با محدوده نرمال</h4>
-            <p className="mb-3 text-[11px] text-ink-subtle">
+            {/* <p className="mb-3 text-[11px] text-ink-subtle">
               آنچه باید باشد در برابر آنچه اکنون هست — و اینکه چقدر بالاتر یا پایین‌تر هستید.
-            </p>
+            </p> */}
             <BmiComparisonChart
               bmi={assessment?.bmi ?? null}
-              heightCm={record?.heightCm ?? null}
-              weightKg={record?.weightKg ?? null}
+              // heightCm={record?.heightCm ?? null}
+              // weightKg={record?.weightKg ?? null}
             />
           </div>
         </div>
@@ -477,7 +433,7 @@ const figurePercents = useMemo<Partial<Record<OrganKey, number>>>(() => {
       <section>
         <div className="mb-3 flex items-center gap-2">
           <span className="text-sm font-black text-ink">پیشنهادهای روزانه</span>
-          <span className="text-[11px] text-ink-subtle">قدم‌های کوچک، اثر بزرگ</span>
+          {/* <span className="text-[11px] text-ink-subtle">قدم‌های کوچک، اثر بزرگ</span> */}
         </div>
         <RecommendationTiles baseDelay={0.35} tier={assessment?.tier ?? null} />
       </section>
@@ -576,7 +532,7 @@ function SingleOrganCard({ item, rank, expandedKey, onToggle }: SingleCardProps)
           </span>
         </div>
 
-        <p className="text-[11px] leading-relaxed text-ink-subtle line-clamp-3">
+        <p className="text-[13px] leading-relaxed text-ink-subtle line-clamp-3">
           {content.description}
         </p>
       </button>
@@ -592,7 +548,7 @@ function SingleOrganCard({ item, rank, expandedKey, onToggle }: SingleCardProps)
             className="overflow-hidden"
           >
             <div className="border-t border-line px-4 pb-4 pt-3">
-              <h5 className="mb-1.5 text-[11px] font-bold text-ink">توصیه‌های سلامت</h5>
+              <h5 className="mb-1.5 text-[13px] font-bold text-ink">توصیه‌های سلامت</h5>
               <ul className="space-y-1.5">
                 {content.tips.map((tip) => (
                   <li key={tip} className="flex items-start gap-1.5">
@@ -601,7 +557,7 @@ function SingleOrganCard({ item, rank, expandedKey, onToggle }: SingleCardProps)
                       style={{ backgroundColor: severity.hex }}
                       aria-hidden
                     />
-                    <span className="text-[11px] leading-relaxed text-ink-subtle">{tip}</span>
+                    <span className="text-[13px] leading-relaxed text-ink-subtle">{tip}</span>
                   </li>
                 ))}
               </ul>
