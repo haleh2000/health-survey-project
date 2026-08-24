@@ -15,6 +15,7 @@ import type { SurveyStep } from "@survey/domain/entities/survey-definition.entit
 import type { FieldErrors } from "@survey/domain/services/answer-validation.service";
 import { setAnswer, toggleAnswer } from "@survey/domain/services/answer-update.service";
 import { visibleQuestionsOf } from "@survey/domain/services/question-visibility.service";
+import { BACKEND_VALUE } from "@survey/infrastructure/contract/backend-contract";
 import { saveAssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
@@ -176,9 +177,19 @@ useEffect(() => {
           Number(toAsciiDigits(readText(finalAnswers, "height" as QuestionId))),
           Number(toAsciiDigits(readText(finalAnswers, "weight" as QuestionId))),
         );
+        // جنسیت هم ذخیره می‌شود تا پیکرهٔ بدن در داشبورد و گزارش، همان کاربر را نشان دهد.
+        const gender = readText(finalAnswers, "gender" as QuestionId).trim();
+        const sex =
+          gender === BACKEND_VALUE.gender.female
+            ? "female"
+            : gender === BACKEND_VALUE.gender.male
+              ? "male"
+              : null;
+
         saveAssessmentRecord(
           result.value,
           metrics ? { heightCm: metrics.heightCm, weightKg: metrics.weightKg } : null,
+          sex,
         );
         setAssessment(result.value);
         setStage("completed");

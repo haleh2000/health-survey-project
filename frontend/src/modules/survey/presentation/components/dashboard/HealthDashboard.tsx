@@ -14,6 +14,7 @@ import {
 import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
 import { toPersianDigits } from "@core/text/digits";
 import { ORGAN_ASSETS } from "@ds/illustrations/anatomy/organ-assets";
+import type { BodyProfile } from "@ds/illustrations/anatomy/body-shape";
 import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 
 import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
@@ -167,6 +168,25 @@ export function HealthDashboard({
   );
 
   const figurePercents = organPercents;
+
+  /**
+   * پیکرهٔ بدن با مشخصات خودِ کاربر رسم می‌شود — قد، وزن، سن و جنسیت.
+   * تا وقتی ارزیابی‌ای ثبت نشده، پیکرهٔ خنثای پیش‌فرض نمایش داده می‌شود.
+   */
+  const bodyProfile = useMemo<BodyProfile>(
+    () => ({
+      heightCm: record?.heightCm ?? null,
+      weightKg: record?.weightKg ?? null,
+      ageYears: assessment?.ageYears ?? null,
+      sex: record?.sex ?? null,
+    }),
+    [
+      record?.heightCm,
+      record?.weightKg,
+      record?.sex,
+      assessment?.ageYears,
+    ],
+  );
 
   const visibleRanked = rankedOrgans;
 
@@ -528,6 +548,7 @@ export function HealthDashboard({
                     onSelectOrgan={
                       handleSelectOrgan
                     }
+                    profile={bodyProfile}
                   />
                 </div>
 
@@ -616,6 +637,7 @@ export function HealthDashboard({
                     onSelectOrgan={
                       handleSelectOrgan
                     }
+                    profile={bodyProfile}
                   />
                 </div>
 

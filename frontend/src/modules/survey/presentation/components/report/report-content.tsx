@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import logoSrc from "@assets/day-daydar-lockup.png";
 import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
 import { toPersianDigits } from "@core/text/digits";
+import type { BodyProfile } from "@ds/illustrations/anatomy/body-shape";
 import {
   adviceFor,
   summaryFor,
@@ -101,6 +102,14 @@ export function buildReportBlocks(
 ): { readonly blocks: readonly ReportBlock[]; readonly meta: ReportMeta } {
   const assessment: RiskAssessment | null = record?.assessment ?? null;
   const blocks: ReportBlock[] = [];
+
+  /** همان پیکره‌ای که کاربر در داشبورد دیده، تا گزارش با صفحه یکی باشد. */
+  const bodyProfile: BodyProfile = {
+    heightCm: record?.heightCm ?? null,
+    weightKg: record?.weightKg ?? null,
+    ageYears: assessment?.ageYears ?? null,
+    sex: record?.sex ?? null,
+  };
 
   const dateLabel = record ? readableJalali(record.completedOnJalali) : "—";
   const tone = TIER_TONE[assessment?.tier ?? "low"];
@@ -202,7 +211,10 @@ export function buildReportBlocks(
       node: <SectionTitle title="نقشهٔ سلامت اندام‌ها" hint="مرتب‌شده از بیشترین به کمترین نیاز به پیگیری" />,
     });
 
-    blocks.push({ id: "organs-figure", node: <AnatomyBlock percents={percents} /> });
+    blocks.push({
+      id: "organs-figure",
+      node: <AnatomyBlock percents={percents} profile={bodyProfile} />,
+    });
 
     blocks.push({
       id: "organs-table",

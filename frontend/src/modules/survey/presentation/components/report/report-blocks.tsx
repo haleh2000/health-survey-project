@@ -15,6 +15,11 @@ import type { LucideIcon } from "lucide-react";
 
 import { toPersianDigits } from "@core/text/digits";
 import { BodyFigure } from "@ds/illustrations/anatomy/BodyFigure";
+import {
+  computeBodyShape,
+  HEAD_ORGAN_KEYS,
+  type BodyProfile,
+} from "@ds/illustrations/anatomy/body-shape";
 import { ORGAN_ASSETS } from "@ds/illustrations/anatomy/organ-assets";
 import type { OrganKey } from "@survey/presentation/components/dashboard/organ-meta";
 import { severityOf } from "@survey/presentation/components/dashboard/organ-meta";
@@ -305,21 +310,44 @@ const LEGEND: readonly { label: string; hex: string }[] = [
  */
 export function AnatomyBlock({
   percents,
+  profile,
   height = 430,
 }: {
   readonly percents: Partial<Record<OrganKey, number>>;
+  /** همان پیکره‌ای که کاربر در داشبورد دیده است. */
+  readonly profile?: BodyProfile;
   readonly height?: number;
 }) {
+  const shape = computeBodyShape(profile);
+
   return (
     <div style={{ ...cardStyle, display: "flex", gap: 16, alignItems: "center", padding: 16 }}>
-      <svg viewBox="40 20 320 560" style={{ width: height * (320 / 560), height }} role="img">
-        <BodyFigure x={0} y={0} width={400} height={600} />
+      {/*
+        قابِ تصویر همان قابِ کاملِ پیکره است (نه یک برشِ دستی)، وگرنه در خروجیِ
+        چاپی نوکِ سر و کفِ پا می‌افتد بیرون. `preserveAspectRatio` هم تضمین
+        می‌کند تصویر داخل کادر جا شود، نه اینکه لبه‌هایش بریده شود.
+      */}
+      <svg
+        viewBox={shape.viewBox}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ width: height * (380 / 600), height, flexShrink: 0, overflow: "visible" }}
+        role="img"
+      >
+        <BodyFigure shape={shape} />
         {ORGAN_ASSETS.map((asset) => {
           const percent = percents[asset.key];
           const active = percent != null;
           const severity = severityOf(percent ?? 0);
+          const zoneTransform = HEAD_ORGAN_KEYS.has(asset.key)
+            ? shape.headOrganTransform
+            : shape.organTransform;
           return (
-            <g key={asset.key} opacity={active ? 1 : 0.14} style={active ? undefined : { filter: "grayscale(1)" }}>
+            <g
+              key={asset.key}
+              transform={zoneTransform}
+              opacity={active ? 1 : 0.14}
+              style={active ? undefined : { filter: "grayscale(1)" }}
+            >
               {active && (
                 <circle cx={asset.halo.x} cy={asset.halo.y} r={asset.halo.r} fill={severity.hex} opacity={0.16} />
               )}
@@ -643,11 +671,31 @@ export function StoryBlock({
 }) {
   return (
     <div style={{ ...cardStyle, display: "flex", gap: 12, padding: 12, alignItems: "flex-start" }}>
-      <img
-        src={image}
-        alt=""
-        style={{ width: 92, height: 92, borderRadius: 12, objectFit: "cover", flexShrink: 0 }}
-      />
+      {/*
+        تصویرهای استوری نسبت‌های خیلی متفاوتی دارند (از تقریباً مربع تا بنرِ
+        پهن). با `cover` هر بار بخشی از تصویر بیرونِ کادر می‌افتاد؛ `contain`
+        داخلِ یک کادرِ کمی پهن‌تر، کلِ تصویر را نشان می‌دهد و جای خالی هم
+        عمداً با پس‌زمینهٔ ملایم پر می‌شود تا کادر خالی به نظر نرسد.
+      */}
+      <div
+        style={{
+          width: 128,
+          height: 96,
+          borderRadius: 12,
+          background: C.surfaceMuted,
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}
+      >
+        <img
+          src={image}
+          alt=""
+          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" }}
+        />
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
           <span
