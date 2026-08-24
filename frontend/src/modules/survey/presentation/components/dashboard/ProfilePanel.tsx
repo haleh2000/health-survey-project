@@ -1,58 +1,87 @@
 // src/modules/survey/presentation/components/dashboard/ProfilePanel.tsx
 // ستون «پروفایل» داشبورد: اطلاعات پایه (سن/قد/وزن/BMI)،
-// وضعیت‌ها دوتایی در هر ردیف (مرتب بر اساس شدت)، جمع‌بندی موارد نیازمند
-// پیگیری، و دکمهٔ «مشاهده ارزیابی‌های من».
+// وضعیت‌ها دوتایی در هر ردیف (مرتب بر اساس شدت)، و جمع‌بندی موارد نیازمند پیگیری.
 
 import { motion } from "framer-motion";
-import { AlertTriangle, Cake, Check, History, Ruler, Scale, User, Weight } from "lucide-react";
+import {
+  AlertTriangle,
+  Cake,
+  Check,
+  Ruler,
+  Scale,
+  User,
+  Weight,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { toPersianDigits } from "@core/text/digits";
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 
-import { AssessmentHistoryModal } from "./AssessmentHistoryModal";
 import { rankStatuses } from "./profile-status";
 
 interface Props {
   readonly assessment: RiskAssessment | null;
   readonly record: AssessmentRecord | null;
-  readonly history: readonly AssessmentRecord[];
   readonly baseDelay?: number;
 }
 
-const spring = { type: "spring", stiffness: 260, damping: 28 } as const;
+const spring = {
+  type: "spring",
+  stiffness: 260,
+  damping: 28,
+} as const;
 
-export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Props) {
-  const [historyOpen, setHistoryOpen] = useState(false);
-
+export function ProfilePanel({
+  assessment,
+  record,
+  baseDelay = 0,
+}: Props) {
   const flags = assessment?.flags ?? null;
 
   /** وضعیت‌ها به ترتیب شدت (تعداد پرچم فعال) از زیاد به کم */
-  const rankedStatuses = useMemo(() => rankStatuses(flags), [flags]);
+  const rankedStatuses = useMemo(
+    () => rankStatuses(flags),
+    [flags],
+  );
 
-  const flaggedCount = rankedStatuses.filter((s) => s.fired > 0).length;
+  const flaggedCount = rankedStatuses.filter(
+    (s) => s.fired > 0,
+  ).length;
 
-  const basics: readonly { label: string; value: string; icon: LucideIcon }[] = [
+  const basics: readonly {
+    label: string;
+    value: string;
+    icon: LucideIcon;
+  }[] = [
     {
       label: "سن",
-      value: assessment ? `${toPersianDigits(assessment.ageYears)} سال` : "—",
+      value: assessment
+        ? `${toPersianDigits(assessment.ageYears)} سال`
+        : "—",
       icon: Cake,
     },
     {
       label: "قد",
-      value: record?.heightCm ? `${toPersianDigits(record.heightCm)} سانتی‌متر` : "—",
+      value: record?.heightCm
+        ? `${toPersianDigits(record.heightCm)} سانتی‌متر`
+        : "—",
       icon: Ruler,
     },
     {
       label: "وزن",
-      value: record?.weightKg ? `${toPersianDigits(record.weightKg)} کیلوگرم` : "—",
+      value: record?.weightKg
+        ? `${toPersianDigits(record.weightKg)} کیلوگرم`
+        : "—",
       icon: Weight,
     },
     {
       label: "BMI",
-      value: assessment?.bmi != null ? toPersianDigits(assessment.bmi) : "—",
+      value:
+        assessment?.bmi != null
+          ? toPersianDigits(assessment.bmi)
+          : "—",
       icon: Scale,
     },
   ];
@@ -70,13 +99,11 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-day-primary to-teal-600 text-white">
             <User className="h-5 w-5" />
           </div>
+
           <div className="min-w-0">
             <p className="truncate text-sm font-black text-ink">
               {assessment?.fullName ?? "پروفایل سلامت"}
             </p>
-            {/* <p className="text-[11px] text-ink-subtle">
-              {assessment ? assessment.levelLabel : "پس از ارزیابی تکمیل می‌شود"}
-            </p> */}
           </div>
         </div>
 
@@ -87,9 +114,15 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
               className="flex items-center gap-2 rounded-xl bg-surface-muted/70 px-2.5 py-2"
             >
               <b.icon className="h-5 w-5 shrink-0 text-day-primary" />
+
               <div className="min-w-0">
-                <p className="text-[15px] text-ink-subtle">{b.label}</p>
-                <p className="truncate text-[16px] font-bold text-ink tabular-nums">{b.value}</p>
+                <p className="text-[14px] text-ink-subtle">
+                  {b.label}
+                </p>
+
+                <p className="truncate text-[15px] font-bold text-ink tabular-nums">
+                  {b.value}
+                </p>
               </div>
             </div>
           ))}
@@ -102,12 +135,16 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
           const empty = flags === null;
           const flagged = fired > 0;
           const Icon = item.icon;
+
           return (
             <motion.div
               key={item.title}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...spring, delay: baseDelay + 0.08 + index * 0.05 }}
+              transition={{
+                ...spring,
+                delay: baseDelay + 0.08 + index * 0.05,
+              }}
               className="flex flex-col gap-1.5 rounded-2xl border border-line bg-surface/80 p-3 shadow-card backdrop-blur-md"
             >
               <div className="flex items-center justify-between gap-1">
@@ -120,12 +157,18 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
                         : "bg-emerald-500/10 text-emerald-600"
                   }`}
                 >
-                  <Icon className="h-4 w-4" strokeWidth={2} />
+                  <Icon
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                  />
                 </div>
+
                 {!empty && (
                   <span
                     className={`grid h-5 w-5 place-items-center rounded-full text-white ${
-                      flagged ? "bg-amber-500" : "bg-emerald-500"
+                      flagged
+                        ? "bg-amber-500"
+                        : "bg-emerald-500"
                     }`}
                   >
                     {flagged ? (
@@ -136,13 +179,25 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
                   </span>
                 )}
               </div>
-              <p className="truncate text-[16px] font-bold text-ink">{item.title}</p>
+
+              <p className="truncate text-[16px] font-bold text-ink">
+                {item.title}
+              </p>
+
               <p
                 className={`truncate text-[14px] font-medium ${
-                  empty ? "text-ink-subtle" : flagged ? "text-amber-600" : "text-emerald-600"
+                  empty
+                    ? "text-ink-subtle"
+                    : flagged
+                      ? "text-amber-600"
+                      : "text-emerald-600"
                 }`}
               >
-                {empty ? "پس از ارزیابی" : flagged ? item.badLabel : item.goodLabel}
+                {empty
+                  ? "پس از ارزیابی"
+                  : flagged
+                    ? item.badLabel
+                    : item.goodLabel}
               </p>
             </motion.div>
           );
@@ -166,27 +221,6 @@ export function ProfilePanel({ assessment, record, history, baseDelay = 0 }: Pro
             : "همهٔ وضعیت‌ها در محدودهٔ مطلوب است 🎉"}
         </motion.p>
       )}
-
-      {/* مشاهده ارزیابی‌های قبلی */}
-      <motion.button
-        type="button"
-        onClick={() => setHistoryOpen(true)}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: baseDelay + 0.45 }}
-        className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border
-                   border-day-primary/30 bg-day-primary/5 py-3 text-xs font-black text-day-primary
-                   transition hover:bg-day-primary/10"
-      >
-        <History className="h-4 w-4" />
-        مشاهده ارزیابی‌های من
-      </motion.button>
-
-      <AssessmentHistoryModal
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        history={history}
-      />
     </div>
   );
 }
