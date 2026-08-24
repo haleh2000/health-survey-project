@@ -22,12 +22,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
-  BASE_BODY_PATH,
-  CORE_HALF_STEP,
-  CORE_HALF_WIDTH,
+  coreHalfFrom,
+  getBaseOutline,
+  type BodySex,
 } from "./body-base-path";
 
-export type BodySex = "male" | "female";
+export type { BodySex };
 
 export interface BodyProfile {
   readonly heightCm?: number | null;
@@ -47,8 +47,6 @@ export interface BodyShape {
   readonly organTransform: string;
   /** تبدیلِ جداگانهٔ مغز، چون نسبتِ سر به بدن با سن عوض می‌شود. */
   readonly headOrganTransform: string;
-  /** بیضیِ سایهٔ زیر پا. */
-  readonly groundShadow: { readonly cx: number; readonly cy: number; readonly rx: number };
 }
 
 // ─── قاب و مبدأ ──────────────────────────────────────────────────────────────
@@ -169,18 +167,6 @@ function makeMonotoneSpline(
   };
 }
 
-/** نیم‌پهنای مرجعِ تنه در ارتفاع `y` (درون‌یابیِ خطیِ جدول). */
-function coreHalfAt(y: number): number {
-  const position = y / CORE_HALF_STEP;
-  const index = Math.floor(position);
-  if (index < 0) return at(CORE_HALF_WIDTH, 0);
-  if (index >= CORE_HALF_WIDTH.length - 1) {
-    return at(CORE_HALF_WIDTH, CORE_HALF_WIDTH.length - 1);
-  }
-  const t = position - index;
-  return at(CORE_HALF_WIDTH, index) * (1 - t) + at(CORE_HALF_WIDTH, index + 1) * t;
-}
-
 /** چقدر در این ارتفاع باید بازو را از تنه جدا حساب کرد (۰ تا ۱). */
 function armSeparationAt(y: number): number {
   return (
@@ -272,6 +258,10 @@ function readMetrics(profile: BodyProfile): Metrics {
 interface Geometry {
   readonly remapY: (y: number) => number;
   readonly coreScale: (y: number) => number;
+  /** لبهٔ تنه (بدونِ بازو) روی سیلوئتِ مرجع — مرزِ «تنه» و «اندام». */
+  readonly coreEdgeAt: (y: number) => number;
+  /** مسیرِ مرجعِ تحلیل‌شدهٔ همان جنسیت. */
+  readonly baseCommands: readonly Command[];
   readonly limbScale: number;
   readonly statureScale: number;
   readonly headScale: number;
@@ -280,6 +270,9 @@ interface Geometry {
 
 function buildGeometry(metrics: Metrics): Geometry {
   const { childness, plumpness, leanness, female, drawHeight } = metrics;
+
+  const outline = getBaseOutline(female ? "female" : "male");
+  const coreEdgeAt = (y: number): number => coreHalfFrom(outline.coreHalf, y);
 
   const statureScale = drawHeight / REF_HEIGHT;
 
@@ -322,16 +315,15 @@ function buildGeometry(metrics: Metrics): Geometry {
   // سر یک واحدِ صُلب است: پهنایش باید هم‌پای بلندی‌اش تغییر کند، وگرنه سرِ
   // بزرگِ کودک کشیده و غیرطبیعی می‌شود.
   const headScale = (chin - crown) / REF_HEAD;
-  const headWidth = (headScale / statureScale) * (1 + 0.06 * childness) * (female ? 0.97 : 1);
+  const headWidth = (headScale / statureScale) * (1 + 0.06 * childness);
 
   const fat = plumpness;
   const thin = leanness;
-  const sex = (femaleFactor: number) => (female ? femaleFactor : 1);
 
-  const shoulder =
-    (1 - 0.10 * childness) * sex(0.935) * (1 + 0.14 * fat - 0.06 * thin);
-  const neck =
-    (0.45 * headWidth + 0.55 * shoulder) * sex(0.96) * (1 + 0.16 * fat - 0.07 * thin);
+  // تفاوت‌های جنسیتی در خودِ سیلوئتِ مرجع پخته شده‌اند؛ این‌جا فقط اثرِ سن و
+  // وزن اعمال می‌شود تا دو اثر روی هم سوار نشوند.
+  const shoulder = (1 - 0.10 * childness) * (1 + 0.14 * fat - 0.06 * thin);
+  const neck = (0.45 * headWidth + 0.55 * shoulder) * (1 + 0.16 * fat - 0.07 * thin);
 
   const knots: readonly (readonly [number, number])[] = [
     [REF.crown, headWidth * (1 + 0.05 * fat - 0.02 * thin)],
@@ -340,15 +332,15 @@ function buildGeometry(metrics: Metrics): Geometry {
     [88, neck],
     [REF.shoulder, shoulder],
     [150, shoulder * (1 + 0.05 * fat)],
-    [REF.chest, (1 + 0.03 * childness) * sex(1.0) * (1 + 0.28 * fat - 0.12 * thin)],
-    [REF.waist, (1 + 0.05 * childness) * sex(0.925) * (1 + 0.52 * fat - 0.19 * thin)],
-    [285, (1 + 0.07 * childness) * sex(0.965) * (1 + 0.58 * fat - 0.20 * thin)],
-    [REF.hip, (1 + 0.02 * childness) * sex(1.075) * (1 + 0.42 * fat - 0.16 * thin)],
-    [400, (1 + 0.02 * childness) * sex(1.05) * (1 + 0.36 * fat - 0.17 * thin)],
-    [REF.knee, sex(1.0) * (1 + 0.18 * fat - 0.09 * thin)],
-    [510, sex(0.99) * (1 + 0.26 * fat - 0.13 * thin)],
-    [REF.ankle, sex(0.97) * (1 + 0.10 * fat - 0.06 * thin)],
-    [REF.sole, sex(0.95) * (1 + 0.08 * fat - 0.05 * thin)],
+    [REF.chest, (1 + 0.03 * childness) * (1 + 0.28 * fat - 0.12 * thin)],
+    [REF.waist, (1 + 0.05 * childness) * (1 + 0.52 * fat - 0.19 * thin)],
+    [285, (1 + 0.07 * childness) * (1 + 0.58 * fat - 0.20 * thin)],
+    [REF.hip, (1 + 0.02 * childness) * (1 + 0.42 * fat - 0.16 * thin)],
+    [400, (1 + 0.02 * childness) * (1 + 0.36 * fat - 0.17 * thin)],
+    [REF.knee, 1 + 0.18 * fat - 0.09 * thin],
+    [510, 1 + 0.26 * fat - 0.13 * thin],
+    [REF.ankle, 1 + 0.10 * fat - 0.06 * thin],
+    [REF.sole, 1 + 0.08 * fat - 0.05 * thin],
   ];
 
   const widthAt = makeMonotoneSpline(
@@ -358,12 +350,10 @@ function buildGeometry(metrics: Metrics): Geometry {
 
   return {
     remapY,
+    coreEdgeAt,
+    baseCommands: parseCommands(outline.path),
     coreScale: (y: number) => statureScale * widthAt(y),
-    limbScale:
-      statureScale *
-      (1 - 0.04 * childness) *
-      (female ? 0.955 : 1) *
-      (1 + 0.30 * fat - 0.16 * thin),
+    limbScale: statureScale * (1 - 0.04 * childness) * (1 + 0.30 * fat - 0.16 * thin),
     statureScale,
     headScale,
     landmarks,
@@ -381,7 +371,7 @@ function warpPoint(geometry: Geometry, x: number, y: number): [number, number] {
 
   let mapped = uniform;
   if (separation > 0) {
-    const edge = coreHalfAt(y);
+    const edge = geometry.coreEdgeAt(y);
     const piecewise =
       distance <= edge ? distance * core : edge * core + (distance - edge) * geometry.limbScale;
     mapped = uniform + (piecewise - uniform) * separation;
@@ -395,9 +385,14 @@ function warpPoint(geometry: Geometry, x: number, y: number): [number, number] {
 
 type Command = { readonly type: "M" | "L" | "C" | "Z"; readonly points: number[] };
 
-/** تحلیلِ یک‌بارهٔ مسیر مرجع (فقط M/L/C/Z دارد). */
-const BASE_COMMANDS: readonly Command[] = (() => {
-  const tokens = BASE_BODY_PATH.match(/[MLCZ]|-?\d+(?:\.\d+)?/g) ?? [];
+const commandCache = new Map<string, readonly Command[]>();
+
+/** تحلیلِ مسیرِ مرجع (فقط M/L/C/Z دارد)؛ برای هر جنسیت یک‌بار. */
+function parseCommands(path: string): readonly Command[] {
+  const cached = commandCache.get(path);
+  if (cached) return cached;
+
+  const tokens = path.match(/[MLCZ]|-?\d+(?:\.\d+)?/g) ?? [];
   const commands: Command[] = [];
   let i = 0;
 
@@ -411,8 +406,9 @@ const BASE_COMMANDS: readonly Command[] = (() => {
     commands.push({ type, points });
   }
 
+  commandCache.set(path, commands);
   return commands;
-})();
+}
 
 /**
  * شکستنِ یک منحنی مکعبی به `count` تکه.
@@ -484,7 +480,7 @@ function warpBasePath(geometry: Geometry): WarpedPath {
 
   let cursor: [number, number] = [0, 0];
 
-  for (const command of BASE_COMMANDS) {
+  for (const command of geometry.baseCommands) {
     if (command.type === "Z") {
       result.commands.push({ type: "Z", points: [] });
       continue;
@@ -548,22 +544,34 @@ function serialize(
  */
 function buildHairPath(geometry: Geometry, scale: number): string {
   const { crown, chin, shoulder } = geometry.landmarks;
-  const headLength = chin - crown;
-  const half = REF_HEAD_HALF * geometry.headScale * 1.13;
+  const h = chin - crown;
+  const half = REF_HEAD_HALF * geometry.headScale;
 
-  const fit = (x: number, y: number): string =>
-    `${(CENTER_X + (x - CENTER_X) * scale).toFixed(2)},${(GROUND_Y + (y - GROUND_Y) * scale).toFixed(2)}`;
+  const fit = (k: number, y: number): string =>
+    `${(CENTER_X + k * scale).toFixed(2)},${(GROUND_Y + (y - GROUND_Y) * scale).toFixed(2)}`;
 
-  const temple = chin - headLength * 0.52;
-  const top = crown - headLength * 0.06;
-  const bottom = chin + (shoulder - chin) * 0.78;
+  // مو روی سر کشیده می‌شود (نه پشتِ آن)؛ پس بالای جمجمه پوشیده است و فقط
+  // «صورت» از زیرِ چتری بیرون می‌ماند. همین یک نشانه، پیکره را از دور زنانه
+  // می‌کند بی‌آنکه چهره‌ای رسم کنیم.
+  const cap = half * 1.06;
+  const out = half * 1.25;
+  const inn = half * 0.94;
+
+  const top = crown - h * 0.06;
+  const temple = crown + h * 0.3;
+  const fringe = crown + h * 0.53;
+  const bottom = chin + (shoulder - chin) * 1.02;
 
   return [
-    `M${fit(CENTER_X - half * 0.96, temple)}`,
-    `C${fit(CENTER_X - half * 1.04, top)} ${fit(CENTER_X + half * 1.04, top)} ${fit(CENTER_X + half * 0.96, temple)}`,
-    `C${fit(CENTER_X + half, chin - headLength * 0.18)} ${fit(CENTER_X + half * 0.99, bottom - headLength * 0.24)} ${fit(CENTER_X + half * 0.86, bottom)}`,
-    `C${fit(CENTER_X + half * 0.46, bottom + headLength * 0.1)} ${fit(CENTER_X - half * 0.46, bottom + headLength * 0.1)} ${fit(CENTER_X - half * 0.86, bottom)}`,
-    `C${fit(CENTER_X - half * 0.99, bottom - headLength * 0.24)} ${fit(CENTER_X - half, chin - headLength * 0.18)} ${fit(CENTER_X - half * 0.96, temple)}`,
+    `M${fit(-cap, temple)}`,
+    `C${fit(-cap * 1.02, top)} ${fit(cap * 1.02, top)} ${fit(cap, temple)}`,
+    `C${fit(out * 0.99, chin - h * 0.12)} ${fit(out, chin + h * 0.2)} ${fit(out * 0.86, bottom)}`,
+    `C${fit(out * 0.8, bottom + h * 0.07)} ${fit(inn * 1.25, bottom + h * 0.06)} ${fit(inn, bottom - h * 0.06)}`,
+    `C${fit(inn, chin + h * 0.12)} ${fit(inn, chin - h * 0.18)} ${fit(inn * 0.96, temple + h * 0.07)}`,
+    `C${fit(inn * 0.62, fringe)} ${fit(-inn * 0.62, fringe)} ${fit(-inn * 0.96, temple + h * 0.07)}`,
+    `C${fit(-inn, chin - h * 0.18)} ${fit(-inn, chin + h * 0.12)} ${fit(-inn, bottom - h * 0.05)}`,
+    `C${fit(-inn * 1.25, bottom + h * 0.06)} ${fit(-out * 0.8, bottom + h * 0.07)} ${fit(-out * 0.86, bottom)}`,
+    `C${fit(-out, chin + h * 0.2)} ${fit(-out * 0.99, chin - h * 0.12)} ${fit(-cap, temple)}`,
     "Z",
   ].join("");
 }
@@ -610,11 +618,6 @@ export function computeBodyShape(profile: BodyProfile = {}): BodyShape {
     hairD: metrics.female ? buildHairPath(geometry, fit) : null,
     viewBox: BODY_VIEW_BOX,
     ...buildOrganTransforms(geometry, fit),
-    groundShadow: {
-      cx: CENTER_X,
-      cy: GROUND_Y - 2,
-      rx: clamp(70 * geometry.statureScale * (1 + 0.25 * metrics.plumpness), 34, 110),
-    },
   };
 
   cache.set(key, shape);
@@ -642,7 +645,7 @@ function buildOrganTransforms(
     geometry.coreScale(REF.hip),
   );
   const torsoScale =
-    Math.min((verticalScale + widthScale) / 2, (widthScale * coreHalfAt(REF.chest)) / ORGAN_HALF) *
+    Math.min((verticalScale + widthScale) / 2, (widthScale * geometry.coreEdgeAt(REF.chest)) / ORGAN_HALF) *
     fit;
 
   const bandCenterY = (bandTop + bandBottom) / 2;
