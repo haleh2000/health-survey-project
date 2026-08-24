@@ -52,12 +52,18 @@ export function BodyFigure({ profile, shape, className }: Props) {
         </linearGradient>
 
         <filter id={tightId} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="1.6" />
+          <feGaussianBlur stdDeviation="1.2" />
         </filter>
       </defs>
 
-      {/* خطِ دورِ یکپارچه (نیمهٔ داخلی‌اش زیر رنگِ بدنه می‌رود) */}
-      <g fill="none" stroke="#b6ada2" strokeWidth="3.2" strokeLinejoin="round" opacity="0.5">
+      {/*
+        خطِ دورِ یکپارچه (نیمهٔ داخلی‌اش زیر رنگِ بدنه می‌رود). عمداً نازک و
+        نسبتاً پررنگ است: باریک‌ترین شکافِ سیلوئت، گودیِ بینِ دو انگشت، در ریشه
+        حدودِ ۱٫۳ واحد است و به سمتِ نوک تا ~۵ واحد باز می‌شود. خطِ ۲ واحدی فقط
+        ته‌ی گودی را می‌بندد (که همان پردهٔ بینِ انگشتان است) و بقیهٔ شکاف باز
+        می‌ماند؛ با خطِ ضخیم‌تر، کلِ شکاف پر می‌شود و دست یک پارو می‌شود.
+      */}
+      <g fill="none" stroke="#a99f93" strokeWidth="2" strokeLinejoin="round" opacity="0.7">
         {hairD && <use href={`#${hairId}`} />}
         <use href={`#${bodyId}`} />
       </g>
@@ -69,14 +75,17 @@ export function BodyFigure({ profile, shape, className }: Props) {
       {/*
         حجم‌دهیِ لبه — باریک و کلیپ‌شده داخلِ خودِ پیکره. هالهٔ پهنِ قبلی از دور
         شبیهِ سایه‌ای گردِ آدم دیده می‌شد، پس حذف شده است.
+
+        پهنایش هم باید از نازک‌ترین عضوِ بدن کمتر بماند: با ۷ واحد، انگشتی که
+        ۵ واحد پهناست تماماً زیرِ سایه می‌رفت و یک‌دست تیره می‌شد.
       */}
       <g clipPath={`url(#${clipId})`}>
         <use
           href={`#${bodyId}`}
           fill="none"
           stroke="#8f867c"
-          strokeWidth="7"
-          opacity="0.30"
+          strokeWidth="4"
+          opacity="0.24"
           filter={`url(#${tightId})`}
         />
         {hairD && (
@@ -84,8 +93,8 @@ export function BodyFigure({ profile, shape, className }: Props) {
             href={`#${hairId}`}
             fill="none"
             stroke="#8f867c"
-            strokeWidth="5"
-            opacity="0.26"
+            strokeWidth="4"
+            opacity="0.22"
             filter={`url(#${tightId})`}
           />
         )}
