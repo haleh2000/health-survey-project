@@ -36,7 +36,7 @@ export default function WelcomePage() {
           src={drdd}
           alt=""
           aria-hidden="true"
-          className="hidden sm:block pointer-events-none select-none absolute left-4 top-4 w-24 h-24 md:w-48 md:h-48 lg:w-56 lg:h-56 object-contain"
+          className="hidden sm:block pointer-events-none select-none absolute left-4 top-4 w-[300px] h-[300px] md:w-48 md:h-48 lg:w-56 lg:h-56 object-contain"
         />
 
         {/* Hero Section */}
