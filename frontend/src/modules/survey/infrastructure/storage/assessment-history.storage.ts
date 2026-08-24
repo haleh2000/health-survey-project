@@ -4,6 +4,15 @@ import { todayJalali, formatJalaliIso } from "@core/date/jalali";
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 
 /**
+ * جنسیت ثبت‌شده — همان دو مقداری که پرسش‌نامه می‌پذیرد.
+ *
+ * عمداً این‌جا تعریف شده و از لایهٔ نمایش وارد نشده است: لایهٔ زیرساخت نباید
+ * به UI وابسته باشد. با `BodyProfile["sex"]` هم‌شکل است، پس بدون تبدیل به
+ * کامپوننتِ پیکره پاس داده می‌شود.
+ */
+export type RecordedSex = "male" | "female";
+
+/**
  * Local persistence for completed assessments.
  *
  * The backend is stateless — it scores a survey and forgets it — so the
@@ -21,6 +30,8 @@ export interface AssessmentRecord {
   readonly heightCm?: number;
   /** وزن (کیلوگرم) در زمان ارزیابی. */
   readonly weightKg?: number;
+  /** جنسیت — برای شخصی‌سازی پیکرهٔ بدن در داشبورد و گزارش. */
+  readonly sex?: RecordedSex;
 }
 
 /** اندازه‌های بدنی که همراه ارزیابی ذخیره می‌شوند. */
@@ -54,12 +65,14 @@ export function loadAssessmentHistory(): AssessmentRecord[] {
 export function saveAssessmentRecord(
   assessment: RiskAssessment,
   body?: RecordedBodyMetrics | null,
+  sex?: RecordedSex | null,
 ): AssessmentRecord {
   const record: AssessmentRecord = {
     assessment,
     completedOnJalali: formatJalaliIso(todayJalali()),
     completedAt: Date.now(),
     ...(body ? { heightCm: body.heightCm, weightKg: body.weightKg } : {}),
+    ...(sex ? { sex } : {}),
   };
 
   try {

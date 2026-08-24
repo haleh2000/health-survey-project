@@ -3,6 +3,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 
 import { BodyFigure } from '@ds/illustrations/anatomy/BodyFigure';
+import {
+  computeBodyShape,
+  HEAD_ORGAN_KEYS,
+  type BodyProfile,
+} from '@ds/illustrations/anatomy/body-shape';
 import { ORGAN_ASSETS, type OrganLayer } from '@ds/illustrations/anatomy/organ-assets';
 import { toPersianDigits } from '@core/text/digits';
 import type { OrganKey } from '@survey/presentation/components/dashboard/organ-meta';
@@ -10,7 +15,11 @@ import { ORGAN_CONTENT, severityOf } from '@survey/presentation/components/dashb
 
 /** فضای افقی دو طرف بدن برای نشستن کارت‌ها (در مختصات SVG) */
 const GUTTER = 165;
-const VIEW_W = 400 + GUTTER * 2; // 730
+/** پهنای قابِ پیکره (هم‌خوان با BODY_VIEW_BOX). */
+const BODY_W = 380;
+/** مبدأ افقیِ قابِ پیکره در دستگاهِ body-shape. */
+const BODY_X = 10;
+const VIEW_W = BODY_W + GUTTER * 2; // 710
 const VIEW_H = 600;
 /** لبهٔ داخلی کارت‌ها به‌صورت درصدی از عرض ظرف */
 const CARD_WIDTH_PCT = 31;
@@ -20,6 +29,8 @@ interface Props {
   organPercents: Partial<Record<OrganKey, number>>;
   selectedOrgan: OrganKey | null;
   onSelectOrgan: (key: OrganKey | null) => void;
+  /** قد/وزن/سن/جنسیت کاربر — شکلِ پیکره از این‌ها ساخته می‌شود. */
+  profile?: BodyProfile;
 }
 
 function useIsCompact() {
@@ -35,8 +46,9 @@ function useIsCompact() {
   return compact;
 }
 
-export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }: Props) {
+export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan, profile }: Props) {
   const compact = useIsCompact();
+  const shape = computeBodyShape(profile);
 
   /** فقط ارگان‌های مرتبط با وضعیت کاربر تعاملی‌اند؛ بقیه محو و غیرفعال */
   const relevant = useMemo(
@@ -50,9 +62,9 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
   const selectedSeverity = severityOf(selectedPercent);
 
   // در حالت فشرده روی خود بدن زوم می‌کنیم و کارت زیر تصویر می‌نشیند
-  const COMPACT_W = 340;
+  const COMPACT_W = BODY_W;
   const viewBox = compact
-    ? `${GUTTER + (400 - COMPACT_W) / 2} 0 ${COMPACT_W} ${VIEW_H}`
+    ? `${GUTTER} 0 ${COMPACT_W} ${VIEW_H}`
     : `0 0 ${VIEW_W} ${VIEW_H}`;
 
   return (
@@ -65,16 +77,13 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
           role="img"
           aria-label="نقشهٔ آناتومی بدن"
         >
-          <g transform={`translate(${GUTTER}, 0)`}>
-            <BodyFigure
-              x={0}
-              y={0}
-              width={400}
-              height={600}
-              className="text-slate-400 dark:text-slate-500"
-            />
+          <g transform={`translate(${GUTTER - BODY_X}, 0)`}>
+            <BodyFigure shape={shape} className="text-slate-400 dark:text-slate-500" />
 
             {ORGAN_ASSETS.map((asset) => {
+              const zoneTransform = HEAD_ORGAN_KEYS.has(asset.key)
+                ? shape.headOrganTransform
+                : shape.organTransform;
               const percent = organPercents[asset.key];
               const isRelevant = percent != null;
               const isSelected = selectedOrgan === asset.key;
@@ -85,7 +94,13 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
               // ارگان نامرتبط با وضعیت کاربر: فقط سایهٔ محو و بدون تعامل
               if (!isRelevant) {
                 return (
-                  <g key={asset.key} opacity={0.16} style={{ filter: 'grayscale(1)' }} pointerEvents="none">
+                  <g
+                    key={asset.key}
+                    transform={zoneTransform}
+                    opacity={0.16}
+                    style={{ filter: 'grayscale(1)' }}
+                    pointerEvents="none"
+                  >
                     {asset.layers.map((layer, i) => (
                       <OrganImage key={i} layer={layer} />
                     ))}
@@ -96,6 +111,7 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
               return (
                 <motion.g
                   key={asset.key}
+                  transform={zoneTransform}
                   role="button"
                   tabIndex={0}
                   aria-label={`${asset.label} — ${toPersianDigits(percent)} درصد`}
@@ -111,13 +127,13 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
                   onMouseLeave={() => setHovered(null)}
                   initial={{ opacity: 0 }}
                   animate={{
-                    opacity: dimmed ? 0.45 : 1,
+                    opacity: dimmed ? 0.32 : 1,
                     scale: isSelected || isHovered ? 1.05 : 1,
                   }}
                   transition={{ type: 'spring', stiffness: 220, damping: 22 }}
                   style={{
                     transformOrigin: `${asset.halo.x}px ${asset.halo.y}px`,
-                    filter: dimmed ? 'saturate(0.45)' : undefined,
+                    filter: dimmed ? 'grayscale(1)' : undefined,
                   }}
                 >
                   {/* هالهٔ رنگی = سطح ریسک؛ خود عضو رنگ طبیعی خودش را نگه می‌دارد */}
@@ -153,6 +169,11 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
             {/* نبض روی ارگان انتخاب‌شده */}
             {selected && (
               <motion.circle
+                transform={
+                  HEAD_ORGAN_KEYS.has(selected.key)
+                    ? shape.headOrganTransform
+                    : shape.organTransform
+                }
                 cx={selected.anchor.x}
                 cy={selected.anchor.y}
                 r={10}
@@ -170,7 +191,7 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan }:
           {/* خط راهنما از ارگان تا کارت (فقط دسکتاپ) */}
           {selected && !compact && (
             <LeaderLine
-              anchorX={selected.anchor.x + GUTTER}
+              anchorX={selected.anchor.x + GUTTER - BODY_X}
               anchorY={selected.anchor.y}
               side={selected.side}
               color={selectedSeverity.hex}

@@ -38,7 +38,7 @@ function useCollapsedOnScroll(threshold = 24) {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 639px)");
+    const mq = window.matchMedia("(max-width: 1023px)");
 
     const update = () => {
       setCollapsed(
@@ -72,7 +72,6 @@ export function SurveyHeader({
   const collapsed = useCollapsedOnScroll();
 
   return (
-    
     <header
       className="
         sticky
@@ -83,6 +82,7 @@ export function SurveyHeader({
         border-line
         bg-head/95
         backdrop-blur-md
+        lg:hidden
       "
     >
       <div

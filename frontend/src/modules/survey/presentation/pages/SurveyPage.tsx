@@ -63,14 +63,12 @@ if (wizard.stage === "completed" && wizard.assessment) {
 
   return (
     <>
-      <div className="lg:hidden">
-        <SurveyHeader
-          steps={definition.steps}
-          stepIndex={wizard.stepIndex}
-          answeredCount={wizard.answeredCount}
-          totalCount={wizard.totalCount}
-        />
-      </div>
+      <SurveyHeader
+        steps={definition.steps}
+        stepIndex={wizard.stepIndex}
+        answeredCount={wizard.answeredCount}
+        totalCount={wizard.totalCount}
+      />
 
       <div className="mx-auto max-w-2xl px-5 pt-6 pb-16 lg:max-w-5xl lg:pt-8">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10">
