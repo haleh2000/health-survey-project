@@ -68,38 +68,40 @@ export const BODY_VIEW_BOX = `${FRAME_X} 0 ${FRAME_W} ${FRAME_H}`;
 
 const REF = {
   crown: 6,
-  chin: 72,
-  shoulder: 104,
-  chest: 200,
-  waist: 250,
-  hip: 310,
-  crotch: 343,
-  knee: 455,
-  ankle: 548,
+  chin: 84,
+  shoulder: 116,
+  chest: 171,
+  waist: 230,
+  hip: 296,
+  crotch: 318,
+  knee: 438,
+  ankle: 562,
   sole: 595,
 } as const;
 
 const REF_HEIGHT = REF.sole - REF.crown; // ۵۸۹
 const REF_HEAD = REF.chin - REF.crown; // ۶۶
 /** نیم‌پهنای سر در پهن‌ترین جا. */
-const REF_HEAD_HALF = 29;
+const REF_HEAD_HALF = 26.4;
 
 /** ارتفاعِ ترسیمیِ یک بزرگسالِ ۱۷۵ سانتی‌متری؛ مبنای همهٔ مقیاس‌ها. */
 const BASE_DRAW_HEIGHT = 545;
 
 /** پنجرهٔ ارتفاعی‌ای که بازوها از تنه جدا دیده می‌شوند. */
-const ARM_FADE_IN: readonly [number, number] = [168, 196];
-const ARM_FADE_OUT: readonly [number, number] = [352, 384];
+const ARM_FADE_IN: readonly [number, number] = [174, 200];
+// نوکِ انگشتان تا ~۳۸۴ پایین می‌آید؛ پنجرهٔ محو باید بعد از آن تمام شود، وگرنه
+// ضریبِ نگاشت وسطِ خودِ دست عوض می‌شود و انگشت‌ها در حالتِ چاق کج می‌افتند.
+const ARM_FADE_OUT: readonly [number, number] = [388, 404];
 
 // ─── محدودهٔ اندام‌ها روی سیلوئت مرجع ────────────────────────────────────────
 // (هم‌خوان با مختصاتِ organ-assets.ts)
 
 /** بالا و پایینِ خوشهٔ اندام‌های تنه — از سرِ ریه‌ها تا تهِ رودهٔ بزرگ. */
-const ORGAN_BAND = { top: 116, bottom: 332, centerX: 199 } as const;
+const ORGAN_BAND = { top: 122, bottom: 308, centerX: 199 } as const;
 /** نیم‌پهنای خوشهٔ اندام‌های تنه. */
-const ORGAN_HALF = 47;
+const ORGAN_HALF = 50;
 /** مرکز تصویرِ مغز روی سیلوئت مرجع. */
-const BRAIN_CENTER = { x: 199, y: 44.5 } as const;
+const BRAIN_CENTER = { x: 199, y: 51.5 } as const;
 
 // ─── کمکی‌های عددی ───────────────────────────────────────────────────────────
 
@@ -337,24 +339,24 @@ function buildGeometry(metrics: Metrics): Geometry {
 
   // تفاوت‌های جنسیتی در خودِ سیلوئتِ مرجع پخته شده‌اند؛ این‌جا فقط اثرِ سن و
   // وزن اعمال می‌شود تا دو اثر روی هم سوار نشوند.
-  const shoulder = (1 - 0.10 * childness) * (1 + 0.28 * growth(0.7) - 0.09 * thin);
+  const shoulder = (1 - 0.10 * childness) * (1 + 0.19 * growth(0.7) - 0.09 * thin);
   const neck =
     (0.45 * headWidth + 0.55 * shoulder) * (1 + 0.14 * growth(0.35) - 0.07 * thin);
 
   const knots: readonly (readonly [number, number])[] = [
     [REF.crown, headWidth * (1 + 0.04 * growth(0.5) - 0.02 * thin)],
-    [40, headWidth * (1 + 0.04 * growth(0.5) - 0.02 * thin)],
+    [46, headWidth * (1 + 0.04 * growth(0.5) - 0.02 * thin)],
     [REF.chin, (0.7 * headWidth + 0.3 * neck) * (1 + 0.07 * growth(0.5))],
-    [88, neck],
+    [98, neck],
     [REF.shoulder, shoulder],
-    [150, shoulder * (1 + 0.06 * growth(0.6))],
-    [REF.chest, (1 + 0.03 * childness) * (1 + 0.32 * growth(0.6) - 0.13 * thin)],
-    [REF.waist, (1 + 0.05 * childness) * (1 + 0.48 * growth(0.45) - 0.18 * thin)],
-    [285, (1 + 0.07 * childness) * (1 + 0.52 * growth(0.45) - 0.19 * thin)],
-    [REF.hip, (1 + 0.02 * childness) * (1 + 0.40 * growth(0.5) - 0.16 * thin)],
-    [400, (1 + 0.02 * childness) * (1 + 0.34 * growth(0.7) - 0.16 * thin)],
+    [141, shoulder * (1 + 0.06 * growth(0.6))],
+    [REF.chest, (1 + 0.03 * childness) * (1 + 0.29 * growth(0.6) - 0.13 * thin)],
+    [REF.waist, (1 + 0.05 * childness) * (1 + 0.52 * growth(0.45) - 0.18 * thin)],
+    [268, (1 + 0.07 * childness) * (1 + 0.58 * growth(0.45) - 0.19 * thin)],
+    [REF.hip, (1 + 0.02 * childness) * (1 + 0.44 * growth(0.5) - 0.16 * thin)],
+    [376, (1 + 0.02 * childness) * (1 + 0.34 * growth(0.7) - 0.16 * thin)],
     [REF.knee, 1 + 0.22 * growth(0.8) - 0.10 * thin],
-    [510, 1 + 0.24 * growth(0.8) - 0.13 * thin],
+    [509, 1 + 0.24 * growth(0.8) - 0.13 * thin],
     [REF.ankle, 1 + 0.11 * growth(0.9) - 0.07 * thin],
     [REF.sole, 1 + 0.09 * growth(1) - 0.06 * thin],
   ];
