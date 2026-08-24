@@ -143,7 +143,6 @@ export function buildReportBlocks(
           { label: "قد", value: record?.heightCm ? `${toPersianDigits(record.heightCm)} سانتی‌متر` : "—" },
           { label: "وزن", value: record?.weightKg ? `${toPersianDigits(record.weightKg)} کیلوگرم` : "—" },
           { label: "BMI", value: assessment?.bmi != null ? toPersianDigits(assessment.bmi.toFixed(1)) : "—" },
-          { label: "سطح خطر", value: assessment?.levelLabel ?? "—" },
         ]}
       />
     ),

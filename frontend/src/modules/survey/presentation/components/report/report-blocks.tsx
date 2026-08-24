@@ -154,13 +154,13 @@ export function CoverBlock(info: CoverInfo) {
               <span style={{ color: C.ink, fontWeight: 700 }}>{row.value}</span>
             </div>
           ))}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+          {/* <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
             <span style={{ color: C.inkSubtle }}>سطح کلی خطر</span>
             <span style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
               <Chip text={info.levelLabel} color={info.tierColor} background={info.tierBackground} />
               <span style={{ color: C.ink, fontWeight: 700 }}>{info.scoreLabel}</span>
             </span>
-          </div>
+          </div> */}
         </div>
 
         <div style={{ ...cardStyle, borderRight: `4px solid ${info.tierColor}`, padding: 16 }}>

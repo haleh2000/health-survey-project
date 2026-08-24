@@ -1,12 +1,13 @@
-
-// src/modules/survey/presentation/components/dashboard/StoryViewer.tsx
-
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Sparkles,
+  Lightbulb,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-
-import { toPersianDigits } from "@core/text/digits";
 
 import type { ResolvedStoryGroup } from "./recommendationStories";
 
@@ -27,7 +28,6 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
   const holdRef = useRef<number | null>(null);
   const heldRef = useRef(false);
 
-  // هر بار که گروه جدید باز می‌شود، از اسلاید اول شروع کن
   useEffect(() => {
     if (!group) return;
 
@@ -37,7 +37,6 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
     setPaused(false);
   }, [group]);
 
-  // اسلاید بعدی
   const goNext = useCallback(() => {
     if (!group) return;
 
@@ -51,14 +50,12 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
     setIndex((current) => current + 1);
   }, [group, index, onClose]);
 
-  // اسلاید قبلی
   const goPrev = useCallback(() => {
     progressRef.current = 0;
     setProgress(0);
     setIndex((current) => Math.max(current - 1, 0));
   }, []);
 
-  // تایمر پیشرفت استوری
   useEffect(() => {
     if (!group || paused) return;
 
@@ -89,7 +86,6 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
     return () => cancelAnimationFrame(frame);
   }, [group, paused, index, goNext]);
 
-  // کیبورد + قفل اسکرول صفحه
   useEffect(() => {
     if (!group) return;
 
@@ -99,9 +95,6 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
         return;
       }
 
-      // RTL:
-      // ArrowLeft = بعدی
-      // ArrowRight = قبلی
       if (event.key === "ArrowLeft") {
         goNext();
       }
@@ -138,7 +131,6 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
   const isFirst = index === 0;
   const isLast = index === group.slides.length - 1;
 
-  // شروع نگه داشتن
   const startHold = () => {
     heldRef.current = false;
 
@@ -148,7 +140,6 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
     }, HOLD_MS);
   };
 
-  // پایان نگه داشتن
   const endHold = () => {
     if (holdRef.current !== null) {
       clearTimeout(holdRef.current);
@@ -180,7 +171,16 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+        className="
+          fixed
+          inset-0
+          z-[100]
+          flex
+          items-center
+          justify-center
+          bg-black/90
+          backdrop-blur-md
+        "
         onClick={(event) => {
           if (event.target === event.currentTarget) {
             onClose();
@@ -191,14 +191,17 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
           initial={{
             scale: 0.94,
             opacity: 0,
+            y: 20,
           }}
           animate={{
             scale: 1,
             opacity: 1,
+            y: 0,
           }}
           exit={{
             scale: 0.96,
             opacity: 0,
+            y: 10,
           }}
           transition={{
             type: "spring",
@@ -223,28 +226,100 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
             w-full
             flex-col
             overflow-hidden
-            bg-[#E7DED7]
-            sm:h-[86vh]
-            sm:max-h-[760px]
-            sm:w-[420px]
-            sm:rounded-3xl
-            
+            bg-[#F3ECE7]
+            shadow-[0_30px_100px_rgba(0,0,0,0.45)]
+            sm:h-[88vh]
+            sm:max-h-[800px]
+            sm:w-[430px]
+            sm:rounded-[32px]
           "
           onPointerDown={startHold}
           onPointerUp={endHold}
           onPointerCancel={endHold}
           onPointerLeave={endHold}
         >
-          {/* نوار پیشرفت */}
-          <div className="absolute inset-x-0 top-0 z-30 flex gap-1 px-3 pt-3">
+          {/* Background decoration */}
+
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <motion.div
+              animate={{
+                x: [0, 20, -10, 0],
+                y: [0, -15, 15, 0],
+                scale: [1, 1.08, 0.96, 1],
+              }}
+              transition={{
+                duration: 14,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="
+                absolute
+                -right-28
+                -top-28
+                h-72
+                w-72
+                rounded-full
+                bg-[#8CC8C0]/30
+                blur-3xl
+              "
+            />
+
+            <motion.div
+              animate={{
+                x: [0, -15, 15, 0],
+                y: [0, 20, -10, 0],
+                scale: [1, 0.95, 1.06, 1],
+              }}
+              transition={{
+                duration: 17,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="
+                absolute
+                -bottom-32
+                -left-28
+                h-80
+                w-80
+                rounded-full
+                bg-[#E8B89B]/30
+                blur-3xl
+              "
+            />
+
+            <div
+              className="
+                absolute
+                inset-0
+                bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.8),transparent_45%)]
+              "
+            />
+          </div>
+
+          {/* Progress bars */}
+
+          <div className="absolute inset-x-0 top-0 z-40 flex gap-1.5 px-4 pt-3">
             {group.slides.map((item, itemIndex) => (
               <div
                 key={item.id}
-                className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/25"
+                className="
+                  h-[3px]
+                  flex-1
+                  overflow-hidden
+                  rounded-full
+                  bg-black/10
+                "
               >
-                <div
-                  className="h-full rounded-full bg-white"
-                  style={{
+                <motion.div
+                  className="
+                    h-full
+                    rounded-full
+                    bg-gradient-to-r
+                    from-[#008F9C]
+                    to-[#45B7B0]
+                  "
+                  initial={false}
+                  animate={{
                     width:
                       itemIndex < index
                         ? "100%"
@@ -252,31 +327,49 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
                           ? `${progress * 100}%`
                           : "0%",
                   }}
+                  transition={{
+                    duration: 0.08,
+                    ease: "linear",
+                  }}
                 />
               </div>
             ))}
           </div>
 
-          {/* هدر */}
-          <div className="relative z-30 flex shrink-0 items-center justify-between px-4 pb-2 pt-7">
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-white/15 backdrop-blur-sm">
+          {/* Header */}
+
+          <div className="relative z-30 flex shrink-0 items-center justify-between px-4 pb-3 pt-7">
+            <div className="flex items-center gap-3">
+              <div
+                className="
+                  grid
+                  h-10
+                  w-10
+                  place-items-center
+                  rounded-full
+                  border
+                  border-white/70
+                  bg-white/55
+                  shadow-sm
+                  backdrop-blur-xl
+                "
+              >
                 <group.icon
-                  className="h-5 w-5 text-gray-700"
-                  strokeWidth={2}
+                  className="h-[19px] w-[19px] text-[#087F87]"
+                  strokeWidth={2.2}
                 />
-              </span>
+              </div>
 
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-gray-700 drop-shadow">
+                <span className="text-[13px] font-black text-[#263B3B]">
                   {group.label}
                 </span>
 
-                {/* <span className="text-[10px] text-gray-700">
-                  استوری{" "}
-                  {toPersianDigits(index + 1)} از{" "}
-                  {toPersianDigits(group.slides.length)}
-                </span> */}
+                <span className="mt-0.5 text-[10px] font-medium text-[#718080]">
+                  {paused
+                    ? "متوقف شده"
+                    : `توصیه ${index + 1} از ${group.slides.length}`}
+                </span>
               </div>
             </div>
 
@@ -291,23 +384,25 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
                 cursor-pointer
                 place-items-center
                 rounded-full
-                bg-white/15
-                text-gray-700
-                backdrop-blur-sm
-                transition
-                hover:bg-white/25
-                focus-visible:outline
-                focus-visible:outline-2
-                focus-visible:outline-white
+                border
+                border-white/70
+                bg-white/55
+                text-[#334646]
+                shadow-sm
+                backdrop-blur-xl
+                transition-all
+                duration-200
+                hover:scale-105
+                hover:bg-white/80
+                active:scale-95
               "
             >
-              <X className="h-5 w-5" />
+              <X className="h-[18px] w-[18px]" />
             </button>
           </div>
 
-          {/* نواحی لمسی — مثل استوریِ اینستاگرام:
-              کلیک روی نیمهٔ چپ (سمتِ جلو در RTL) = استوری بعدی
-              کلیک روی نیمهٔ راست = استوری قبلی */}
+          {/* Touch zones */}
+
           <button
             type="button"
             onClick={() => handleZone("next")}
@@ -338,66 +433,163 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
             "
           />
 
-          {/* محتوای اسلاید */}
-          <div className="pointer-events-none relative z-10 flex min-h-0 flex-1 flex-col justify-center px-6 pb-24 pt-2">
+          {/* Main content */}
+
+          <div
+            className="
+              pointer-events-none
+              relative
+              z-10
+              flex
+              min-h-0
+              flex-1
+              flex-col
+              justify-center
+              overflow-hidden
+              px-6
+              pb-20
+              pt-2
+            "
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={slide.id}
                 initial={{
                   opacity: 0,
-                  y: 18,
+                  x: 20,
+                  scale: 0.98,
                 }}
                 animate={{
                   opacity: 1,
-                  y: 0,
+                  x: 0,
+                  scale: 1,
                 }}
                 exit={{
                   opacity: 0,
-                  y: -12,
+                  x: -20,
+                  scale: 0.98,
                 }}
                 transition={{
-                  duration: 0.3,
+                  duration: 0.35,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
-                className="pointer-events-none"
+                className="
+                  pointer-events-none
+                  flex
+                  flex-col
+                "
               >
-                {/* تصویر اسلاید */}
+                {/* Hero image */}
 
-
-                {/* آیکون */}
-                {/* <span className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-white/15 backdrop-blur-sm">
-                  <SlideIcon
-                    className="h-6 w-6 text-gray-700"
-                    strokeWidth={2}
+                <div className="relative mx-auto mb-4 w-full max-w-[285px]">
+                  <motion.div
+                    initial={{
+                      scale: 0.92,
+                      opacity: 0,
+                    }}
+                    animate={{
+                      scale: 1,
+                      opacity: 1,
+                    }}
+                    transition={{
+                      delay: 0.08,
+                      duration: 0.45,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="
+                      absolute
+                      -inset-5
+                      rounded-[42px]
+                      bg-white/35
+                      blur-2xl
+                    "
                   />
-                </span> */}
 
-                {/* عنوان */}
-                <h3 className="text-xl font-black leading-tight text-gray-700 drop-shadow mt-18 mb-16">
+          <div className="relative mx-auto mb-6 flex w-full flex-1 items-center justify-center">
+          <motion.img
+            src={slide.image}
+            alt=""
+            aria-hidden
+            loading="eager"
+            decoding="async"
+            initial={{
+              scale: 0.94,
+              opacity: 0,
+            }}
+            animate={{
+              scale: 1,
+              opacity: 1,
+            }}
+            transition={{
+              duration: 0.4,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="
+              mx-auto
+              block
+              h-auto
+              max-h-[460px]
+              w-auto
+              max-w-[100%]
+              object-contain
+            "
+          />
+          </div>
+                </div>
+
+                {/* Title */}
+
+                <h3
+                  className="
+                    text-center
+                    text-[25px]
+                    font-black
+                    leading-[1.35]
+                    tracking-tight
+                    text-[#263B3B]
+                  "
+                >
                   {slide.title}
                 </h3>
 
-                {/* متن */}
-                <p className="mt-2 max-h-[38vh] overflow-y-auto text-sm leading-relaxed text-gray-600 mb-10">
+                {/* Body */}
+
+                <p
+                  className="
+                    mx-auto
+                    mt-3
+                    max-w-[340px]
+                    text-center
+                    text-[13px]
+                    font-medium
+                    leading-7
+                    text-[#647474]
+                  "
+                >
                   {slide.body}
                 </p>
 
-                  <div className="mx-auto mb-5 w-full max-w-[300px]">
-                  <img
-                    src={slide.image}
-                    alt=""
-                    aria-hidden
-                    loading="lazy"
-                    decoding="async"
-                    
-                  />
-                </div>
+                {/* Highlight */}
+
+
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* دکمه‌های ناوبری */}
-          <div className="relative z-30 flex shrink-0 items-center justify-between gap-3 px-5 pb-6">
-            {/* قبلی - سمت راست در RTL */}
+          {/* Bottom navigation */}
+
+          <div
+            className="
+              relative
+              z-30
+              flex
+              shrink-0
+              items-center
+              justify-between
+              px-5
+              pb-6
+            "
+          >
             <button
               type="button"
               onClick={goPrev}
@@ -410,23 +602,24 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
                 cursor-pointer
                 place-items-center
                 rounded-full
-                bg-white/10
-                text-gray-700
-                backdrop-blur-sm
-                transition
-                hover:bg-white/25
-                disabled:cursor-default
-                disabled:opacity-30
+                border
+                border-white/70
+                bg-white/55
+                text-[#334646]
+                shadow-sm
+                backdrop-blur-xl
+                transition-all
+                duration-200
+                hover:scale-105
+                hover:bg-white/80
+                active:scale-95
+                disabled:pointer-events-none
+                disabled:opacity-25
               "
             >
               <ChevronRight className="h-5 w-5" />
             </button>
 
-            <span className="text-[11px] font-semibold text-gray-700">
-              {paused ? "متوقف" : "برای مکث، نگه دارید"}
-            </span>
-
-            {/* بعدی - سمت چپ در RTL */}
             <button
               type="button"
               onClick={goNext}
@@ -438,11 +631,14 @@ export function StoryViewer({ group, onClose }: StoryViewerProps) {
                 cursor-pointer
                 place-items-center
                 rounded-full
-                bg-white/10
-                text-gray-700
-                backdrop-blur-sm
-                transition
-                hover:bg-white/25
+                bg-[#087F87]
+                text-white
+                shadow-[0_8px_20px_rgba(8,127,135,0.25)]
+                transition-all
+                duration-200
+                hover:scale-105
+                hover:bg-[#076E75]
+                active:scale-95
               "
             >
               <ChevronLeft className="h-5 w-5" />

@@ -312,7 +312,7 @@ function Page({
         >
           <span>این گزارش جایگزین تشخیص پزشک نیست.</span>
           <span>
-            صفحهٔ {toPersianDigits(index + 1)} از {toPersianDigits(total)}
+            صفحه {toPersianDigits(index + 1)} از {toPersianDigits(total)}
           </span>
         </div>
       )}
