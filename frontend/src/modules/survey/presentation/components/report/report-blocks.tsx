@@ -122,59 +122,74 @@ export function CoverBlock(info: CoverInfo) {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, paddingTop: 40 }}>
-        <img src={info.logoSrc} alt="" style={{ width: 240, objectFit: "contain" }} />
-        <div style={{ height: 3, width: 60, borderRadius: 999, background: C.brand, marginTop: 6 }} />
-        <h1 style={{ margin: "14px 0 0", fontSize: 30, fontWeight: 900, color: C.ink }}>گزارش سلامت فردی</h1>
-        <p style={{ margin: 0, fontSize: 13, color: C.inkMuted }}>
-          خلاصهٔ ارزیابی خطر، نقشهٔ اندام‌ها و برنامهٔ پیشنهادی
-        </p>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <div
-          style={{
-            ...cardStyle,
-            background: C.surfaceSoft,
-            padding: 18,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          {rows.map((row) => (
-            <div
-              key={row.label}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                borderBottom: `1px dashed ${C.line}`,
-                paddingBottom: 8,
-                fontSize: 12.5,
-              }}
-            >
-              <span style={{ color: C.inkSubtle }}>{row.label}</span>
-              <span style={{ color: C.ink, fontWeight: 700 }}>{row.value}</span>
-            </div>
-          ))}
-          {/* <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
-            <span style={{ color: C.inkSubtle }}>سطح کلی خطر</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
-              <Chip text={info.levelLabel} color={info.tierColor} background={info.tierBackground} />
-              <span style={{ color: C.ink, fontWeight: 700 }}>{info.scoreLabel}</span>
-            </span>
-          </div> */}
+    /*
+      جلد یک گروهِ به‌هم‌چسبیده است که در ارتفاعِ صفحه وسط‌چین می‌شود، نه سه تکهٔ
+      جدا با `space-between`. آن حالت، فضای خالیِ صفحه را وسطِ محتوا پخش می‌کرد و
+      بینِ عنوان و کارتِ مشخصات یک شکافِ بزرگِ بی‌دلیل می‌ساخت.
+    */
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 22,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <img src={info.logoSrc} alt="" style={{ width: 210, objectFit: "contain" }} />
+          <div style={{ height: 3, width: 60, borderRadius: 999, background: C.brand, marginTop: 4 }} />
+          <h1 style={{ margin: "10px 0 0", fontSize: 30, fontWeight: 900, color: C.ink }}>گزارش سلامت فردی</h1>
+          <p style={{ margin: 0, fontSize: 13, color: C.inkMuted }}>
+            خلاصهٔ ارزیابی خطر، نقشهٔ اندام‌ها و برنامهٔ پیشنهادی
+          </p>
         </div>
 
-        <div style={{ ...cardStyle, borderRight: `4px solid ${info.tierColor}`, padding: 16 }}>
-          <p style={{ margin: "0 0 6px", fontSize: 12.5, lineHeight: 2, color: C.ink }}>{info.summary}</p>
-          <p style={{ margin: 0, fontSize: 12, lineHeight: 2, color: C.inkMuted }}>{info.advice}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div
+            style={{
+              ...cardStyle,
+              background: C.surfaceSoft,
+              padding: 18,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {rows.map((row) => (
+              <div
+                key={row.label}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  borderBottom: `1px dashed ${C.line}`,
+                  paddingBottom: 8,
+                  fontSize: 12.5,
+                }}
+              >
+                <span style={{ color: C.inkSubtle }}>{row.label}</span>
+                <span style={{ color: C.ink, fontWeight: 700 }}>{row.value}</span>
+              </div>
+            ))}
+            {/* <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+              <span style={{ color: C.inkSubtle }}>سطح کلی خطر</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
+                <Chip text={info.levelLabel} color={info.tierColor} background={info.tierBackground} />
+                <span style={{ color: C.ink, fontWeight: 700 }}>{info.scoreLabel}</span>
+              </span>
+            </div> */}
+          </div>
+
+          <div style={{ ...cardStyle, borderRight: `4px solid ${info.tierColor}`, padding: 16 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 12.5, lineHeight: 2, color: C.ink }}>{info.summary}</p>
+            <p style={{ margin: 0, fontSize: 12, lineHeight: 2, color: C.inkMuted }}>{info.advice}</p>
+          </div>
         </div>
       </div>
 
-      <p style={{ margin: 0, fontSize: 10.5, lineHeight: 1.9, color: C.inkSubtle, textAlign: "center" }}>
+      <p style={{ margin: "18px 0 0", fontSize: 10.5, lineHeight: 1.9, color: C.inkSubtle, textAlign: "center" }}>
         این گزارش بر پایهٔ پاسخ‌های خودِ شما تولید شده و ابزار غربالگری آموزشی است؛
         جایگزین معاینه، آزمایش یا تشخیص پزشک نیست.
       </p>
