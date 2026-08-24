@@ -1,15 +1,5 @@
 // src/design-system/illustrations/anatomy/BodyFigure.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// پیکرهٔ انسانی (نمای قدامی) که با قد، وزن، سن و جنسیتِ کاربر شکل می‌گیرد.
-// هندسه در body-shape.ts ساخته می‌شود؛ این‌جا فقط رنگ و سایه‌پردازی است.
-//
-// خروجی یک <g> است نه <svg>: اندام‌ها باید در همان دستگاه مختصاتِ بدن رسم شوند
-// تا با تغییرِ تناسبِ بدن، دقیقاً سرِ جای خودشان بمانند.
-//
-// نکتهٔ رندر: مو و بدن دو مسیر جدا هستند. برای اینکه خطِ دورِ «اجتماعِ» آن‌ها
-// یکپارچه دیده شود، اول هر دو با خطِ ضخیم کشیده می‌شوند و بعد هر دو پر می‌شوند؛
-// هر تکه از خط که داخل دیگری بیفتد زیر رنگ می‌رود و فقط لبهٔ بیرونی می‌ماند.
-// ─────────────────────────────────────────────────────────────────────────────
+
 import { useId } from "react";
 
 import { computeBodyShape, type BodyProfile, type BodyShape } from "./body-shape";
@@ -72,10 +62,10 @@ export function BodyFigure({ profile, shape, className }: Props) {
       />
 
       {/* خطِ دورِ یکپارچه (نیمهٔ داخلی‌اش زیر رنگِ بدنه می‌رود) */}
-      <g fill="none" stroke="#b6ada2" strokeWidth="4.8" strokeLinejoin="round" opacity="0.5">
+      {/* <g fill="none" stroke="#b6ada2" strokeWidth="4.8" strokeLinejoin="round" opacity="0.5">
         {hairD && <use href={`#${hairId}`} />}
         <use href={`#${bodyId}`} />
-      </g>
+      </g> */}
 
       {/* بدنه */}
       {hairD && <use href={`#${hairId}`} fill="#ded7cd" />}
