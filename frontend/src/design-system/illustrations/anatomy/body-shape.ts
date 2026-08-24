@@ -369,8 +369,14 @@ function buildGeometry(metrics: Metrics): Geometry {
     coreEdgeAt,
     baseCommands: parseCommands(outline.path),
     coreScale: (y: number) => statureScale * widthAt(y),
+    /*
+      ضریبِ اندام‌ها عمداً خیلی کمتر از ضریبِ تنه است. این ضریب روی «فاصله تا
+      لبهٔ تنه» اعمال می‌شود و آن فاصله برای دست، عمدتاً طولِ بازوی باز است نه
+      ضخامتِ آن؛ اگر پا‌به‌پای شکم بزرگ شود، دست‌ها مثل بال از بدن دور می‌افتند.
+      جابه‌جاییِ لازمِ بازو خودش از حرکتِ لبهٔ تنه می‌آید.
+    */
     limbScale:
-      statureScale * (1 - 0.04 * childness) * (1 + 0.30 * growth(0.75) - 0.16 * thin),
+      statureScale * (1 - 0.04 * childness) * (1 + 0.18 * growth(0.6) - 0.12 * thin),
     statureScale,
     headScale,
     landmarks,
@@ -602,11 +608,13 @@ function buildHairPath(geometry: Geometry, scale: number): string {
   // مو روی سر کشیده می‌شود (نه پشتِ آن)؛ پس بالای جمجمه پوشیده است و فقط
   // «صورت» از زیرِ چتری بیرون می‌ماند. همین یک نشانه، پیکره را از دور زنانه
   // می‌کند بی‌آنکه چهره‌ای رسم کنیم.
-  const cap = half * 1.06;
-  const out = half * 1.25;
+  const cap = half * 1.12;
+  const out = half * 1.27;
   const inn = half * 0.94;
 
-  const top = crown - h * 0.06;
+  // نکتهٔ ظریف: قلهٔ منحنیِ تاج، سه‌چهارمِ راهِ `top` است؛ اگر `top` را دقیقاً
+  // روی تارک بگذاریم مو مماس بر جمجمه می‌شود و نوارِ نازکی از سر بیرون می‌ماند.
+  const top = crown - h * 0.22;
   const temple = crown + h * 0.3;
   const fringe = crown + h * 0.53;
   const bottom = chin + (shoulder - chin) * 1.02;
