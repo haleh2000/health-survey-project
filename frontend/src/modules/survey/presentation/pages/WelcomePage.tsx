@@ -36,7 +36,7 @@ export default function WelcomePage() {
           src={drdd}
           alt=""
           aria-hidden="true"
-          className="hidden sm:block pointer-events-none select-none absolute left-4 top-4 w-24 h-24 md:w-48 md:h-48 lg:w-56 lg:h-56 object-contain"
+          className="hidden sm:block pointer-events-none select-none absolute left-[30px] top-[60px] w-24 h-24 md:w-48 md:h-48 lg:w-[300px] lg:h-56 object-contain"
         />
 
         {/* Hero Section */}
@@ -130,7 +130,7 @@ export default function WelcomePage() {
                 src={feature.icon}
                 alt=""
                 aria-hidden="true"
-                className="w-16 h-16 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0 object-contain"
+                className="w-16 h-16 sm:w-16 sm:h-16 md:w-[100px] md:h-[100px] shrink-0 object-contain"
               />
                <div className="min-w-0">
              <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 leading-loose sm:leading-relaxed md:leading-loose">

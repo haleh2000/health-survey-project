@@ -22,6 +22,7 @@ export interface QuestionFieldProps {
   error?: string;
   onSetValue: (value: string) => void;
   onToggleValue: (question: ChoiceQuestion, value: string) => void;
+  onAnswered?: () => void;
 }
 
 export function QuestionField({
