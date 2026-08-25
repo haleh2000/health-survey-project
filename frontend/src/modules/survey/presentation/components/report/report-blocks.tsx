@@ -142,7 +142,7 @@ export function CoverBlock(info: CoverInfo) {
           <div style={{ height: 3, width: 60, borderRadius: 999, background: C.brand, marginTop: 4 }} />
           <h1 style={{ margin: "10px 0 0", fontSize: 30, fontWeight: 900, color: C.ink }}>گزارش سلامت فردی</h1>
           <p style={{ margin: 0, fontSize: 13, color: C.inkMuted }}>
-            خلاصهٔ ارزیابی خطر، نقشهٔ اندام‌ها و برنامهٔ پیشنهادی
+            خلاصه ارزیابی خطر، نقشه اندام‌ها و برنامه پیشنهادی
           </p>
         </div>
 
