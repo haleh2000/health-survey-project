@@ -20,6 +20,8 @@
 // خروجی برای هر جنسیت یک‌بار ساخته و کش می‌شود.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { Region, ShapeFactors } from "./body-keyframes";
+
 export type BodySex = "male" | "female";
 
 /** گام نمونه‌برداریِ جدولِ نیم‌پهنای تنه (پیکسل). */
@@ -326,26 +328,53 @@ function handPoints(): Pt[] {
   return points;
 }
 
-// ─── زنجیرهٔ کاملِ نیمهٔ راست ────────────────────────────────────────────────
+// ─── زنجیرهٔ کاملِ نیمهٔ راست، با برچسبِ ناحیه ───────────────────────────────
+//
+// برچسب‌ها از روی *ساختارِ خودِ زنجیره* ساخته می‌شوند، نه دستی روی تک‌تکِ
+// نقاط: هر آرایه از قبل یک عضوِ بدن است و ارتفاع، مرزِ داخلِ آن را مشخص
+// می‌کند. این‌طور اضافه‌کردنِ یک نقطهٔ تازه به آرایه‌ها هیچ چیزی را نمی‌شکند.
 
-const HALF_POINTS: readonly Pt[] = [
-  ...HEAD_TO_SHOULDER,
-  ...ARM_LATERAL,
-  ...handPoints(),
-  ...ARM_MEDIAL,
-  ...TORSO_TO_ANKLE,
-  ...FOOT,
-  ...LEG_MEDIAL,
+interface Tagged {
+  readonly dx: number;
+  readonly y: number;
+  readonly smooth: number | undefined;
+  readonly region: Region;
+}
+
+const band = (y: number, edges: readonly (readonly [number, Region])[], last: Region): Region => {
+  for (const [limit, region] of edges) if (y < limit) return region;
+  return last;
+};
+
+const tag = (points: readonly Pt[], of: (y: number) => Region): Tagged[] =>
+  points.map(([dx, y, smooth]) => ({ dx, y, smooth, region: of(y) }));
+
+const HALF_TAGGED: readonly Tagged[] = [
+  ...tag(HEAD_TO_SHOULDER, (y) => band(y, [[85, "head"], [99, "neck"]], "shoulder")),
+  ...tag(ARM_LATERAL, (y) => band(y, [[233, "upperArm"]], "forearm")),
+  ...tag(handPoints(), () => "hand"),
+  ...tag(ARM_MEDIAL, (y) => band(y, [[233, "upperArm"]], "forearm")),
+  ...tag(TORSO_TO_ANKLE, (y) =>
+    band(
+      y,
+      [
+        [200, "chest"],
+        [260, "waist"],
+        [319, "hip"],
+        [400, "thighOuter"],
+        [462, "knee"],
+        [540, "calf"],
+      ],
+      "ankle",
+    ),
+  ),
+  ...tag(FOOT, () => "foot"),
+  // لبهٔ داخلیِ پا از قوزک به بالا پیموده می‌شود؛ همه‌اش «ران داخلی» برچسب
+  // می‌خورد و در مرحلهٔ اعمال، هرچه به قوزک نزدیک‌تر شود اثرش کم‌رنگ‌تر است.
+  ...tag(LEG_MEDIAL, () => "thighInner"),
 ];
 
-/**
- * نیمهٔ راستِ سیلوئت به‌صورت منحنی‌های مکعبی: دو عددِ اول نقطهٔ شروع (تارک)،
- * بعد هر شش عدد یک منحنی — دو نقطهٔ کنترل و نقطهٔ پایان.
- *
- * `x`ها فاصله از محورِ تقارن‌اند تا آینه‌کردن و اعمالِ نسبت‌های زنانه فقط یک
- * ضرب باشد.
- */
-const HALF_PATH: readonly number[] = toCubics(HALF_POINTS);
+
 
 // ─── نیم‌پهنای تنه (بدونِ بازوها) ───────────────────────────────────────────
 
@@ -459,27 +488,143 @@ function maleCoreHalf(y: number): number {
 
 // ─── ساختِ سیلوئت ────────────────────────────────────────────────────────────
 
-function buildOutline(sex: BodySex): BaseOutline {
+/** ناحیه‌هایی که قانونِ «جابه‌جاییِ صُلب» را می‌گیرند، نه ضربِ ساده را. */
+const ARM_REGIONS: ReadonlySet<Region> = new Set<Region>(["upperArm", "forearm", "hand"]);
+
+const smoothStep01 = (value: number, a: number, b: number): number => {
+  const t = Math.max(0, Math.min(1, (value - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
+const clamp01 = (t: number): number => (t < 0 ? 0 : t > 1 ? 1 : t);
+
+/** محورِ طولیِ بازو: از (۶۰, ۱۲۴) تا (۸۶, ۳۲۰)، پایین‌ترش ثابت. */
+function armAxisAt(y: number): number {
+  return 60 + clamp01((y - 124) / (320 - 124)) * 26;
+}
+
+/** ضریبِ پهنای دیوارهٔ تنه در ارتفاعِ `y` (برای جابه‌جاییِ بازو و جدولِ تنه). */
+function torsoFactorAt(factors: ShapeFactors, y: number): number {
+  const nodes: readonly Node[] = [
+    [factors.head, 60],
+    [factors.neck, 92],
+    [factors.shoulder, 118],
+    [factors.shoulder, 160],
+    [factors.chest, 190],
+    [factors.waist, 232],
+    [factors.hip, 296],
+    [factors.hip, 318],
+  ];
+  return sampler(nodes)(y);
+}
+
+/**
+ * جابه‌جاییِ افقیِ *ثابتِ* بازو.
+ *
+ * برابرِ بیشترین بیرون‌آمدگیِ دیوارهٔ تنه در تمامِ طولی که بازو کنارش می‌ایستد.
+ * چون یک عددِ ثابت است، بازو فقط جابه‌جا می‌شود و کاملاً صاف می‌ماند؛ و چون
+ * *بیشینه* است، هیچ‌جا داخلِ شکم فرو نمی‌رود. بهایش یک شکافِ زیربغلِ کمی بازتر
+ * است که به‌مراتب از بازوی خمیده بهتر است.
+ */
+function armShiftOf(
+  factors: ShapeFactors,
+  sexScale: (y: number) => number,
+): number {
+  let shift = 0;
+  for (let y = 174; y <= 318; y += 4) {
+    const wall = maleCoreHalf(y) * sexScale(y);
+    shift = Math.max(shift, wall * torsoFactorAt(factors, y) - wall);
+  }
+  return shift;
+}
+
+/**
+ * ضریبِ هر نقطه در طولِ زنجیره، هموارشده.
+ *
+ * ضریب‌ها ناحیه‌به‌ناحیه تعریف شده‌اند، پس روی مرزِ دو ناحیه می‌پرند و منحنیِ
+ * Catmull-Rom آن پرش را به شکلِ یک گوشهٔ تیز نشان می‌دهد. چند پاسِ میانگینِ
+ * سه‌نقطه‌ای مرز را نرم می‌کند. نواحیِ متضاد (ران داخلی و بیرونی) در زنجیره
+ * فاصلهٔ زیادی دارند — زانو، ساق، قوزک و کفِ پا بینشان است — پس این هموارسازی
+ * هیچ‌وقت آن دو را با هم قاطی نمی‌کند.
+ */
+function smoothedFactors(factors: ShapeFactors): number[] {
+  let values = HALF_TAGGED.map(({ region, y }) => {
+    const raw = factors[region];
+    if (region !== "thighInner") return raw;
+    // لبهٔ داخلی: اثرِ چسبیدنِ ران‌ها هرچه به قوزک نزدیک‌تر شویم کم‌رنگ‌تر
+    // می‌شود — ساق و قوزک مثل ران به هم نمی‌چسبند.
+    return raw + (1 - raw) * smoothStep01(y, 400, 548);
+  });
+
+  for (let pass = 0; pass < 3; pass += 1) {
+    const next = values.slice();
+    for (let i = 1; i < values.length - 1; i += 1) {
+      next[i] = 0.25 * values[i - 1]! + 0.5 * values[i]! + 0.25 * values[i + 1]!;
+    }
+    values = next;
+  }
+  return values;
+}
+
+// ─── ساختِ سیلوئت ────────────────────────────────────────────────────────────
+
+function buildOutline(sex: BodySex, factors: ShapeFactors): BaseOutline {
+  const female = sex === "female";
   const femaleScale = sampler(FEMALE_WIDTH);
+  /** ضریبِ زنانه فقط روی تنه و پا معنا دارد؛ روی بازو حساب نمی‌شود. */
+  const sexScale = (y: number): number => (female ? femaleScale(y) : 1);
+  const weights = smoothedFactors(factors);
+  const armShift = armShiftOf(factors, sexScale);
+
+  /**
+   * نقطهٔ نشانهٔ شمارهٔ `i` بعد از اعمالِ ریخت.
+   *
+   * بازو قانونِ خودش را دارد: ضخامتش حولِ محورِ *خودِ بازو* عوض می‌شود و بعد
+   * یک‌جا جابه‌جا می‌شود. اگر مثل بقیهٔ بدن در ضریب ضرب شود، هر نقطه به‌نسبتِ
+   * فاصله‌اش از مرکز بیرون می‌رود؛ یعنی مچ خیلی بیشتر از شانه حرکت می‌کند و
+   * بازو باز و کج دیده می‌شود.
+   */
+  const shaped = (i: number): number => {
+    const point = HALF_TAGGED[i]!;
+    const weight = weights[i]!;
+    const torso = point.dx * weight * sexScale(point.y);
+
+    // «بازو بودن» از برچسبِ ناحیه می‌آید، نه از ارتفاع: پا و دست در بازهٔ
+    // ارتفاعیِ مشترکی هستند و هر شرطی که فقط به y نگاه کند، قانونِ بازو را به
+    // ران هم اعمال می‌کند و سیلوئت خودش را قطع می‌کند.
+    const armness = ARM_REGIONS.has(point.region)
+      ? smoothStep01(point.y, 174, 205)
+      : 0;
+    if (armness <= 0) return torso;
+
+    // بازو: ضخامت حولِ محورِ خودش، بعد یک جابه‌جاییِ ثابت. نه ضریبِ زنانه
+    // می‌گیرد و نه هیچ چیزِ دیگری که تابعِ ارتفاع باشد — وگرنه خم می‌شود.
+    const axis = armAxisAt(point.y);
+    const arm = axis + (point.dx - axis) * weight + armShift;
+    return torso + (arm - torso) * armness;
+  };
 
   /**
    * برجستگیِ سینه فقط به نقاطی اضافه می‌شود که روی لبهٔ تنه‌اند؛ نقاطِ بازو در
    * همان ارتفاع باید دست‌نخورده بمانند، وگرنه بازو هم باد می‌کند.
    */
-  const dxOf = (dx: number, y: number): number => {
-    if (sex !== "female") return dx;
-    const scaled = dx * femaleScale(y);
-    if (dx > maleCoreHalf(y) + 2) return scaled;
-    return scaled + BUST.amount * Math.exp(-(((y - BUST.center) / BUST.spread) ** 2));
+  const dxOf = (dx: number, y: number, region: Region): number => {
+    if (!female || ARM_REGIONS.has(region)) return dx;
+    if (dx > maleCoreHalf(y) * sexScale(y) + 2) return dx;
+    return dx + BUST.amount * Math.exp(-(((y - BUST.center) / BUST.spread) ** 2));
   };
 
-  const count = (HALF_PATH.length - 2) / 6;
-  /** نقطهٔ شمارهٔ `k` روی نیمهٔ راست: ۰ = شروع، بعد هر منحنی سه نقطه دارد. */
-  const point = (k: number): [number, number] => {
-    const dx = at(HALF_PATH, k * 2);
-    const y = at(HALF_PATH, k * 2 + 1);
-    return [dxOf(dx, y), y];
-  };
+  const chain: readonly Pt[] = HALF_TAGGED.map(({ y, smooth, region }, i) => {
+    const dx = dxOf(shaped(i), y, region);
+    return (smooth === undefined ? [dx, y] : [dx, y, smooth]) as Pt;
+  });
+
+  const shapedPath = toCubics(chain);
+  const count = (shapedPath.length - 2) / 6;
+  const point = (k: number): [number, number] => [
+    at(shapedPath, k * 2),
+    at(shapedPath, k * 2 + 1),
+  ];
 
   const right = (dx: number, y: number) => `${(CENTER_X + dx).toFixed(2)},${y.toFixed(2)}`;
   const left = (dx: number, y: number) => `${(CENTER_X - dx).toFixed(2)},${y.toFixed(2)}`;
@@ -504,22 +649,33 @@ function buildOutline(sex: BodySex): BaseOutline {
     path += `C${left(c2[0], c2[1])} ${left(c1[0], c1[1])} ${left(p[0], p[1])}`;
   }
 
-  const coreHalf = CORE_HALF_MALE.map((value, index) =>
-    sex === "female" ? value * femaleScale(index * CORE_HALF_STEP) : value,
-  );
+  const coreHalf = CORE_HALF_MALE.map((value, index) => {
+    const y = index * CORE_HALF_STEP;
+    return value * torsoFactorAt(factors, y) * sexScale(y);
+  });
 
   return { path: `${path}Z`, coreHalf };
 }
 
-const cache = new Map<BodySex, BaseOutline>();
+const cache = new Map<string, BaseOutline>();
 
-/** سیلوئتِ مرجعِ متقارن برای یک جنسیت (کش‌شده). */
-export function getBaseOutline(sex: BodySex): BaseOutline {
-  const cached = cache.get(sex);
+/** سیلوئتِ متقارن برای یک جنسیت و یک ریخت (کش‌شده). */
+export function getBaseOutline(
+  sex: BodySex,
+  factors: ShapeFactors,
+  key: string,
+): BaseOutline {
+  const cacheKey = `${sex}|${key}`;
+  const cached = cache.get(cacheKey);
   if (cached) return cached;
-  const built = buildOutline(sex);
-  cache.set(sex, built);
+  const built = buildOutline(sex, factors);
+  cache.set(cacheKey, built);
   return built;
+}
+
+/** نیم‌پهنای تنهٔ *مرجع* (مردِ BMI≈۲۲) — مبنای سنجشِ اینکه تنه چقدر پهن‌تر شده. */
+export function referenceCoreHalfAt(y: number): number {
+  return maleCoreHalf(y);
 }
 
 /** نیم‌پهنای تنه در ارتفاعِ `y` با درون‌یابیِ جدول. */
