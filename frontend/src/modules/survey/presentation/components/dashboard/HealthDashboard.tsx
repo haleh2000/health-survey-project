@@ -699,7 +699,7 @@ export function HealthDashboard({
         className="rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6"
       >
         <div className="mb-4 flex items-baseline gap-2">
-          <h3 className="text-sm font-black text-ink">
+          <h3 className="text-md font-black text-day-primary">
             شاخص توده بدنی (BMI)
           </h3>
 
@@ -736,7 +736,7 @@ export function HealthDashboard({
       {/* ── توصیه‌های روزانه ── */}
       <section className="rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6">
         <div className="mb-3 flex items-center gap-2">
-          <span className="text-sm font-black text-ink">
+          <span className="text-md font-black text-day-primary">
             پیشنهادهای روزانه
           </span>
         </div>

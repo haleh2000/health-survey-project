@@ -38,21 +38,20 @@ export function StepNav({
   onNext,
 }: StepNavProps) {
   return (
-    <div className="sticky bottom-3 z-20 mt-5 flex items-center justify-between gap-3 rounded-2xl border border-white/40 bg-surface/85 p-3 shadow-raised backdrop-blur-xl">
-      <motion.div whileTap={{ scale: 0.96 }} transition={press}>
-        <Button variant="ghost" onClick={onBack} disabled={isFirstStep || submitting}>
+    <div className="sticky bottom-3 z-20 mt-5 flex items-center gap-3 rounded-2xl border border-white/40 bg-surface/85 p-3 shadow-raised backdrop-blur-xl justify-between">
+      <motion.div whileTap={{ scale: 0.96 }} transition={press} className="">
+        <Button variant="ghost" onClick={onBack} disabled={isFirstStep || submitting} className="w-full">
           مرحله قبل
         </Button>
       </motion.div>
 
-      <motion.div whileTap={{ scale: 0.96 }} transition={press}>
+      <motion.div whileTap={{ scale: 0.96 }} transition={press} className="">
         <Button
-          size="lg"
           onClick={onNext}
           loading={submitting}
           startIcon={isLastStep ? <Sparkle /> : undefined}
           endIcon={isLastStep ? undefined : <ArrowForward />}
-          className="group min-w-40"
+          className="w-full"
         >
           {isLastStep ? "محاسبه نتیجه" : "مرحله بعد"}
         </Button>
