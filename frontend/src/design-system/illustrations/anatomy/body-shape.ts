@@ -1,33 +1,31 @@
 // src/design-system/illustrations/anatomy/body-shape.ts
 // ─────────────────────────────────────────────────────────────────────────────
-// موتورِ ریخت‌دهیِ پیکرهٔ انسان بر پایهٔ قد، وزن، سن و جنسیت.
+// از پروفایلِ کاربر (قد، وزن، سن، جنسیت) به سیلوئت و تبدیل‌های اندام.
 //
-// چرا این‌طور و نه «چند سیلوئت آماده»:
-//   با چند تصویرِ از پیش‌آماده، پرش بین حالت‌ها دیده می‌شود و ترکیب‌ها
-//   (مثلاً «کودکِ قدبلندِ لاغر») پوشش داده نمی‌شود. این‌جا در عوض همان سیلوئتِ
-//   واقع‌گرایانهٔ مرجع «وارپ» می‌شود؛ پس همهٔ جزئیاتِ هنری (دست، پا، فک،
-//   انحنای عضلات) سر جایش می‌ماند و فقط تناسب‌ها تغییر می‌کند.
+// کار به دو نیمهٔ مستقل تقسیم شده است:
 //
-// وارپ دو مؤلفه دارد:
-//   • نگاشتِ عمودی  — جای نقاط کلیدی (تارک، چانه، شانه، کمر، لگن، فاق، زانو،
-//     مچ، کف پا) بر اساس قد و سن جابه‌جا می‌شود. سنِ کم یعنی سرِ بزرگ‌تر و
-//     پاهای کوتاه‌تر؛ دقیقاً همان چیزی که چشم، «بچه» می‌خواندش.
-//   • نگاشتِ افقی — ضریب پهنا در هر ارتفاع، از BMI می‌آید. نکتهٔ ظریف: تنه که
-//     پهن می‌شود نباید بازوها را هم کش بدهد، پس نگاشتِ افقی تکه‌ای است:
-//     تا لبهٔ تنه با ضریبِ تنه، بیرونِ آن با ضریبِ اندام. گذرِ این دو ضریب روی
-//     یک رمپِ هموار انجام می‌شود تا مشتقِ نگاشت پیوسته بماند و خطِ دور در
-//     لبهٔ تنه «شکستگی» نیفتد. بازو هم کنارِ شکمِ بزرگ‌شده می‌رود، نه اینکه
-//     با آن باد کند.
+//   ۱. «ریخت» (لاغر/چاق) — در `body-keyframes.ts` و `body-base-path.ts`.
+//      از درون‌یابیِ بینِ چند بدنِ کلیدیِ دستی می‌آید و مستقیماً در نقاطِ
+//      نشانهٔ سیلوئت پخته می‌شود.
 //
-// خروجی همیشه داخلِ قابِ ثابتِ VIEW_BOX جا می‌شود (در صورت نیاز یک مقیاسِ
-// یکنواختِ نهایی اعمال می‌شود)، تا هیچ‌جا — به‌ویژه در PDF — بریده نشود.
+//   ۲. «اندازه» (قد و سن) — همین فایل. فقط دو تبدیلِ *یکنواخت* است: یک مقیاسِ
+//      افقی، و یک نگاشتِ عمودیِ یکنوا که نسبتِ سر به بدن و بلندیِ پا را با سن
+//      عوض می‌کند.
+//
+// این تقسیم عمدی است. نسخهٔ پیشین ریخت را هم همین‌جا و به‌صورت یک «میدانِ
+// وارپِ شعاعی» اعمال می‌کرد؛ چنین میدانی نمی‌تواند دو چیزِ هم‌ارتفاع را جدا
+// حساب کند، و نتیجه‌اش بازوی کج، ران‌های واگرا و اندام‌هایی بود که از بدن
+// می‌زدند بیرون. حالا هرچه به فاصلهٔ نقطه تا محور وابسته است در لایهٔ کلیدفریم
+// حل می‌شود، و این‌جا فقط تبدیل‌هایی می‌مانند که ذاتاً نمی‌توانند برش بسازند.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
   coreHalfFrom,
   getBaseOutline,
+  referenceCoreHalfAt,
   type BodySex,
 } from "./body-base-path";
+import { shapeFactorsAt, factorsKey } from "./body-keyframes";
 
 export type { BodySex };
 
@@ -49,6 +47,8 @@ export interface BodyShape {
   readonly organTransform: string;
   /** تبدیلِ جداگانهٔ مغز، چون نسبتِ سر به بدن با سن عوض می‌شود. */
   readonly headOrganTransform: string;
+  /** بیضیِ سایهٔ زیر پا. */
+  readonly groundShadow: { readonly cx: number; readonly cy: number; readonly rx: number };
 }
 
 // ─── قاب و مبدأ ──────────────────────────────────────────────────────────────
@@ -81,17 +81,12 @@ const REF = {
 
 const REF_HEIGHT = REF.sole - REF.crown; // ۵۸۹
 const REF_HEAD = REF.chin - REF.crown; // ۶۶
+
 /** نیم‌پهنای سر در پهن‌ترین جا. */
 const REF_HEAD_HALF = 26.4;
 
 /** ارتفاعِ ترسیمیِ یک بزرگسالِ ۱۷۵ سانتی‌متری؛ مبنای همهٔ مقیاس‌ها. */
 const BASE_DRAW_HEIGHT = 545;
-
-/** پنجرهٔ ارتفاعی‌ای که بازوها از تنه جدا دیده می‌شوند. */
-const ARM_FADE_IN: readonly [number, number] = [174, 200];
-// نوکِ انگشتان تا ~۳۸۴ پایین می‌آید؛ پنجرهٔ محو باید بعد از آن تمام شود، وگرنه
-// ضریبِ نگاشت وسطِ خودِ دست عوض می‌شود و انگشت‌ها در حالتِ چاق کج می‌افتند.
-const ARM_FADE_OUT: readonly [number, number] = [388, 404];
 
 // ─── محدودهٔ اندام‌ها روی سیلوئت مرجع ────────────────────────────────────────
 // (هم‌خوان با مختصاتِ organ-assets.ts)
@@ -100,6 +95,8 @@ const ARM_FADE_OUT: readonly [number, number] = [388, 404];
 const ORGAN_BAND = { top: 122, bottom: 308, centerX: 199 } as const;
 /** نیم‌پهنای خوشهٔ اندام‌های تنه. */
 const ORGAN_HALF = 50;
+/** فاصلهٔ ایمنِ کفِ خوشهٔ اندام‌ها تا فاق، روی سیلوئت مرجع. */
+const ORGAN_BOTTOM_MARGIN = 10;
 /** مرکز تصویرِ مغز روی سیلوئت مرجع. */
 const BRAIN_CENTER = { x: 199, y: 51.5 } as const;
 
@@ -115,11 +112,6 @@ const clamp = (value: number, min: number, max: number): number =>
  */
 const at = (values: readonly number[], index: number): number => values[index] as number;
 
-/** هموارسازیِ smoothstep روی بازهٔ [a,b]. */
-function smoothStep(value: number, a: number, b: number): number {
-  const t = clamp((value - a) / (b - a), 0, 1);
-  return t * t * (3 - 2 * t);
-}
 
 /**
  * درون‌یابیِ هرمیتِ یکنوا (PCHIP).
@@ -171,14 +163,6 @@ function makeMonotoneSpline(
   };
 }
 
-/** چقدر در این ارتفاع باید بازو را از تنه جدا حساب کرد (۰ تا ۱). */
-function armSeparationAt(y: number): number {
-  return (
-    smoothStep(y, ARM_FADE_IN[0], ARM_FADE_IN[1]) *
-    (1 - smoothStep(y, ARM_FADE_OUT[0], ARM_FADE_OUT[1]))
-  );
-}
-
 // ─── تفسیرِ پروفایل ──────────────────────────────────────────────────────────
 
 /** میانهٔ BMI بر حسب سن — پایینِ سنین کودکی به‌مراتب کمتر از بزرگسالی است. */
@@ -214,10 +198,13 @@ function referenceBmi(age: number): number {
 interface Metrics {
   /** ۰ = بزرگسال، ۱ = نوزاد. */
   readonly childness: number;
-  /** ۰ تا ~۱٫۲ — چقدر بالاتر از BMI مرجعِ سن. */
-  readonly plumpness: number;
-  /** ۰ تا ۱ — چقدر پایین‌تر از BMI مرجعِ سن. */
-  readonly leanness: number;
+  /**
+   * BMIِ «معادلِ بزرگسال» — ورودیِ کلیدفریم‌ها.
+   *
+   * برای کودک، BMIِ خام گمراه‌کننده است (بچهٔ سالمِ ۸ ساله BMI ~۱۶ دارد). پس
+   * فاصله تا میانهٔ همان سن حساب می‌شود و روی میانهٔ بزرگسال سوار می‌شود.
+   */
+  readonly shapeBmi: number;
   readonly female: boolean;
   readonly drawHeight: number;
 }
@@ -249,10 +236,7 @@ function readMetrics(profile: BodyProfile): Metrics {
 
   return {
     childness: clamp((18 - age) / 18, 0, 1) ** 1.2,
-    // سقفِ ۲٫۶ به‌جای ۱٫۲: با ضریب‌های متعادِلِ جدید، BMIهای خیلی بالا هم باید
-    // همچنان چاق‌تر دیده شوند و در BMI ~۳۶ «قفل» نشوند.
-    plumpness: clamp(delta / 12, 0, 2.6),
-    leanness: clamp(-delta / 7.5, 0, 1),
+    shapeBmi: clamp(22 + delta, 12, 45),
     female: profile.sex === "female",
     // توانِ ۰٫۵ اختلافِ قدها را دیدنی نگه می‌دارد بی‌آنکه قدبلندها از قاب بزنند.
     drawHeight: clamp(BASE_DRAW_HEIGHT * (heightCm / 175) ** 0.5, 300, 592),
@@ -263,21 +247,26 @@ function readMetrics(profile: BodyProfile): Metrics {
 
 interface Geometry {
   readonly remapY: (y: number) => number;
-  readonly coreScale: (y: number) => number;
   /** لبهٔ تنه (بدونِ بازو) روی سیلوئتِ مرجع — مرزِ «تنه» و «اندام». */
   readonly coreEdgeAt: (y: number) => number;
   /** مسیرِ مرجعِ تحلیل‌شدهٔ همان جنسیت. */
   readonly baseCommands: readonly Command[];
-  readonly limbScale: number;
   readonly statureScale: number;
   readonly headScale: number;
   readonly landmarks: Record<keyof typeof REF, number>;
 }
 
 function buildGeometry(metrics: Metrics): Geometry {
-  const { childness, plumpness, leanness, female, drawHeight } = metrics;
+  const { childness, female, drawHeight } = metrics;
 
-  const outline = getBaseOutline(female ? "female" : "male");
+  // ریختِ بدن از کلیدفریم‌ها می‌آید و در خودِ سیلوئت پخته می‌شود؛ این‌جا فقط
+  // مقیاسِ قد و نگاشتِ عمودیِ سن می‌ماند.
+  const factors = shapeFactorsAt(metrics.shapeBmi, female);
+  const outline = getBaseOutline(
+    female ? "female" : "male",
+    factors,
+    factorsKey(factors),
+  );
   const coreEdgeAt = (y: number): number => coreHalfFrom(outline.coreHalf, y);
 
   const statureScale = drawHeight / REF_HEIGHT;
@@ -317,125 +306,28 @@ function buildGeometry(metrics: Metrics): Geometry {
     [crown, chin, landmarks.shoulder, landmarks.chest, landmarks.waist, landmarks.hip, crotch, landmarks.knee, landmarks.ankle, sole],
   );
 
-  // ── ضرایبِ پهنا ──
-  // توزیعِ چاقی باید هماهنگ باشد: اگر تنه خیلی بیشتر از شانه و اندام‌ها برآمد
-  // کند، پیکره «گلابی‌مانند» و بازوها عجیب‌الحال می‌شوند. ضریبِ شانه/بازو
-  // تقریباً هم‌ترازِ رشدِ اندام نگه داشته شده تا بازو با بقیهٔ بدن فربه شود،
-  // و شکم همچنان بیشترین سهم را داشته باشد — ولی بدون انفجارِ نسبی.
-  // سر یک واحدِ صُلب است: پهنایش باید هم‌پای بلندی‌اش تغییر کند، وگرنه سرِ
-  // بزرگِ کودک کشیده و غیرطبیعی می‌شود.
   const headScale = (chin - crown) / REF_HEAD;
-  const headWidth = (headScale / statureScale) * (1 + 0.06 * childness);
-
-  const fat = plumpness;
-  const thin = leanness;
-
-  /**
-   * رشدِ چاقی: تا آستانهٔ چاقیِ واضح (واحدِ اول) خطی و کامل؛ بعد از آن با شیبِ
-   * ملایم‌تر. اگر همهٔ ضرایب تا بی‌نهایت خطی بمانند، در BMIهای خیلی بالا شکم
-   * از بازوها جلو می‌زند، فاصلهٔ بازو و تنه ته می‌کشد و گردن هم باد می‌کند.
-   */
-  const growth = (tailRate: number): number => (fat <= 1 ? fat : 1 + tailRate * (fat - 1));
-
-  // تفاوت‌های جنسیتی در خودِ سیلوئتِ مرجع پخته شده‌اند؛ این‌جا فقط اثرِ سن و
-  // وزن اعمال می‌شود تا دو اثر روی هم سوار نشوند.
-  const shoulder = (1 - 0.10 * childness) * (1 + 0.19 * growth(0.7) - 0.09 * thin);
-  const neck =
-    (0.45 * headWidth + 0.55 * shoulder) * (1 + 0.14 * growth(0.35) - 0.07 * thin);
-
-  const knots: readonly (readonly [number, number])[] = [
-    [REF.crown, headWidth * (1 + 0.04 * growth(0.5) - 0.02 * thin)],
-    [46, headWidth * (1 + 0.04 * growth(0.5) - 0.02 * thin)],
-    [REF.chin, (0.7 * headWidth + 0.3 * neck) * (1 + 0.07 * growth(0.5))],
-    [98, neck],
-    [REF.shoulder, shoulder],
-    [141, shoulder * (1 + 0.06 * growth(0.6))],
-    [REF.chest, (1 + 0.03 * childness) * (1 + 0.29 * growth(0.6) - 0.13 * thin)],
-    [REF.waist, (1 + 0.05 * childness) * (1 + 0.52 * growth(0.45) - 0.18 * thin)],
-    [268, (1 + 0.07 * childness) * (1 + 0.58 * growth(0.45) - 0.19 * thin)],
-    [REF.hip, (1 + 0.02 * childness) * (1 + 0.44 * growth(0.5) - 0.16 * thin)],
-    [376, (1 + 0.02 * childness) * (1 + 0.34 * growth(0.7) - 0.16 * thin)],
-    [REF.knee, 1 + 0.22 * growth(0.8) - 0.10 * thin],
-    [509, 1 + 0.24 * growth(0.8) - 0.13 * thin],
-    [REF.ankle, 1 + 0.11 * growth(0.9) - 0.07 * thin],
-    [REF.sole, 1 + 0.09 * growth(1) - 0.06 * thin],
-  ];
-
-  const widthAt = makeMonotoneSpline(
-    knots.map(([y]) => y),
-    knots.map(([, k]) => k),
-  );
 
   return {
     remapY,
     coreEdgeAt,
     baseCommands: parseCommands(outline.path),
-    coreScale: (y: number) => statureScale * widthAt(y),
-    /*
-      ضریبِ اندام‌ها عمداً خیلی کمتر از ضریبِ تنه است. این ضریب روی «فاصله تا
-      لبهٔ تنه» اعمال می‌شود و آن فاصله برای دست، عمدتاً طولِ بازوی باز است نه
-      ضخامتِ آن؛ اگر پا‌به‌پای شکم بزرگ شود، دست‌ها مثل بال از بدن دور می‌افتند.
-      جابه‌جاییِ لازمِ بازو خودش از حرکتِ لبهٔ تنه می‌آید.
-    */
-    limbScale:
-      statureScale * (1 - 0.04 * childness) * (1 + 0.18 * growth(0.6) - 0.12 * thin),
     statureScale,
     headScale,
     landmarks,
   };
 }
 
-/**
- * پادِ اولیهٔ smoothstep: انتگرالِ t²(۳−۲t) برابرِ t³−t⁴/2 است.
- * برای ساختِ رمپی که مقدار و مشتقش هم‌زمان پیوسته باشند لازمش داریم.
- */
-const smoothStepIntegral = (t: number): number => {
-  const t2 = t * t;
-  return t2 * t - (t2 * t2) / 2;
-};
+/** نگاشتِ یک نقطهٔ سیلوئتِ ریخت‌یافته به قابِ نهایی.
 
-/**
- * فاصلهٔ وارپ‌شدهٔ یک نقطه تا محور، در ارتفاع مرجع `y`.
- *
- * داخلِ تنه ضریبِ تنه (`core`) اعمال می‌شود؛ بیرونِ آن به‌تدریج — روی رمپی
- * به پهنای نصفِ لبه — به ضریبِ اندام (`limb`) می‌رسد. چون گذر از طریق
- * انتگرالِ smoothstep است، مشتقِ نگاشت هیچ‌جا نمی‌پرد و خطوطی که از لبهٔ تنه
- * عبور می‌کنند (بغلِ بازو، کمربندِ لگن) شکستگی و کجی نمی‌گیرند.
- */
-function warpDistance(
-  geometry: Geometry,
-  distance: number,
-  y: number,
-): number {
-  const core = geometry.coreScale(y);
-  const edge = geometry.coreEdgeAt(y);
-  const separation = armSeparationAt(y);
-
-  if (separation <= 0 || distance <= edge) return distance * core;
-
-  const limb = geometry.limbScale;
-  const ramp = Math.max(edge * 0.6, 8);
-  if (distance >= edge + ramp) {
-    // دنبالهٔ خطی: جابه‌جاییِ اندام + آفستِ انباشته‌شدهٔ رمپ
-    const offset = (core - limb) * (edge + ramp / 2);
-    const piecewise = distance * limb + offset;
-    return distance * core + (piecewise - distance * core) * separation;
-  }
-
-  const t = (distance - edge) / ramp;
-  const piecewise =
-    edge * core +
-    core * (distance - edge) +
-    (limb - core) * ramp * smoothStepIntegral(t);
-  return distance * core + (piecewise - distance * core) * separation;
-}
-
-/** نگاشتِ یک نقطهٔ سیلوئت مرجع به پیکرهٔ جدید. */
+    ریخت (لاغر/چاق) از قبل در خودِ سیلوئت پخته شده است؛ این‌جا فقط دو تبدیلِ
+    *یکنواخت* می‌ماند: مقیاسِ افقیِ قد، و نگاشتِ عمودیِ سن. هیچ‌کدام نمی‌توانند
+    برش بسازند، چون هیچ‌کدام به فاصلهٔ نقطه تا محور وابسته نیستند. */
 function warpPoint(geometry: Geometry, x: number, y: number): [number, number] {
-  const offset = x - CENTER_X;
-  const mapped = warpDistance(geometry, Math.abs(offset), y);
-  const sign = offset < 0 ? -1 : 1;
-  return [CENTER_X + sign * mapped, geometry.remapY(y)];
+  return [
+    CENTER_X + (x - CENTER_X) * geometry.statureScale,
+    geometry.remapY(y),
+  ];
 }
 
 // ─── وارپ کردنِ مسیر ─────────────────────────────────────────────────────────
@@ -677,6 +569,11 @@ export function computeBodyShape(profile: BodyProfile = {}): BodyShape {
     hairD: metrics.female ? buildHairPath(geometry, fit) : null,
     viewBox: BODY_VIEW_BOX,
     ...buildOrganTransforms(geometry, fit),
+    groundShadow: {
+      cx: CENTER_X,
+      cy: GROUND_Y - 2,
+      rx: clamp(1.25 * geometry.coreEdgeAt(REF.hip) * geometry.statureScale, 34, 110),
+    },
   };
 
   cache.set(key, shape);
@@ -698,16 +595,30 @@ function buildOrganTransforms(
 
   const verticalScale = (bandBottom - bandTop) / (ORGAN_BAND.bottom - ORGAN_BAND.top);
   // پهنای در دسترسِ تنه در باریک‌ترین نقطهٔ خوشه؛ اندام‌ها هرگز نباید از بدن بزنند.
-  const widthScale = Math.min(
-    geometry.coreScale(REF.chest),
-    geometry.coreScale(REF.waist),
-    geometry.coreScale(REF.hip),
+  // چقدر دیوارهٔ تنه نسبت به مرجع پهن‌تر (یا باریک‌تر) شده — در باریک‌ترین
+  // نقطهٔ خوشه. اندام‌ها هرگز نباید از بدن بزنند بیرون.
+  const wallRatio = (y: number): number =>
+    geometry.coreEdgeAt(y) / referenceCoreHalfAt(y);
+  const widthScale =
+    geometry.statureScale *
+    Math.min(wallRatio(REF.chest), wallRatio(REF.waist), wallRatio(REF.hip));
+  let torsoScale = Math.min(
+    (verticalScale + widthScale) / 2,
+    (geometry.statureScale * geometry.coreEdgeAt(REF.chest)) / ORGAN_HALF,
   );
-  const torsoScale =
-    Math.min((verticalScale + widthScale) / 2, (widthScale * geometry.coreEdgeAt(REF.chest)) / ORGAN_HALF) *
-    fit;
 
   const bandCenterY = (bandTop + bandBottom) / 2;
+
+  // سقفِ عمودی: خوشهٔ اندام‌ها هرگز نباید از فاق پایین‌تر برود. اگر برود،
+  // رودهٔ بزرگ توی شکافِ بینِ دو پا می‌افتد — جایی که سیلوئتی وجود ندارد —
+  // و شکلِ زشت و گمراه‌کننده‌ای می‌سازد. `verticalScale` به‌تنهایی این را
+  // تضمین نمی‌کند، چون `torsoScale` میانگینِ آن با پهناست و برای بدنِ کوتاهِ
+  // چاق، پهنا میانگین را بالا می‌کشد.
+  const halfBand = (ORGAN_BAND.bottom - ORGAN_BAND.top) / 2;
+  const pelvicFloor = geometry.remapY(REF.crotch) - ORGAN_BOTTOM_MARGIN;
+  torsoScale = Math.min(torsoScale, (pelvicFloor - bandCenterY) / halfBand);
+
+  torsoScale *= fit;
   const [torsoX, torsoY] = applyFit(CENTER_X, bandCenterY);
 
   // ── مغز ──

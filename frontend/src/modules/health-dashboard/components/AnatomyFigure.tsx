@@ -1,4 +1,5 @@
 
+import { useId } from 'react';
 import { motion } from 'framer-motion';
 
 import { ORGAN_ASSETS, type OrganAsset, type OrganLayer } from '@ds/illustrations/anatomy/organ-assets';
@@ -27,6 +28,7 @@ const TORSO_ASSETS = ORGAN_ASSETS.filter((asset) => !HEAD_ORGAN_KEYS.has(asset.k
 
 export function AnatomyFigure({ organPercents, highlightedOrgan, onSelectOrgan, profile }: Props) {
   const shape = computeBodyShape(profile);
+  const bodyClipId = `anatomy-clip-${useId().replace(/:/g, '')}`;
 
   const renderZone = (assets: readonly OrganAsset[], transform: string) => (
     <g transform={transform}>
@@ -131,9 +133,19 @@ export function AnatomyFigure({ organPercents, highlightedOrgan, onSelectOrgan, 
         role="img"
         aria-label="نقشهٔ آناتومی بدن"
       >
+        <defs>
+          {/* تضمینِ سختِ «هیچ اندامی از بدن بیرون نمی‌زند». محاسبهٔ مقیاسِ خوشه
+              اندام‌ها را داخل نگه می‌دارد، ولی بزرگ‌نماییِ هاور و هالهٔ محو
+              می‌توانند از لبه رد شوند؛ این کلیپ جلوی همه را می‌گیرد. */}
+          <clipPath id={bodyClipId}>
+            <path d={shape.bodyD} />
+          </clipPath>
+        </defs>
         <BodyFigure shape={shape} />
-        {renderZone(TORSO_ASSETS, shape.organTransform)}
-        {renderZone(HEAD_ASSETS, shape.headOrganTransform)}
+        <g clipPath={`url(#${bodyClipId})`}>
+          {renderZone(TORSO_ASSETS, shape.organTransform)}
+          {renderZone(HEAD_ASSETS, shape.headOrganTransform)}
+        </g>
       </svg>
     </div>
   );
