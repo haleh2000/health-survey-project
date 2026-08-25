@@ -1,25 +1,4 @@
 // src/design-system/illustrations/anatomy/body-shape.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// موتورِ ریخت‌دهیِ پیکرهٔ انسان بر پایهٔ قد، وزن، سن و جنسیت.
-//
-// چرا این‌طور و نه «چند سیلوئت آماده»:
-//   با چند تصویرِ از پیش‌آماده، پرش بین حالت‌ها دیده می‌شود و ترکیب‌ها
-//   (مثلاً «کودکِ قدبلندِ لاغر») پوشش داده نمی‌شود. این‌جا در عوض همان سیلوئتِ
-//   واقع‌گرایانهٔ مرجع «وارپ» می‌شود؛ پس همهٔ جزئیاتِ هنری (دست، پا، فک،
-//   انحنای عضلات) سر جایش می‌ماند و فقط تناسب‌ها تغییر می‌کند.
-//
-// وارپ دو مؤلفه دارد:
-//   • نگاشتِ عمودی  — جای نقاط کلیدی (تارک، چانه، شانه، کمر، لگن، فاق، زانو،
-//     مچ، کف پا) بر اساس قد و سن جابه‌جا می‌شود. سنِ کم یعنی سرِ بزرگ‌تر و
-//     پاهای کوتاه‌تر؛ دقیقاً همان چیزی که چشم، «بچه» می‌خواندش.
-//   • نگاشتِ افقی — ضریب پهنا در هر ارتفاع، از BMI می‌آید. نکتهٔ ظریف: تنه که
-//     پهن می‌شود نباید بازوها را هم کش بدهد، پس نگاشت افقی تکه‌ای است:
-//     تا لبهٔ تنه با ضریبِ تنه، بیرونِ آن با ضریبِ اندام. نتیجه این است که
-//     بازو کنارِ شکمِ بزرگ‌شده می‌رود، نه اینکه با آن باد کند.
-//
-// خروجی همیشه داخلِ قابِ ثابتِ VIEW_BOX جا می‌شود (در صورت نیاز یک مقیاسِ
-// یکنواختِ نهایی اعمال می‌شود)، تا هیچ‌جا — به‌ویژه در PDF — بریده نشود.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import {
   BASE_BODY_PATH,
@@ -74,7 +53,7 @@ const REF = {
   waist: 250,
   hip: 310,
   crotch: 343,
-  knee: 455,
+  knee: 700,
   ankle: 548,
   sole: 595,
 } as const;
@@ -87,9 +66,29 @@ const REF_HEAD_HALF = 29;
 /** ارتفاعِ ترسیمیِ یک بزرگسالِ ۱۷۵ سانتی‌متری؛ مبنای همهٔ مقیاس‌ها. */
 const BASE_DRAW_HEIGHT = 545;
 
-/** پنجرهٔ ارتفاعی‌ای که بازوها از تنه جدا دیده می‌شوند. */
-const ARM_FADE_IN: readonly [number, number] = [188, 208];
+/**
+ * پنجرهٔ ارتفاعی‌ای که بازوها از تنه جدا دیده می‌شوند.
+ *
+ * فاز ورود باید بلند باشد و از سرشانه شروع شود. با پنجرهٔ کوتاه، رژیمِ
+ * مقیاس‌گذاری از `coreScale` به `limbScale` در چند واحد ارتفاع سوئیچ می‌کند و
+ * چون این دو ضریب برابر نیستند، لبهٔ بیرونیِ بازو یک جهشِ جانبی می‌خورد که
+ * روی رندر عیناً شبیه درزِ آستین دیده می‌شود.
+ */
+const ARM_FADE_IN: readonly [number, number] = [110, 232];
 const ARM_FADE_OUT: readonly [number, number] = [366, 380];
+
+/**
+ * چقدر بازو به تنه نزدیک شود — نسبتی از نیم‌پهنای تنه در همان ارتفاع.
+ * جابه‌جاییِ صُلبِ نوارِ بازو است، پس ضخامتِ بازو و دست تغییر نمی‌کند.
+ */
+const ARM_HUG = 0.01;
+
+/**
+ * پهنای بافرِ نرم روی مرزِ تنه/بازو (در مختصات مرجع).
+ * بدون این بافر، تغییرِ رژیمِ مقیاس‌گذاری روی خطِ `coreHalfAt(y)` یک شکستگیِ
+ * مشتق می‌سازد که در زیربغل و بالای شانه به شکلِ گوشهٔ تیز دیده می‌شود.
+ */
+const ARM_EDGE_SOFT = 16;
 
 // ─── محدودهٔ اندام‌ها روی سیلوئت مرجع ────────────────────────────────────────
 // (هم‌خوان با مختصاتِ organ-assets.ts)
@@ -117,6 +116,18 @@ const at = (values: readonly number[], index: number): number => values[index] a
 function smoothStep(value: number, a: number, b: number): number {
   const t = clamp((value - a) / (b - a), 0, 1);
   return t * t * (3 - 2 * t);
+}
+
+/**
+ * هموارسازیِ کوینتیک — مشتقِ اول *و دوم* در دو سرِ بازه صفر است.
+ *
+ * `smoothStep` فقط C¹ است؛ پرشِ مشتقِ دومش روی سیلوئت به شکلِ یک چینِ باریکِ
+ * افقی دیده می‌شود. هر جا که رژیمِ هندسی عوض می‌شود (مرزِ تنه/بازو و پنجرهٔ
+ * جداسازیِ بازو) به C² نیاز داریم تا لبه یک‌دست بماند.
+ */
+function smootherStep(value: number, a: number, b: number): number {
+  const t = clamp((value - a) / (b - a), 0, 1);
+  return t * t * t * (t * (6 * t - 15) + 10);
 }
 
 /**
@@ -184,8 +195,8 @@ function coreHalfAt(y: number): number {
 /** چقدر در این ارتفاع باید بازو را از تنه جدا حساب کرد (۰ تا ۱). */
 function armSeparationAt(y: number): number {
   return (
-    smoothStep(y, ARM_FADE_IN[0], ARM_FADE_IN[1]) *
-    (1 - smoothStep(y, ARM_FADE_OUT[0], ARM_FADE_OUT[1]))
+    smootherStep(y, ARM_FADE_IN[0], ARM_FADE_IN[1]) *
+    (1 - smootherStep(y, ARM_FADE_OUT[0], ARM_FADE_OUT[1]))
   );
 }
 
@@ -355,6 +366,7 @@ function buildGeometry(metrics: Metrics): Geometry {
     knots.map(([y]) => y),
     knots.map(([, k]) => k),
   );
+  
 
   return {
     remapY,
@@ -362,15 +374,23 @@ function buildGeometry(metrics: Metrics): Geometry {
     limbScale:
       statureScale *
       (1 - 0.04 * childness) *
-      (female ? 0.955 : 1) *
+      (female ? 0.97 : 1) *
       (1 + 0.30 * fat - 0.16 * thin),
     statureScale,
     headScale,
     landmarks,
   };
+  
 }
 
-/** نگاشتِ یک نقطهٔ سیلوئت مرجع به پیکرهٔ جدید. */
+/**
+ * نگاشتِ یک نقطهٔ سیلوئت مرجع به پیکرهٔ جدید.
+ *
+ * وزنِ رژیمِ بازو حاصل‌ضربِ دو عاملِ C² است: `separation` (ارتفاع) و `outward`
+ * (فاصله از محور). هر دو در مرزها مشتقِ اول و دومِ صفر دارند، پس گذار از تنه
+ * به بازو هیچ لبه یا چینِ قابل‌دیدنی نمی‌سازد. کششِ `ARM_HUG` با همان وزن
+ * اعمال می‌شود و هیچ `clamp`ی در مسیر نیست — clamp روی لبه گوشه می‌سازد.
+ */
 function warpPoint(geometry: Geometry, x: number, y: number): [number, number] {
   const offset = x - CENTER_X;
   const distance = Math.abs(offset);
@@ -382,9 +402,14 @@ function warpPoint(geometry: Geometry, x: number, y: number): [number, number] {
   let mapped = uniform;
   if (separation > 0) {
     const edge = coreHalfAt(y);
-    const piecewise =
-      distance <= edge ? distance * core : edge * core + (distance - edge) * geometry.limbScale;
-    mapped = uniform + (piecewise - uniform) * separation;
+    const edgeMapped = edge * core;
+
+    const limbed = edgeMapped + (distance - edge) * geometry.limbScale;
+    const outward = smootherStep(distance, edge - ARM_EDGE_SOFT, edge + ARM_EDGE_SOFT);
+
+    const blend = separation * outward;
+    mapped = uniform + (limbed - uniform) * blend;
+    mapped -= ARM_HUG * edgeMapped * blend;
   }
 
   const sign = offset < 0 ? -1 : 1;
@@ -455,7 +480,11 @@ function subdivideCubic(
   return segments;
 }
 
-const SUBDIVISIONS = 3;
+/**
+ * تعدادِ تکه‌ها در هر منحنی. شش تکه خطای وارپِ قوس‌های بلند (بازو، ران) را
+ * نسبت به سه تکه تقریباً نصف می‌کند؛ هزینه‌اش فقط چند کاراکترِ بیشتر در `d`.
+ */
+const SUBDIVISIONS = 6;
 
 interface WarpedPath {
   readonly commands: { type: Command["type"]; points: number[] }[];

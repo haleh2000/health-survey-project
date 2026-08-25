@@ -1,13 +1,10 @@
 // src/modules/survey/presentation/pages/SurveyPage.tsx
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { toAsciiDigits } from "@core/text/digits";
 import { Alert } from "@ds/components/Alert";
 import { Card } from "@ds/components/Card";
-import { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
 import { QuestionField } from "@survey/presentation/components/QuestionField";
-import { RiskResultCard } from "@survey/presentation/components/RiskResultCard";
 import { StepNav } from "@survey/presentation/components/StepNav";
 import { StepTimeline } from "@survey/presentation/components/StepTimeline";
 import { SurveyHeader } from "@survey/presentation/components/SurveyHeader";
@@ -15,6 +12,8 @@ import { useSurveyDependencies } from "@survey/presentation/state/survey-depende
 import { useSurveyWizard } from "@survey/presentation/state/useSurveyWizard";
 import { HealthDashboard } from "@survey/presentation/components/dashboard/HealthDashboard"
 import { loadAssessmentHistory } from "@survey/infrastructure/storage/assessment-history.storage";
+import { validateQuestion } from "@survey/domain/services/answer-validation.service";
+import type { Question } from "@survey/domain/entities/question.entity";
 
 const stepSpring = { type: "spring", stiffness: 320, damping: 32 } as const;
 
@@ -32,16 +31,56 @@ export function SurveyPage() {
     previousStepRef.current = next;
   }, [wizard.stepIndex]);
 
-  const height = wizard.valueOf("height");
-  const weight = wizard.valueOf("weight");
+  /** Auto-advance to next question or step after answering. */
+  const handleSetValue = useCallback(
+    (question: Question, value: string) => {
+      wizard.setValue(question, value);
+      
+      // Check if question is now answered and valid
+      const error = validateQuestion(question, { ...wizard.answers, [question.id]: value });
+      if (!error && wizard.questions.length > 0) {
+        const currentIndex = wizard.questions.findIndex((q) => q.id === question.id);
+        if (currentIndex >= 0 && currentIndex < wizard.questions.length - 1) {
+          // Focus next question in same step
+          const nextQuestion = wizard.questions[currentIndex + 1];
+          if (nextQuestion) {
+            requestAnimationFrame(() => {
+              document.getElementById(`q-${nextQuestion.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+            });
+          }
+        } else if (currentIndex === wizard.questions.length - 1) {
+          // Last question in step - auto advance to next step
+          wizard.goNext();
+        }
+      }
+    },
+    [wizard],
+  );
 
-  const bodyMetrics = useMemo(
-    () =>
-      BodyMetrics.create(
-        Number(toAsciiDigits(height)),
-        Number(toAsciiDigits(weight)),
-      ),
-    [height, weight],
+  /** Auto-advance for choice questions (single/multi). */
+  const handleToggleValue = useCallback(
+    (question: Question, value: string) => {
+      wizard.toggleValue(question as any, value);
+      
+      // For choice questions, check after a brief delay to allow state update
+      setTimeout(() => {
+        const error = validateQuestion(question, wizard.answers);
+        if (!error && wizard.questions.length > 0) {
+          const currentIndex = wizard.questions.findIndex((q) => q.id === question.id);
+          if (currentIndex >= 0 && currentIndex < wizard.questions.length - 1) {
+            const nextQuestion = wizard.questions[currentIndex + 1];
+            if (nextQuestion) {
+              requestAnimationFrame(() => {
+                document.getElementById(`q-${nextQuestion.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+              });
+            }
+          } else if (currentIndex === wizard.questions.length - 1) {
+            wizard.goNext();
+          }
+        }
+      }, 0);
+    },
+    [wizard],
   );
 
 if (wizard.stage === "completed" && wizard.assessment) {
@@ -120,12 +159,8 @@ if (wizard.stage === "completed" && wizard.assessment) {
                             value={wizard.valueOf(question.id)}
                             selected={wizard.selectionOf(question.id)}
                             error={wizard.errors[question.id]}
-                            onSetValue={(value) =>
-                              wizard.setValue(question, value)
-                            }
-                            onToggleValue={(choiceQuestion, value) =>
-                              wizard.toggleValue(choiceQuestion, value)
-                            }
+                            onSetValue={(value) => handleSetValue(question, value)}
+                            onToggleValue={(choiceQuestion, value) => handleToggleValue(choiceQuestion, value)}
                           />
                         </motion.div>
                       ))}

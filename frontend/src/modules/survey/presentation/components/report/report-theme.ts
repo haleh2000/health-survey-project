@@ -18,7 +18,7 @@ export const PAGE_HEIGHT_MM = 297;
 
 /** حاشیهٔ چاپی سند. */
 export const PAGE_PADDING_X = 48;
-export const PAGE_PADDING_TOP = 40;
+export const PAGE_PADDING_TOP = 20;
 export const PAGE_PADDING_BOTTOM = 36;
 
 /** ارتفاع نوار بالا و پایینِ هر صفحه (به‌جز جلد). */

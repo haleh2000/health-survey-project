@@ -36,4 +36,4 @@ export const CORE_HALF_WIDTH: readonly number[] = [
 ];
 
 /** گام نمونه‌برداری جدول بالا (پیکسل). */
-export const CORE_HALF_STEP = 4;
+export const CORE_HALF_STEP = 5;
