@@ -1,15 +1,5 @@
 // src/design-system/illustrations/anatomy/BodyFigure.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// پیکرهٔ انسانی (نمای قدامی) که با قد، وزن، سن و جنسیتِ کاربر شکل می‌گیرد.
-// هندسه در body-shape.ts ساخته می‌شود؛ این‌جا فقط رنگ و سایه‌پردازی است.
-//
-// خروجی یک <g> است نه <svg>: اندام‌ها باید در همان دستگاه مختصاتِ بدن رسم شوند
-// تا با تغییرِ تناسبِ بدن، دقیقاً سرِ جای خودشان بمانند.
-//
-// نکتهٔ رندر: مو و بدن دو مسیر جدا هستند. برای اینکه خطِ دورِ «اجتماعِ» آن‌ها
-// یکپارچه دیده شود، اول هر دو با خطِ ضخیم کشیده می‌شوند و بعد هر دو پر می‌شوند؛
-// هر تکه از خط که داخل دیگری بیفتد زیر رنگ می‌رود و فقط لبهٔ بیرونی می‌ماند.
-// ─────────────────────────────────────────────────────────────────────────────
+
 import { useId } from "react";
 
 import { computeBodyShape, type BodyProfile, type BodyShape } from "./body-shape";
@@ -30,9 +20,10 @@ export function BodyFigure({ profile, shape, className }: Props) {
   const hairId = `bf-hair-${uid}`;
   const clipId = `bf-clip-${uid}`;
   const skinId = `bf-skin-${uid}`;
+  const softId = `bf-soft-${uid}`;
   const tightId = `bf-tight-${uid}`;
 
-  const { hairD } = geometry;
+  const { hairD, groundShadow } = geometry;
 
   return (
     <g className={className}>
@@ -51,41 +42,51 @@ export function BodyFigure({ profile, shape, className }: Props) {
           <stop offset="100%" stopColor="#ece8e3" />
         </linearGradient>
 
+        <filter id={softId} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" />
+        </filter>
         <filter id={tightId} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="1.2" />
+          <feGaussianBlur stdDeviation="1.6" />
         </filter>
       </defs>
 
-      {/*
-        خطِ دورِ یکپارچه (نیمهٔ داخلی‌اش زیر رنگِ بدنه می‌رود). عمداً نازک و
-        نسبتاً پررنگ است: باریک‌ترین شکافِ سیلوئت، گودیِ بینِ دو انگشت، در ریشه
-        حدودِ ۱٫۳ واحد است و به سمتِ نوک تا ~۵ واحد باز می‌شود. خطِ ۲ واحدی فقط
-        ته‌ی گودی را می‌بندد (که همان پردهٔ بینِ انگشتان است) و بقیهٔ شکاف باز
-        می‌ماند؛ با خطِ ضخیم‌تر، کلِ شکاف پر می‌شود و دست یک پارو می‌شود.
-      */}
-      <g fill="none" stroke="#a99f93" strokeWidth="2" strokeLinejoin="round" opacity="0.7">
+      {/* سایهٔ زیر پا */}
+      <ellipse
+        cx={groundShadow.cx}
+        cy={groundShadow.cy}
+        rx={groundShadow.rx}
+        ry={5}
+        fill="#000"
+        opacity="0.06"
+        filter={`url(#${softId})`}
+      />
+
+      {/* خطِ دورِ یکپارچه (نیمهٔ داخلی‌اش زیر رنگِ بدنه می‌رود) */}
+      {/* <g fill="none" stroke="#b6ada2" strokeWidth="4.8" strokeLinejoin="round" opacity="0.5">
         {hairD && <use href={`#${hairId}`} />}
         <use href={`#${bodyId}`} />
-      </g>
+      </g> */}
 
-      {/* بدنه، و مو رویِ آن — مو باید بالای جمجمه را بپوشاند نه پشتش برود */}
+      {/* بدنه */}
+      {hairD && <use href={`#${hairId}`} fill="#ded7cd" />}
       <use href={`#${bodyId}`} fill={`url(#${skinId})`} />
-      {hairD && <use href={`#${hairId}`} fill="#d9d1c6" />}
 
-      {/*
-        حجم‌دهیِ لبه — باریک و کلیپ‌شده داخلِ خودِ پیکره. هالهٔ پهنِ قبلی از دور
-        شبیهِ سایه‌ای گردِ آدم دیده می‌شد، پس حذف شده است.
-
-        پهنایش هم باید از نازک‌ترین عضوِ بدن کمتر بماند: با ۷ واحد، انگشتی که
-        ۵ واحد پهناست تماماً زیرِ سایه می‌رفت و یک‌دست تیره می‌شد.
-      */}
+      {/* سایهٔ داخلی لبه‌ها — کلیپ‌شده داخل اجتماعِ مو و بدن */}
       <g clipPath={`url(#${clipId})`}>
         <use
           href={`#${bodyId}`}
           fill="none"
+          stroke="#a89f95"
+          strokeWidth="26"
+          opacity="0.34"
+          filter={`url(#${softId})`}
+        />
+        <use
+          href={`#${bodyId}`}
+          fill="none"
           stroke="#8f867c"
-          strokeWidth="4"
-          opacity="0.24"
+          strokeWidth="7"
+          opacity="0.30"
           filter={`url(#${tightId})`}
         />
         {hairD && (
@@ -93,8 +94,8 @@ export function BodyFigure({ profile, shape, className }: Props) {
             href={`#${hairId}`}
             fill="none"
             stroke="#8f867c"
-            strokeWidth="4"
-            opacity="0.22"
+            strokeWidth="5"
+            opacity="0.26"
             filter={`url(#${tightId})`}
           />
         )}
