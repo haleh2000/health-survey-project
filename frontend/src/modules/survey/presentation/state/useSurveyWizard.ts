@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { toAsciiDigits } from "@core/text/digits";
 import type { AppError } from "@core/errors/app-error";
@@ -87,7 +87,6 @@ export function useSurveyWizard(): SurveyWizard {
   return data.answers ?? {};
 });
 
-
 const [stepIndex, setStepIndex] = useState<number>(() => {
   const saved = localStorage.getItem(STORAGE_KEY);
 
@@ -101,6 +100,7 @@ const [stepIndex, setStepIndex] = useState<number>(() => {
   const [stage, setStage] = useState<WizardStage>("filling");
   const [remoteError, setRemoteError] = useState<AppError | null>(null);
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
+  const lastAnsweredQuestionRef = useRef<QuestionId | null>(null);
 
 useEffect(() => {
   localStorage.setItem(
@@ -139,6 +139,7 @@ useEffect(() => {
     (question: Question, value: string) => {
       setAnswers((previous) => setAnswer(previous, question, value));
       clearError(question.id);
+      lastAnsweredQuestionRef.current = question.id;
     },
     [clearError],
   );
@@ -147,6 +148,7 @@ useEffect(() => {
     (question: ChoiceQuestion, value: string) => {
       setAnswers((previous) => toggleAnswer(previous, question, value));
       clearError(question.id);
+      lastAnsweredQuestionRef.current = question.id;
     },
     [clearError],
   );
@@ -220,6 +222,37 @@ useEffect(() => {
     },
     [submitSurvey, jumpToFirstError],
   );
+
+  /** Auto-scroll / auto-advance after the user answers a question. */
+  useEffect(() => {
+    const answeredId = lastAnsweredQuestionRef.current;
+    if (!answeredId) return;
+    lastAnsweredQuestionRef.current = null;
+
+    const currentIndex = questions.findIndex((q) => q.id === answeredId);
+    if (currentIndex < 0) return;
+
+    if (currentIndex === questions.length - 1) {
+      const validation = validateStep.execute(stepIndex, answers);
+      if (!validation.canAdvance) return;
+
+      if (stepIndex >= definition.stepCount - 1) {
+        void submit(answers);
+      } else {
+        setStepIndex((current) => current + 1);
+        scrollToTop();
+      }
+    } else {
+      const nextQuestion = questions[currentIndex + 1];
+      if (nextQuestion) {
+        requestAnimationFrame(() => {
+          document
+            .getElementById(questionAnchorId(nextQuestion.id))
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
+    }
+  }, [answers, stepIndex, questions, definition, submit, validateStep]);
 
   const goNext = useCallback(() => {
     const validation = validateStep.execute(stepIndex, answers);
