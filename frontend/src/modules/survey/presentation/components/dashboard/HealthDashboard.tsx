@@ -461,7 +461,7 @@ export function HealthDashboard({
             className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-day-primary/10 px-3 py-1.5 text-xs font-bold text-day-primary transition hover:bg-day-primary/15"
           >
             <History className="h-3.5 w-3.5" />
-            مشاهده ارزیابی‌های من
+            مشاهده سوابق ارزیابی‌های من
           </motion.button>
 
           {record && (

@@ -153,7 +153,7 @@ const ARM_MEDIAL: readonly Pt[] = [
   [62.6, 248],
   [62, 243],     // اپی‌کندیلِ داخلیِ آرنج
   [58.6, 216],
-  [55.1, 207],
+  [57.1, 207],
   [52.1, 168],
   [50.7, 178, 0.4], // نوکِ زیربغل — گوشه است، نه قوس
 ];
@@ -169,7 +169,7 @@ const TORSO_TO_ANKLE: readonly Pt[] = [
   [48, 258],
   [51, 272],
   [55, 285],
-  [57.8, 296],   // پهن‌ترین جای لگن (تروکانتر)
+  [57.8, 299],   // پهن‌ترین جای لگن (تروکانتر)
   [57.6, 308],
   [57.2, 320],
   [56.8, 332],   // بالای ران
@@ -225,12 +225,12 @@ const LEG_MEDIAL: readonly Pt[] = [
   [10.6, 448],
   [11, 438],   // زانو از داخل
   [10.6, 420],
-  [9.8, 398],
+[9.8, 398],
   [9.2, 372],
-  [8.6, 348],
-  [8.8, 332],
-  [6.4, 324, 0.5],
-  [0, 318, 0.3], // فاق، روی محور
+  [8.6, 352],
+  [8.8, 342],
+  [6.4, 336, 0.5],
+  [0, 334, 0.3], // فاق، روی محور
 ];
 
 // ─── دست ─────────────────────────────────────────────────────────────────────
@@ -262,17 +262,17 @@ interface FingerSpec {
 }
 
 const FINGERS: readonly FingerSpec[] = [
-  { base: 99.25, tip: 102.5, tipY: 379, baseHalf: 3.05, tipHalf: 2.6 }, // اشاره
-  { base: 91.75, tip: 92, tipY: 384, baseHalf: 3.15, tipHalf: 2.7 },    // میانی
-  { base: 84.25, tip: 82, tipY: 381, baseHalf: 3.05, tipHalf: 2.6 },    // انگشتری
-  { base: 76.75, tip: 72.5, tipY: 372, baseHalf: 2.85, tipHalf: 2.4 },  // کوچک
+  { base: 99.25, tip: 100.5, tipY: 371, baseHalf: 3.05, tipHalf: 2.6 }, // اشاره
+  { base: 91.75, tip: 92, tipY: 374, baseHalf: 3.15, tipHalf: 2.7 },    // میانی
+  { base: 84.25, tip: 84, tipY: 371, baseHalf: 3.05, tipHalf: 2.6 },    // انگشتری
+  { base: 76.75, tip: 76.5, tipY: 365, baseHalf: 2.85, tipHalf: 2.4 },  // کوچک
 ];
 
 /** جای نمونه‌برداری در طولِ انگشت، و ضریبِ باریک‌شدنِ نوک. */
 const FINGER_STOPS: readonly (readonly [t: number, pinch: number])[] = [
   [0, 1],
   [0.45, 1],
-  [0.8, 0.96],
+  [0.9, 0.96],
   [0.94, 0.6],
 ];
 
@@ -293,7 +293,7 @@ function fingerPoints(spec: FingerSpec): Pt[] {
 /** گودیِ بینِ دو انگشت — تیز و بالاتر از خطِ مفصل، وگرنه دو انگشت به هم می‌چسبند. */
 function webPoint(outer: FingerSpec, inner: FingerSpec): Pt {
   const gap = (outer.base - outer.baseHalf + inner.base + inner.baseHalf) / 2;
-  return [gap, KNUCKLE_Y - 8, 0.25];
+  return [gap, KNUCKLE_Y - 9, 0.25];
 }
 
 /**

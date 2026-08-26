@@ -74,19 +74,32 @@ export function AssessmentHistoryModal({ open, onClose, history }: Props) {
             </div>
 
             <div className="max-h-[calc(80vh-60px)] overflow-y-auto p-5">
-              {history.length === 0 ? (
-                /* حالت اولین بار */
-                <div className="flex flex-col items-center gap-3 py-8 text-center">
-                  <span className="grid h-14 w-14 place-items-center rounded-full bg-day-primary/10 text-day-primary">
+            {history.length === 0 ? (
+              /* حالت اولین بار */
+              <div className="flex flex-col items-center gap-4 py-8 text-center
+                  sm:flex-row sm:items-center sm:gap-5 sm:py-6 sm:text-right">
+                <img
+                  src="/illustrations/first-assessment.png"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-28 w-28 shrink-0 object-contain sm:h-32 sm:w-32"
+                />
+
+                <div className="flex flex-col items-center gap-3 sm:items-start">
+                  {/* <span className="grid h-14 w-14 place-items-center rounded-full bg-day-primary/10 text-day-primary sm:hidden">
                     <Sparkles className="h-7 w-7" />
-                  </span>
+                  </span> */}
                   <p className="text-sm font-black text-ink">این اولین ارزیابی شماست 🌱</p>
                   <p className="max-w-[260px] text-[11px] leading-6 text-ink-subtle">
                     هنوز ارزیابی ذخیره‌شده‌ای ندارید. بعد از هر ارزیابی، نتیجه همین‌جا
                     ذخیره می‌شود تا بتوانید روند سلامت خود را در طول زمان دنبال کنید.
                   </p>
                 </div>
-              ) : (
+              </div>
+            ) : (
+
                 <ol className="flex flex-col gap-3">
                   {history.map((record, index) => {
                     const a = record.assessment;
