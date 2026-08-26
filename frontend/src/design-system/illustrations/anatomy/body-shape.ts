@@ -205,7 +205,6 @@ interface Metrics {
    * فاصله تا میانهٔ همان سن حساب می‌شود و روی میانهٔ بزرگسال سوار می‌شود.
    */
   readonly shapeBmi: number;
-  readonly female: boolean;
   readonly drawHeight: number;
 }
 
@@ -237,7 +236,6 @@ function readMetrics(profile: BodyProfile): Metrics {
   return {
     childness: clamp((18 - age) / 18, 0, 1) ** 1.2,
     shapeBmi: clamp(22 + delta, 12, 45),
-    female: profile.sex === "female",
     // توانِ ۰٫۵ اختلافِ قدها را دیدنی نگه می‌دارد بی‌آنکه قدبلندها از قاب بزنند.
     drawHeight: clamp(BASE_DRAW_HEIGHT * (heightCm / 175) ** 0.5, 300, 592),
   };
@@ -254,19 +252,15 @@ interface Geometry {
   readonly statureScale: number;
   readonly headScale: number;
   readonly landmarks: Record<keyof typeof REF, number>;
-}
+} 
 
 function buildGeometry(metrics: Metrics): Geometry {
-  const { childness, female, drawHeight } = metrics;
+  const { childness, drawHeight } = metrics;
 
   // ریختِ بدن از کلیدفریم‌ها می‌آید و در خودِ سیلوئت پخته می‌شود؛ این‌جا فقط
   // مقیاسِ قد و نگاشتِ عمودیِ سن می‌ماند.
-  const factors = shapeFactorsAt(metrics.shapeBmi, female);
-  const outline = getBaseOutline(
-    female ? "female" : "male",
-    factors,
-    factorsKey(factors),
-  );
+  const factors = shapeFactorsAt(metrics.shapeBmi, false);
+ const outline = getBaseOutline("male", factors, factorsKey(factors));
   const coreEdgeAt = (y: number): number => coreHalfFrom(outline.coreHalf, y);
 
   const statureScale = drawHeight / REF_HEIGHT;
@@ -538,9 +532,9 @@ function cacheKey(profile: BodyProfile): string {
     round(profile.heightCm, 1),
     round(profile.weightKg, 1),
     round(profile.ageYears, 1),
-    profile.sex ?? "-",
   ].join("|");
 }
+
 
 /**
  * سیلوئت و تبدیل‌های اندام را برای یک پروفایل می‌سازد.
@@ -566,7 +560,7 @@ export function computeBodyShape(profile: BodyProfile = {}): BodyShape {
 
   const shape: BodyShape = {
     bodyD: serialize(warped.commands, fit),
-    hairD: metrics.female ? buildHairPath(geometry, fit) : null,
+    hairD: null,
     viewBox: BODY_VIEW_BOX,
     ...buildOrganTransforms(geometry, fit),
     groundShadow: {
