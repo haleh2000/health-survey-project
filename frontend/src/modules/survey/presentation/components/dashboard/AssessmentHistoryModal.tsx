@@ -119,11 +119,11 @@ export function AssessmentHistoryModal({ open, onClose, history }: Props) {
                             </span>
                           )}
                         </div>
-                        <p className="mb-1 text-[11px] text-ink-muted">{a.levelLabel}</p>
+                        {/* <p className="mb-1 text-[11px] text-ink-muted">{a.levelLabel}</p> */}
                         <div className="flex flex-wrap items-center gap-2 text-[10px] text-ink-subtle">
-                          <span className="rounded-full bg-surface-muted px-2 py-0.5 tabular-nums">
+                          {/* <span className="rounded-full bg-surface-muted px-2 py-0.5 tabular-nums">
                             نمره ریسک: {toPersianDigits(a.score)}
-                          </span>
+                          </span> */}
                           {a.bmi != null && (
                             <span className="rounded-full bg-surface-muted px-2 py-0.5 tabular-nums">
                               BMI: {toPersianDigits(a.bmi)}

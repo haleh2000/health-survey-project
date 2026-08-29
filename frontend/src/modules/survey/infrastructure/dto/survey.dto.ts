@@ -1,4 +1,3 @@
-// src/survey/infrastructure/dto/survey.dto.ts
 
 export type SurveyRequestDto = Readonly<
   Record<string, string | number | readonly string[]>
@@ -46,3 +45,18 @@ export interface RiskResponseDto extends Record<string, unknown> {
     family_cardiac?: boolean;
   };
 }
+
+
+export interface AssessmentHistoryItemDto {
+  id: number;
+  full_name: string;
+  risk_score: number;
+  risk_level: string;
+  bmi: number;
+  created_at: string;
+}
+
+export type AssessmentHistoryResponseDto =
+  readonly AssessmentHistoryItemDto[];
+
+

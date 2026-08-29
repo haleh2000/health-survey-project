@@ -188,11 +188,29 @@ useEffect(() => {
               ? "male"
               : null;
 
-        saveAssessmentRecord(
-          result.value,
-          metrics ? { heightCm: metrics.heightCm, weightKg: metrics.weightKg } : null,
-          sex,
-        );
+
+            const nationalId = readText(
+              finalAnswers,
+              "national_id" as QuestionId,
+            ).trim();
+
+            saveAssessmentRecord(
+              result.value,
+
+              metrics
+                ? {
+                    heightCm:
+                      metrics.heightCm,
+                    weightKg:
+                      metrics.weightKg,
+                  }
+                : null,
+
+              sex,
+
+              nationalId,
+            );
+
         setAssessment(result.value);
         setStage("completed");
         scrollToTop();

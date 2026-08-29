@@ -7,6 +7,7 @@ import { ValidateStepUseCase } from "@survey/application/use-cases/validate-step
 import { assertContractCoverage } from "@survey/infrastructure/contract/assert-contract-coverage";
 import { createSurveyDefinition } from "@survey/infrastructure/definition/survey-definition.data";
 import { HttpRiskAssessmentRepository } from "@survey/infrastructure/repositories/http-risk-assessment.repository";
+import { HttpHistoryRepository } from "@survey/infrastructure/repositories/http-history.repository";
 import type { SurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 
 /**
@@ -26,12 +27,14 @@ export const createSurveyDependencies = (): SurveyDependencies => {
 
   const httpClient = new AxiosHttpClient(ENV.apiUrl, ENV.requestTimeoutMs);
   const repository = new HttpRiskAssessmentRepository(httpClient);
+  const historyRepository = new HttpHistoryRepository(httpClient);
 
   return {
     definition,
     validateStep: new ValidateStepUseCase(definition),
     submitSurvey: new SubmitSurveyUseCase(definition, repository),
     progress: new SurveyProgressUseCase(definition),
+    historyRepository,
   };
 };
 

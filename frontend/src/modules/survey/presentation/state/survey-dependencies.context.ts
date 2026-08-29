@@ -4,6 +4,7 @@ import type { SubmitSurveyUseCase } from "@survey/application/use-cases/submit-s
 import type { SurveyProgressUseCase } from "@survey/application/use-cases/survey-progress.use-case";
 import type { ValidateStepUseCase } from "@survey/application/use-cases/validate-step.use-case";
 import type { SurveyDefinition } from "@survey/domain/entities/survey-definition.entity";
+import type { HistoryRepository } from "@survey/domain/ports/history.repository";
 
 /**
  * What the UI needs in order to run, stated as an interface it owns.
@@ -18,6 +19,7 @@ export interface SurveyDependencies {
   readonly validateStep: ValidateStepUseCase;
   readonly submitSurvey: SubmitSurveyUseCase;
   readonly progress: SurveyProgressUseCase;
+  readonly historyRepository: HistoryRepository;
 }
 
 export const SurveyDependenciesContext = createContext<SurveyDependencies | null>(null);
