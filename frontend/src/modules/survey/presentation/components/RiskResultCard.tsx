@@ -26,8 +26,10 @@ export function RiskResultCard({ assessment, answers, bodyMetrics, onRestart }: 
         assessment={assessment}
         answers={answers}
         bodyMetrics={bodyMetrics}
+        nationalId={assessment.nationalId}
         onShare={handleShare}
       />
+
       <p className="text-center text-xs leading-6 text-ink-subtle">
         این نتیجه جنبه اطلاع‌رسانی دارد و جایگزین مشاوره پزشکی نمی‌شود.
       </p>

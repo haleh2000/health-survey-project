@@ -1,89 +1,203 @@
 // src/modules/survey/infrastructure/storage/assessment-history.storage.ts
 
-import { todayJalali, formatJalaliIso } from "@core/date/jalali";
+import {
+  todayJalali,
+  formatJalaliIso,
+} from "@core/date/jalali";
+
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 
 /**
- * جنسیت ثبت‌شده — همان دو مقداری که پرسش‌نامه می‌پذیرد.
- *
- * عمداً این‌جا تعریف شده و از لایهٔ نمایش وارد نشده است: لایهٔ زیرساخت نباید
- * به UI وابسته باشد. با `BodyProfile["sex"]` هم‌شکل است، پس بدون تبدیل به
- * کامپوننتِ پیکره پاس داده می‌شود.
+ * جنسیت ثبت‌شده
  */
 export type RecordedSex = "male" | "female";
 
 /**
- * Local persistence for completed assessments.
- *
- * The backend is stateless — it scores a survey and forgets it — so the
- * dashboard's "what have I done so far" view is kept on the device. Records
- * are stored newest-first and capped so the payload stays small.
+ * یک رکورد ارزیابی ذخیره‌شده
  */
-
 export interface AssessmentRecord {
   readonly assessment: RiskAssessment;
-  /** Jalali date of completion, ISO-formatted (`1404-05-24`). */
+
+  /**
+   * کد ملی شخصی که ارزیابی را انجام داده است.
+   */
+  readonly nationalId: string;
+
+  /**
+   * تاریخ شمسی تکمیل ارزیابی.
+   * مثال: 1404-05-24
+   */
   readonly completedOnJalali: string;
-  /** Epoch milliseconds, for ordering. */
+
+  /**
+   * زمان ثبت ارزیابی بر حسب timestamp.
+   * برای مرتب‌سازی استفاده می‌شود.
+   */
   readonly completedAt: number;
-  /** قد (سانتی‌متر) — برای تبدیل BMI به وزن در نمودار مقایسه‌ای. */
+
+  /**
+   * قد بر حسب سانتی‌متر
+   */
   readonly heightCm?: number;
-  /** وزن (کیلوگرم) در زمان ارزیابی. */
+
+  /**
+   * وزن بر حسب کیلوگرم
+   */
   readonly weightKg?: number;
-  /** جنسیت — برای شخصی‌سازی پیکرهٔ بدن در داشبورد و گزارش. */
+
+  /**
+   * جنسیت
+   */
   readonly sex?: RecordedSex;
 }
 
-/** اندازه‌های بدنی که همراه ارزیابی ذخیره می‌شوند. */
+/**
+ * اندازه‌های بدنی
+ */
 export interface RecordedBodyMetrics {
   readonly heightCm: number;
   readonly weightKg: number;
 }
 
 const STORAGE_KEY = "health-assessment-history";
+
 const MAX_RECORDS = 12;
 
+/**
+ * تمام سوابق ذخیره‌شده را برمی‌گرداند.
+ */
 export function loadAssessmentHistory(): AssessmentRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+
+    if (!raw) {
+      return [];
+    }
+
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
     return parsed.filter(
       (record): record is AssessmentRecord =>
         typeof record === "object" &&
         record !== null &&
         "assessment" in record &&
-        "completedAt" in record,
+        "nationalId" in record &&
+        typeof record.nationalId === "string" &&
+        "completedOnJalali" in record &&
+        typeof record.completedOnJalali === "string" &&
+        "completedAt" in record &&
+        typeof record.completedAt === "number",
     );
   } catch {
-    // Private browsing or corrupted payload — behave as "no history".
     return [];
   }
 }
 
+/**
+ * فقط سوابق مربوط به کد ملی مشخص‌شده را برمی‌گرداند.
+ *
+ * خروجی همیشه از جدیدترین ارزیابی به قدیمی‌ترین مرتب می‌شود.
+ */
+export function loadAssessmentHistoryByNationalId(
+  nationalId: string,
+): AssessmentRecord[] {
+  const normalizedNationalId =
+    nationalId.trim();
+
+  if (!normalizedNationalId) {
+    return [];
+  }
+
+  return loadAssessmentHistory()
+    .filter(
+      (record) =>
+        record.nationalId ===
+        normalizedNationalId,
+    )
+    .sort(
+      (a, b) =>
+        b.completedAt -
+        a.completedAt,
+    );
+}
+
+/**
+ * ذخیره یک ارزیابی جدید.
+ */
 export function saveAssessmentRecord(
   assessment: RiskAssessment,
   body?: RecordedBodyMetrics | null,
   sex?: RecordedSex | null,
+  nationalId?: string | null,
 ): AssessmentRecord {
+  const normalizedNationalId =
+    nationalId?.trim() ?? "";
+
   const record: AssessmentRecord = {
     assessment,
-    completedOnJalali: formatJalaliIso(todayJalali()),
-    completedAt: Date.now(),
-    ...(body ? { heightCm: body.heightCm, weightKg: body.weightKg } : {}),
-    ...(sex ? { sex } : {}),
+
+    nationalId:
+      normalizedNationalId,
+
+    completedOnJalali:
+      formatJalaliIso(
+        todayJalali(),
+      ),
+
+    completedAt:
+      Date.now(),
+
+    ...(body
+      ? {
+          heightCm:
+            body.heightCm,
+          weightKg:
+            body.weightKg,
+        }
+      : {}),
+
+    ...(sex
+      ? {
+          sex,
+        }
+      : {}),
   };
 
   try {
-    const history = [record, ...loadAssessmentHistory()].slice(0, MAX_RECORDS);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    const history = [
+      record,
+      ...loadAssessmentHistory(),
+    ]
+      .sort(
+        (a, b) =>
+          b.completedAt -
+          a.completedAt,
+      )
+      .slice(
+        0,
+        MAX_RECORDS,
+      );
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(history),
+    );
   } catch {
-    // Storage being unavailable must never break submission.
+    // خطای localStorage نباید باعث شکست submit شود.
   }
 
   return record;
 }
 
-export const latestAssessmentRecord = (): AssessmentRecord | null =>
-  loadAssessmentHistory()[0] ?? null;
+/**
+ * آخرین ارزیابی ثبت‌شده.
+ */
+export const latestAssessmentRecord =
+  (): AssessmentRecord | null =>
+    loadAssessmentHistory()[0] ??
+    null;
+

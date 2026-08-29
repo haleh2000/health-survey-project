@@ -9,6 +9,7 @@ import type { Result } from "@core/result/result";
  * change above this line.
  */
 export interface HttpClient {
+  get<TResponse>(path: string): Promise<Result<TResponse, AppError>>;
   post<TResponse>(
     path: string,
     body: unknown,
