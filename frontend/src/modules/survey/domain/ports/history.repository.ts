@@ -6,4 +6,9 @@ export interface HistoryRepository {
   fetchByNationalId(
     nationalId: string,
   ): Promise<Result<readonly AssessmentRecord[], AppError>>;
+
+  fetchBySubmissionId(
+    nationalId: string,
+    submissionId: number,
+  ): Promise<Result<AssessmentRecord, AppError>>;
 }

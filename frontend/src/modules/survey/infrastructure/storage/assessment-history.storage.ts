@@ -24,6 +24,11 @@ export interface AssessmentRecord {
   readonly nationalId: string;
 
   /**
+   * شناسه ارزیابی در دیتابیس بک‌اند.
+   */
+  readonly submissionId?: number;
+
+  /**
    * تاریخ شمسی تکمیل ارزیابی.
    * مثال: 1404-05-24
    */

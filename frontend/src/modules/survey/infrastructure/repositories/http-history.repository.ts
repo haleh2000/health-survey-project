@@ -1,7 +1,7 @@
 import type { HttpClient } from "@core/http/http-client.port";
 import { err, ok, type Result } from "@core/result/result";
 import type { AppError } from "@core/errors/app-error";
-import type { RiskTier } from "@survey/domain/entities/risk-assessment.entity";
+import type { RiskTier, AssessmentFlags } from "@survey/domain/entities/risk-assessment.entity";
 import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 import type { HistoryRepository } from "@survey/domain/ports/history.repository";
 
@@ -9,19 +9,60 @@ const ENDPOINT_PREFIX = "/submissions";
 
 interface SubmissionDto {
   id: number;
-  full_name: string;
+  full_name: string | null;
   risk_score: number;
   risk_level: string;
   bmi: number;
+  age: number;
+  height: number;
+  weight: number;
   created_at: string;
 }
 
-function dtoToRecord(dto: SubmissionDto): AssessmentRecord {
+interface SubmissionDetailDto extends SubmissionDto {
+  person_national_id: string;
+  gender: string | null;
+  birth_date: string | null;
+
+  smoking_status: string;
+  cigarettes_per_day: string;
+  hookah_ecig: string;
+  alcohol: string;
+  adds_salt: string;
+  hot_drink_temp: string;
+  junk_food: string;
+  processed_meat: string;
+  veg_fruit: string;
+  smoked_food: string;
+  air_pollution: string;
+  occupational_hazard: string;
+  physical_activity: string;
+
+  confirmed_diseases: string[];
+  stroke_history: string[];
+  h_pylori: string;
+  cancer_history: string;
+  cancer_types: string[];
+  family_history: string[];
+
+  lung_risk: number;
+  gastric_risk: number;
+  colon_risk: number;
+  pancreas_risk: number;
+  stroke_risk: number;
+  cardiac_risk: number;
+  metabolic_risk: number;
+  liver_risk: number;
+
+  flags: AssessmentFlags;
+}
+
+function dtoToRecord(dto: SubmissionDto, nationalId: string): AssessmentRecord {
   return {
     assessment: {
-      fullName: dto.full_name,
-      nationalId: "",
-      ageYears: 0,
+      fullName: dto.full_name ?? "",
+      nationalId,
+      ageYears: dto.age,
       score: dto.risk_score,
       levelLabel: dto.risk_level,
       tier: "low" as RiskTier,
@@ -68,8 +109,51 @@ function dtoToRecord(dto: SubmissionDto): AssessmentRecord {
         family_cardiac: false,
       },
     },
+    nationalId,
+    submissionId: dto.id,
     completedOnJalali: dto.created_at.slice(0, 10),
     completedAt: new Date(dto.created_at).getTime(),
+    heightCm: dto.height,
+    weightKg: dto.weight,
+  };
+}
+
+function detailDtoToRecord(dto: SubmissionDetailDto): AssessmentRecord {
+  const tier: RiskTier =
+    dto.risk_score >= 70
+      ? "critical"
+      : dto.risk_score >= 40
+      ? "elevated"
+      : dto.risk_score >= 20
+      ? "moderate"
+      : "low";
+
+  return {
+    assessment: {
+      fullName: dto.full_name ?? "",
+      nationalId: dto.person_national_id,
+      ageYears: dto.age,
+      score: dto.risk_score,
+      levelLabel: dto.risk_level,
+      tier,
+      organRisks: {
+        lung: dto.lung_risk,
+        gastric: dto.gastric_risk,
+        colon: dto.colon_risk,
+        pancreas: dto.pancreas_risk,
+        stroke: dto.stroke_risk,
+        cardiac: dto.cardiac_risk,
+        metabolic: dto.metabolic_risk,
+        liver: dto.liver_risk,
+      },
+      bmi: dto.bmi,
+      flags: dto.flags,
+    },
+    nationalId: dto.person_national_id,
+    completedOnJalali: dto.created_at.slice(0, 10),
+    completedAt: new Date(dto.created_at).getTime(),
+    heightCm: dto.height,
+    weightKg: dto.weight,
   };
 }
 
@@ -89,6 +173,19 @@ export class HttpHistoryRepository implements HistoryRepository {
 
     if (!response.ok) return err(response.error);
 
-    return ok(response.value.map(dtoToRecord));
+    return ok(response.value.map((dto) => dtoToRecord(dto, nationalId)));
+  }
+
+  async fetchBySubmissionId(
+    nationalId: string,
+    submissionId: number,
+  ): Promise<Result<AssessmentRecord, AppError>> {
+    const response = await this.http.get<SubmissionDetailDto>(
+      `${ENDPOINT_PREFIX}/${nationalId}/${submissionId}`,
+    );
+
+    if (!response.ok) return err(response.error);
+
+    return ok(detailDtoToRecord(response.value));
   }
 }
