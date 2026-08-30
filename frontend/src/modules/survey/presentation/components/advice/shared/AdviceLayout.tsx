@@ -116,7 +116,9 @@ export function AdviceLayout({
       <AssessmentHistoryModal
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
+        onSelectRecord={() => {}}
         history={historyRecords}
+        nationalId={nationalId}
       />
     </div>
   );

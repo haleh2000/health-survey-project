@@ -1,7 +1,7 @@
 // src/modules/survey/presentation/components/dashboard/HealthDashboard.tsx
 
 import { motion } from "framer-motion";
-import { CalendarCheck, History, ShieldPlus } from "lucide-react";
+import { CalendarCheck, History, ShieldPlus, ArrowRight } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -15,7 +15,7 @@ import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
 import { toPersianDigits } from "@core/text/digits";
 import { ORGAN_ASSETS } from "@ds/illustrations/anatomy/organ-assets";
 import type { BodyProfile } from "@ds/illustrations/anatomy/body-shape";
-import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
+import type { AssessmentRecord } from "@survey/infrastructure/storage/activeAssessment-history.storage";
 
 import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
 import { BmiComparisonChart } from "./BmiComparisonChart";
@@ -38,6 +38,7 @@ import {
 interface Props {
   record: AssessmentRecord | null;
   history: readonly AssessmentRecord[];
+  nationalId: string;
 }
 
 const sectionSpring = {
@@ -104,12 +105,19 @@ const CARD_LAYOUT_PAD = 8;
 export function HealthDashboard({
   record,
   history,
+  nationalId,
 }: Props) {
-  const assessment = record?.assessment ?? null;
   const historyCount = history.length;
 
   // کنترل مودال ارزیابی‌ها
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  // ارزیابی تاریخی انتخاب‌شده (null یعنی آخرین ارزیابی نمایش داده می‌شود)
+  const [selectedHistoricalRecord, setSelectedHistoricalRecord] = useState<AssessmentRecord | null>(null);
+
+  // رکورد فعال: اگر کاربر ارزیابی تاریخی انتخاب کرده باشد آن، وگرنه آخرین ارزیابی
+  const activeRecord = selectedHistoricalRecord ?? record;
+  const activeAssessment = activeRecord?.assessment ?? null;
 
   const connectorHostRef =
     useRef<HTMLDivElement | null>(null);
@@ -130,18 +138,18 @@ export function HealthDashboard({
   const frameRef = useRef<number | null>(null);
 
   const rankedOrgans = useMemo(() => {
-    if (!assessment) return [];
+    if (!activeAssessment) return [];
 
     return ORGAN_META
       .map((meta) => ({
         key: meta.key,
         percent: organPercent(
-          assessment.organRisks,
+          activeAssessment.organRisks,
           meta,
         ),
       }))
       .sort((a, b) => b.percent - a.percent);
-  }, [assessment]);
+  }, [activeAssessment]);
 
   const organPercents = useMemo<
     Partial<Record<OrganKey, number>>
@@ -175,16 +183,16 @@ export function HealthDashboard({
    */
   const bodyProfile = useMemo<BodyProfile>(
     () => ({
-      heightCm: record?.heightCm ?? null,
-      weightKg: record?.weightKg ?? null,
-      ageYears: assessment?.ageYears ?? null,
-      sex: record?.sex ?? null,
+      heightCm: activeRecord?.heightCm ?? null,
+      weightKg: activeRecord?.weightKg ?? null,
+      ageYears: activeAssessment?.ageYears ?? null,
+      sex: activeRecord?.sex ?? null,
     }),
     [
-      record?.heightCm,
-      record?.weightKg,
-      record?.sex,
-      assessment?.ageYears,
+      activeRecord?.heightCm,
+      activeRecord?.weightKg,
+      activeRecord?.sex,
+      activeAssessment?.ageYears,
     ],
   );
 
@@ -265,7 +273,7 @@ export function HealthDashboard({
   const measureCards = useCallback(() => {
     const host = connectorHostRef.current;
 
-    if (!host || !assessment || !isDesktop) return;
+    if (!host || !activeAssessment || !isDesktop) return;
 
     const hostRect = host.getBoundingClientRect();
 
@@ -330,7 +338,7 @@ export function HealthDashboard({
     setCardTops(tops);
     setMinHostHeight(needed);
   }, [
-    assessment,
+    activeAssessment,
     isDesktop,
     sideGroups,
   ]);
@@ -436,13 +444,13 @@ export function HealthDashboard({
 
           <div>
             <h2 className="text-lg font-black text-ink sm:text-xl">
-              {assessment
-                ? `سلام، ${assessment.fullName} 👋`
+              {activeAssessment
+                ? `سلام، ${activeAssessment.fullName} 👋`
                 : "خلاصه وضعیت سلامت شما"}
             </h2>
 
             <p className="text-xs leading-6 text-ink-muted sm:text-sm">
-              {assessment
+              {activeAssessment
                 ? "این تصویر سلامت شما بر اساس آخرین ارزیابی است."
                 : "بینش سلامت شما بر اساس عادت‌ها و سوابق پزشکی — بعد از اولین ارزیابی فعال می‌شود."}
             </p>
@@ -482,7 +490,9 @@ export function HealthDashboard({
         onClose={() =>
           setHistoryOpen(false)
         }
+        onSelectRecord={setSelectedHistoricalRecord}
         history={history}
+        nationalId={nationalId}
       />
 
       {/* ── بخش اصلی: سوابق + نقشه بدن + کارت‌های دو طرف ── */}
@@ -494,7 +504,7 @@ export function HealthDashboard({
           </SectionLabel>
 
           <ProfilePanel
-            assessment={assessment}
+            activeAssessment={activeAssessment}
             record={record}
             baseDelay={0.05}
           />
@@ -506,7 +516,7 @@ export function HealthDashboard({
           </SectionLabel>
 
           <p className="mb-4 text-[15px] text-ink-subtle">
-            {assessment
+            {activeAssessment
               ? "شماره روی هر کارت اولویت پیگیری است: (۱ یعنی بیشترین نیاز). با مراجعه به هر کارت درصد نیاز به پیگیری شما مشخص شده است؛ همچنین با مراجعه به جزئیات هر کارت می‌توانید توصیه‌های سلامت مربوط به آن اندام را دریافت کنید."
               : "پس از اولین ارزیابی، اندام‌های مرتبط با وضعیت شما اینجا فعال می‌شوند."}
           </p>
@@ -523,7 +533,7 @@ export function HealthDashboard({
                 : undefined
             }
           >
-            {assessment && (
+            {activeAssessment && (
               <OrganConnectors
                 hostRef={connectorHostRef}
                 targets={connectorTargets}
@@ -553,7 +563,7 @@ export function HealthDashboard({
                 </div>
 
                 <div className="relative z-20 flex flex-col gap-3">
-                  {assessment ? (
+                  {activeAssessment ? (
                     visibleRanked.map(
                       (item) => (
                         <SingleOrganCard
@@ -585,7 +595,7 @@ export function HealthDashboard({
               <>
                 {/* ستون راست */}
                 <div className="relative z-20 flex flex-col gap-3">
-                  {assessment ? (
+                  {activeAssessment ? (
                     sideGroups.right.map(
                       (item) => (
                         <div
@@ -643,7 +653,7 @@ export function HealthDashboard({
 
                 {/* ستون چپ */}
                 <div className="relative z-20 flex flex-col gap-3">
-                  {assessment ? (
+                  {activeAssessment ? (
                     sideGroups.left.map(
                       (item) => (
                         <div
@@ -704,7 +714,7 @@ export function HealthDashboard({
           </h3>
 
           <span className="text-[11px] text-ink-subtle">
-            {assessment?.bmi != null
+            {activeAssessment?.bmi != null
               ? "وضعیت بدن شما در یک نگاه"
               : "پس از ارزیابی محاسبه می‌شود"}
           </span>
@@ -713,11 +723,11 @@ export function HealthDashboard({
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
           <div className="flex flex-col gap-4">
             <BmiGauge
-              bmi={assessment?.bmi ?? null}
+              bmi={activeAssessment?.bmi ?? null}
             />
 
             <BmiRangeLegend
-              bmi={assessment?.bmi ?? null}
+              bmi={activeAssessment?.bmi ?? null}
             />
           </div>
 
@@ -727,7 +737,7 @@ export function HealthDashboard({
             </h4>
 
             <BmiComparisonChart
-              bmi={assessment?.bmi ?? null}
+              bmi={activeAssessment?.bmi ?? null}
             />
           </div>
         </div>
@@ -743,7 +753,7 @@ export function HealthDashboard({
 
         <RecommendationTiles
           baseDelay={0.35}
-          tier={assessment?.tier ?? null}
+          tier={activeAssessment?.tier ?? null}
         />
       </section>
 
@@ -753,7 +763,7 @@ export function HealthDashboard({
           record={record}
           history={history}
           personName={
-            assessment?.fullName ?? null
+            activeAssessment?.fullName ?? null
           }
         />
       </section>

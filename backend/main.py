@@ -349,10 +349,13 @@ async def get_person_submissions(
         {
             "id": submission.id,
             "person_national_id": submission.person_national_id,
+            "full_name": person.full_name,
             "risk_score": submission.risk_score,
             "risk_level": submission.risk_level,
             "bmi": submission.bmi,
             "age": submission.age,
+            "height": submission.height,
+            "weight": submission.weight,
             "created_at": submission.created_at.isoformat(),
         }
         for submission in submissions
@@ -364,6 +367,12 @@ async def get_submissions(
     national_id: str,
     db: Session = Depends(get_db),
 ):
+    person = (
+        db.query(Person)
+        .filter(Person.national_id == national_id)
+        .first()
+    )
+
     rows = (
         db.query(SurveySubmission)
         .filter(
@@ -375,19 +384,101 @@ async def get_submissions(
         .all()
     )
 
-    if not rows:
-        raise HTTPException(
-            status_code=404,
-            detail="هیچ سابقه‌ای یافت نشد.",
-        )
-
     return [
         {
             "id": row.id,
+            "full_name": person.full_name if person else None,
             "risk_score": row.risk_score,
             "risk_level": row.risk_level,
             "bmi": row.bmi,
+            "age": row.age,
+            "height": row.height,
+            "weight": row.weight,
             "created_at": row.created_at.isoformat(),
         }
         for row in rows
     ]
+
+
+@app.get("/submissions/{national_id}/{submission_id}")
+async def get_submission_detail(
+    national_id: str,
+    submission_id: int,
+    db: Session = Depends(get_db),
+):
+    person = (
+        db.query(Person)
+        .filter(Person.national_id == national_id)
+        .first()
+    )
+
+    if not person:
+        raise HTTPException(
+            status_code=404,
+            detail="شخص یافت نشد.",
+        )
+
+    submission = (
+        db.query(SurveySubmission)
+        .filter(
+            SurveySubmission.id == submission_id,
+            SurveySubmission.person_national_id == national_id,
+        )
+        .first()
+    )
+
+    if not submission:
+        raise HTTPException(
+            status_code=404,
+            detail="ارزیابی یافت نشد.",
+        )
+
+    return {
+        "id": submission.id,
+        "person_national_id": submission.person_national_id,
+        "full_name": person.full_name,
+        "gender": person.gender,
+        "birth_date": person.birth_date,
+
+        "height": submission.height,
+        "weight": submission.weight,
+
+        "smoking_status": submission.smoking_status,
+        "cigarettes_per_day": submission.cigarettes_per_day,
+        "hookah_ecig": submission.hookah_ecig,
+        "alcohol": submission.alcohol,
+        "adds_salt": submission.adds_salt,
+        "hot_drink_temp": submission.hot_drink_temp,
+        "junk_food": submission.junk_food,
+        "processed_meat": submission.processed_meat,
+        "veg_fruit": submission.veg_fruit,
+        "smoked_food": submission.smoked_food,
+        "air_pollution": submission.air_pollution,
+        "occupational_hazard": submission.occupational_hazard,
+        "physical_activity": submission.physical_activity,
+
+        "confirmed_diseases": submission.confirmed_diseases,
+        "stroke_history": submission.stroke_history,
+        "h_pylori": submission.h_pylori,
+        "cancer_history": submission.cancer_history,
+        "cancer_types": submission.cancer_types,
+        "family_history": submission.family_history,
+
+        "age": submission.age,
+        "bmi": submission.bmi,
+        "risk_score": submission.risk_score,
+        "risk_level": submission.risk_level,
+
+        "lung_risk": submission.lung_risk,
+        "gastric_risk": submission.gastric_risk,
+        "colon_risk": submission.colon_risk,
+        "pancreas_risk": submission.pancreas_risk,
+        "stroke_risk": submission.stroke_risk,
+        "cardiac_risk": submission.cardiac_risk,
+        "metabolic_risk": submission.metabolic_risk,
+        "liver_risk": submission.liver_risk,
+
+        "flags": submission.flags,
+
+        "created_at": submission.created_at.isoformat(),
+    }

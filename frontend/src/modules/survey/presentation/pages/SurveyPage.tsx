@@ -182,6 +182,12 @@ export function SurveyPage() {
       history[0] ??
       null;
 
+    const nationalId =
+      readText(
+        wizard.answers,
+        "national_id" as QuestionId,
+      ).trim();
+
     return (
       <main className="mx-auto max-w-6xl px-5 py-10">
         <HealthDashboard
@@ -191,6 +197,7 @@ export function SurveyPage() {
           history={
             history
           }
+          nationalId={nationalId}
         />
 
         <button
