@@ -70,3 +70,18 @@ export const parseJalaliIso = (value: string): JalaliDateParts | null => {
 
   return isValidJalaliDate(parts) ? parts : null;
 };
+
+export const gregorianToJalali = (date: Date | string): JalaliDateParts => {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat("en-u-ca-persian", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    timeZone: "Asia/Tehran",
+  }).formatToParts(d);
+
+  const read = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number(parts.find((part) => part.type === type)?.value ?? Number.NaN);
+
+  return { year: read("year"), month: read("month"), day: read("day") };
+};

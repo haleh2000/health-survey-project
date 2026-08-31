@@ -178,7 +178,7 @@ export function AssessmentHistoryModal({ open, onClose, onSelectRecord, history:
                           type="button"
                           onClick={() => handleSelectRecord(record)}
                           disabled={isFetching}
-                          className="w-full rounded-2xl border border-line bg-surface/80 p-4 text-right transition hover:border-day-primary/40 hover:bg-surface-muted disabled:opacity-60 disabled:cursor-wait"
+                          className="cursor-pointer w-full rounded-2xl border border-line bg-surface/80 p-4 text-right transition hover:border-day-primary/40 hover:bg-surface-muted disabled:opacity-60 disabled:cursor-wait"
                         >
                           {isFetching && (
                             <div className="flex items-center justify-center gap-2 py-2">

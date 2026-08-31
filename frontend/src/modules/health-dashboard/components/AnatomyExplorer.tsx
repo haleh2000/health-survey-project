@@ -75,7 +75,7 @@ export function AnatomyExplorer({ organPercents, selectedOrgan, onSelectOrgan, p
           className="w-full"
           style={{ aspectRatio: compact ? `${COMPACT_W} / ${VIEW_H}` : `${VIEW_W} / ${VIEW_H}` }}
           role="img"
-          aria-label="نقشهٔ آناتومی بدن"
+          aria-label="نقشه آناتومی بدن"
         >
           <g transform={`translate(${GUTTER - BODY_X}, 0)`}>
             <BodyFigure shape={shape} className="text-slate-400 dark:text-slate-500" />
