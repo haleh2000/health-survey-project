@@ -504,8 +504,8 @@ export function HealthDashboard({
           </SectionLabel>
 
           <ProfilePanel
-            activeAssessment={activeAssessment}
-            record={record}
+            assessment={activeAssessment}
+            record={activeRecord}
             baseDelay={0.05}
           />
         </div>

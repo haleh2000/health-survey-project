@@ -131,7 +131,7 @@ export function AnatomyFigure({ organPercents, highlightedOrgan, onSelectOrgan, 
         className="mx-auto w-full max-w-[320px]"
         style={{ aspectRatio: '380 / 600' }}
         role="img"
-        aria-label="نقشهٔ آناتومی بدن"
+        aria-label="نقشه آناتومی بدن"
       >
         <defs>
           {/* تضمینِ سختِ «هیچ اندامی از بدن بیرون نمی‌زند». محاسبهٔ مقیاسِ خوشه

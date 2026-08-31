@@ -31,7 +31,7 @@ interface Props {
 }
 
 const SHARE_TITLE = "خلاصه سلامت من";
-const SHARE_TEXT = "خلاصهٔ وضعیت سلامتم را در «دی‌دار» ببین — نقشهٔ اندام‌ها، شاخص توده بدنی و پیشنهادهای روزانه.";
+const SHARE_TEXT = "خلاصهٔ وضعیت سلامتم را در «دی‌دار» ببین — نقشه اندام‌ها، شاخص توده بدنی و پیشنهادهای روزانه.";
 
 export function DashboardActions({ record, history, personName }: Props) {
   const [busy, setBusy] = useState<"pdf" | "share" | null>(null);
@@ -122,7 +122,7 @@ export function DashboardActions({ record, history, personName }: Props) {
       </div>
 
       <p className="text-[11px] text-ink-subtle">
-        فایل PDF شامل مشخصات، نقشهٔ سلامت اندام‌ها، شاخص توده بدنی و متنِ کاملِ پیشنهادهای روزانه است.
+        فایل PDF شامل مشخصات، نقشه سلامت اندام‌ها، شاخص توده بدنی و متنِ کاملِ پیشنهادهای روزانه است.
       </p>
 
       {error && <p className="text-[11px] font-bold text-risk-critical">{error}</p>}

@@ -208,7 +208,7 @@ export function buildReportBlocks(
     blocks.push({
       id: "organs-title",
       keepWithNext: true,
-      node: <SectionTitle title="نقشهٔ سلامت اندام‌ها" hint="مرتب‌شده از بیشترین به کمترین نیاز به پیگیری" />,
+      node: <SectionTitle title="نقشه سلامت اندام ها" hint="مرتب‌شده از بیشترین به کمترین نیاز به پیگیری" />,
     });
 
     blocks.push({

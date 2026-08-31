@@ -205,7 +205,10 @@ export function SurveyPage() {
           onClick={
             wizard.restart
           }
-          className="mt-6 text-sm font-bold text-day-primary"
+          className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl
+                     bg-gradient-to-r from-[#0fadb6] to-[#0a8a92] px-6 text-sm font-black text-white
+                     shadow-[0_14px_30px_rgba(17,164,184,0.22)] transition hover:-translate-y-0.5
+                     disabled:pointer-events-none disabled:opacity-60"
         >
           ارزیابی مجدد
         </button>

@@ -4,6 +4,7 @@ import type { AppError } from "@core/errors/app-error";
 import type { RiskTier, AssessmentFlags } from "@survey/domain/entities/risk-assessment.entity";
 import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 import type { HistoryRepository } from "@survey/domain/ports/history.repository";
+import { formatJalaliIso, gregorianToJalali } from "@core/date/jalali";
 
 const ENDPOINT_PREFIX = "/submissions";
 
@@ -58,6 +59,7 @@ interface SubmissionDetailDto extends SubmissionDto {
 }
 
 function dtoToRecord(dto: SubmissionDto, nationalId: string): AssessmentRecord {
+  const jalali = gregorianToJalali(dto.created_at);
   return {
     assessment: {
       fullName: dto.full_name ?? "",
@@ -111,7 +113,7 @@ function dtoToRecord(dto: SubmissionDto, nationalId: string): AssessmentRecord {
     },
     nationalId,
     submissionId: dto.id,
-    completedOnJalali: dto.created_at.slice(0, 10),
+    completedOnJalali: formatJalaliIso(jalali),
     completedAt: new Date(dto.created_at).getTime(),
     heightCm: dto.height,
     weightKg: dto.weight,
@@ -127,6 +129,8 @@ function detailDtoToRecord(dto: SubmissionDetailDto): AssessmentRecord {
       : dto.risk_score >= 20
       ? "moderate"
       : "low";
+
+  const jalali = gregorianToJalali(dto.created_at);
 
   return {
     assessment: {
@@ -150,7 +154,7 @@ function detailDtoToRecord(dto: SubmissionDetailDto): AssessmentRecord {
       flags: dto.flags,
     },
     nationalId: dto.person_national_id,
-    completedOnJalali: dto.created_at.slice(0, 10),
+    completedOnJalali: formatJalaliIso(jalali),
     completedAt: new Date(dto.created_at).getTime(),
     heightCm: dto.height,
     weightKg: dto.weight,
