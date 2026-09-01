@@ -1,4 +1,3 @@
-alert("THIS IS THE FRONTEND I AM RUNNING");
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
