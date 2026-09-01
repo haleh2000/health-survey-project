@@ -1,0 +1,10 @@
+FROM node:lts
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+EXPOSE 6002
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "6002"]

@@ -109,7 +109,7 @@ export const ORGAN_ASSETS: readonly OrganAsset[] = [
   {
     key: 'stroke',
     label: 'مغز و اعصاب',
-    layers: [{ href: `${BASE}/brain.png`, x: 181, y: 28, width: 36, height: 33 }],
+    layers: [{ href: `${BASE}/brain.png`, x: 181, y: 14, width: 36, height: 33 }],
     halo: { x: 199, y: 44, r: 20 },
     anchor: { x: 199, y: 26 },
     side: 'left',

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - API_BASE_URL=${API_BASE_URL:-http://localhost:6001}
+    ports:
+      - "80:80"
+    env_file:
+      - .prod.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: backend service for local development
+  # backend:
+  #   image: your-backend-image
+  #   ports:
+  #     - "6001:6001"
+  #   environment:
+  #     - PORT=6001
