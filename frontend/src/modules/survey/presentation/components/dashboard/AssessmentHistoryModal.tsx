@@ -298,7 +298,7 @@ export function AssessmentHistoryModal({
               "
             >
               <h3 className="text-sm font-black text-ink">
-                ارزیابی‌های من
+                تاریخچه ارزیابی‌های من
               </h3>
 
               <button
@@ -404,7 +404,7 @@ export function AssessmentHistoryModal({
                         text-ink-subtle
                       "
                     >
-                      این اولین ارزیابی شماست.
+                      
                       از این به بعد ارزیابی‌های
                       بعدی شما در بخش سوابق ذخیره
                       می‌شوند تا بتوانید روند سلامت
