@@ -566,7 +566,7 @@ export function AssessmentHistoryModal({
                                     {last && (
                                       <span
                                         className="
-                                          font-normal
+                                          font-bold
                                           text-ink-subtle
                                         "
                                       >
