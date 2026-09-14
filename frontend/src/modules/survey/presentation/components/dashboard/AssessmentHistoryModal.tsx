@@ -371,7 +371,7 @@ export function AssessmentHistoryModal({
                   "
                 >
                   <img
-                    src="/illustrations/first-assessment.png"
+                    src={`${import.meta.env.BASE_URL}illustrations/first-assessment.png`}
                     alt=""
                     aria-hidden="true"
                     loading="lazy"

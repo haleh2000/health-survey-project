@@ -165,7 +165,7 @@ export function LoginForm() {
 
         <img
           className="auth-card__image"
-          src="/logos/fruad-detect.png"
+          src={`${import.meta.env.BASE_URL}logos/fruad-detect.png`}
           alt="سیستم هوشمند تشخیص تقلب"
         />
       </section>
