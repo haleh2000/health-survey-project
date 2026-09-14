@@ -3,3 +3,5 @@ uvicorn==0.52.4
 SQLAlchemy==2.0.52
 PyMySQL==1.2.0
 python-dotenv==1.2.3
+jdatetime==6.0.1
+fastapi-swagger==0.4.55
