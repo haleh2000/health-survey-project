@@ -24,12 +24,14 @@ __pycache__/
 *.py[cod]
 
 # --- Env & logs ---
+# --- Env & logs ---
 .env
 .env.*
+!.env.example
 *.log
-
 # --- Stray screenshots / scratch files in repo root ---
 /*.png
 
-# Keep the compose env template (the .env.* rule above would hide it)
-!.env.example
+# Docker / deployment secrets
+.env
+backend/.env

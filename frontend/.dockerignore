@@ -2,10 +2,5 @@ node_modules/
 dist/
 .env
 .env.*
-*.tsbuildinfo
-.DS_Store
-.idea/
-.vscode/
-Dockerfile
-.dockerignore
-README.md
+.git/
+.gitignore

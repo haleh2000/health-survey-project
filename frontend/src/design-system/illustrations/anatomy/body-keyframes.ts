@@ -56,7 +56,7 @@ const MALE_KEYFRAMES: readonly Keyframe[] = [
     bmi: 16,
     factors: {
       head: 1,
-      neck: 0.9,
+      neck: 1,
       shoulder: 0.93,
       chest: 0.87,
       waist: 0.8,
@@ -95,8 +95,8 @@ const MALE_KEYFRAMES: readonly Keyframe[] = [
   {
     bmi: 30,
     factors: {
-      head: 1.01,
-      neck: 1.11,
+      head: 1,
+      neck: 1,
       shoulder: 1.07,
       chest: 1.16,
       waist: 1.32,
@@ -115,8 +115,8 @@ const MALE_KEYFRAMES: readonly Keyframe[] = [
   {
     bmi: 40,
     factors: {
-      head: 1.02,
-      neck: 1.24,
+      head: 1,
+      neck: 1,
       shoulder: 1.15,
       chest: 1.38,
       waist: 1.68,
