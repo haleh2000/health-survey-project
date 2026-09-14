@@ -1,3 +1,10 @@
+# Usage:  cp .env.example .env  &&  docker compose up -d --build
+#
+# Local:   http://localhost:5173  (app)   http://localhost:8000  (API)
+# Server:  ports are bound to 127.0.0.1 only; the host nginx reverse-proxies
+#          https://form.dayins.ir/health-analysis/ -> frontend and
+#          https://form.dayins.ir/health-analysis/api/ -> backend.
+#          See deploy/nginx-form.dayins.ir.conf.
 services:
   db:
     image: mariadb:11
@@ -16,7 +23,7 @@ services:
       retries: 10
       start_period: 20s
     ports:
-      - "3307:3306"
+      - "${BIND_HOST:-127.0.0.1}:${DB_PORT:-3307}:3306"
 
   backend:
     build:
@@ -26,22 +33,24 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: mysql+pymysql://health_app:${DB_APP_PASSWORD}@db:3306/health_survey
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      - "${BIND_HOST:-127.0.0.1}:${BACKEND_PORT:-8000}:8000"
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: http://localhost:8000
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
     restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "5173:80"
+      - "${BIND_HOST:-127.0.0.1}:${FRONTEND_PORT:-5173}:80"
 
 volumes:
   db_data:

@@ -7,7 +7,7 @@ import WelcomePage from '@survey/presentation/pages/WelcomePage';
 export function App() {
   return (
     <SurveyDependenciesProvider dependencies={getSurveyDependencies()}>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<WelcomePage />} />
           <Route path="/survey" element={<SurveyPage />} />

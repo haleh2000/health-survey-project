@@ -9,7 +9,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type { OrganKey } from '@survey/presentation/components/dashboard/organ-meta';
 
-const BASE = '/anatomy/servier';
+// Prefixed with Vite's base so it also resolves under a sub-path deployment.
+const BASE = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/anatomy/servier`;
 
 /** یک تصویر منفرد داخل یک ارگان (مثلاً هر ریه یا هر کلیه) */
 export interface OrganLayer {

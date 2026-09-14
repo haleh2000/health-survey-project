@@ -8,6 +8,9 @@ const fromSrc = (segment = "") =>
   fileURLToPath(new URL(`./src/${segment}`, import.meta.url));
 
 export default defineConfig({
+  // Sub-path deployments (e.g. https://host/health-analysis/): set
+  // VITE_BASE_PATH="/health-analysis/" at build time. Defaults to the root.
+  base: process.env.VITE_BASE_PATH || "/",
   plugins: [react(), tailwindcss()],
   resolve: {
     // Must stay in sync with `compilerOptions.paths` in tsconfig.app.json.
