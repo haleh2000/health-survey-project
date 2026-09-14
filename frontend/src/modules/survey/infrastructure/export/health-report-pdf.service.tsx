@@ -134,11 +134,22 @@ export async function buildHealthReportPdf(
       );
     }
 
-    return {
-      blob: pdf.output("blob"),
-      fileName: `${options.fileName ?? "health-report"}.pdf`,
-      pageCount: pages.length,
-    };
+const today = new Date();
+
+const dateStr = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+})
+  .format(today)
+  .replace(/\//g, "-");
+
+return {
+  blob: pdf.output("blob"),
+  fileName: `${options.fileName ?? "health-report"}-${dateStr}.pdf`,
+  pageCount: pages.length,
+};
+
   } finally {
     // unmount باید بعد از پایانِ کار باشد؛ وگرنه صفحات پیش از عکس‌برداری حذف می‌شوند.
     root?.unmount();
