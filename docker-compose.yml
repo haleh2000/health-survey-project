@@ -1,0 +1,36 @@
+# Usage:  docker compose up -d --build
+#   App:     http://localhost:8080        (nginx, serves the built frontend)
+#   API:     http://localhost:8080/api/*  (proxied to the backend container)
+#   Swagger: http://localhost:8000/swagger
+# Override ports / URLs by copying .env.example to .env.
+
+services:
+  backend:
+    build: ./backend
+    container_name: health-survey-backend
+    restart: unless-stopped
+    environment:
+      # Only needed if the API is called directly from another origin.
+      # Through the frontend's nginx proxy everything is same-origin.
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:${FRONTEND_PORT:-8080}}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8000/swagger"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    container_name: health-survey-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"

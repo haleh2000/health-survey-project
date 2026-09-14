@@ -30,3 +30,6 @@ __pycache__/
 
 # --- Stray screenshots / scratch files in repo root ---
 /*.png
+
+# Keep the compose env template (the .env.* rule above would hide it)
+!.env.example
