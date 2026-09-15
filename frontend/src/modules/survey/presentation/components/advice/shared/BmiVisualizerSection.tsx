@@ -13,8 +13,7 @@ interface Props {
 const BMI_RANGES = [
   { label: "کمبود وزن", min: 0,    max: 18.5,     colorClass: "bg-sky-400"     },
   { label: "نرمال",     min: 18.5, max: 25,       colorClass: "bg-emerald-400" },
-  { label: "اضافه وزن", min: 25,   max: 30,       colorClass: "bg-amber-400"   },
-  { label: "چاقی",      min: 30,   max: Infinity, colorClass: "bg-red-400"     },
+  { label: "اضافه وزن / چاق", min: 25,   max: Infinity, colorClass: "bg-amber-400"   },
 ] as const;
 
 const LRI = "\u2066"; // Left-to-Right Isolate
@@ -36,22 +35,20 @@ const AXIS_TICKS = [
   { value: 15,   label: "۱۵",   align: "start"  },
   { value: 18.5, label: "۱۸.۵", align: "center" },
   { value: 25,   label: "۲۵",   align: "center" },
-  { value: 30,   label: "۳۰",   align: "center" },
   { value: 35,   label: "۳۵+",  align: "end"    },
 ] as const;
 
 const BAR_SEGMENTS = [
   { from: 15,   to: 18.5, colorClass: "bg-sky-300"     },
   { from: 18.5, to: 25,   colorClass: "bg-emerald-400" },
-  { from: 25,   to: 30,   colorClass: "bg-amber-400"   },
-  { from: 30,   to: 35,   colorClass: "bg-red-400"     },
+  { from: 25,   to: 35,   colorClass: "bg-amber-400"   },
 ] as const;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
 function getBmiCategory(bmi: number) {
-  return BMI_RANGES.find((r) => bmi >= r.min && bmi < r.max) ?? BMI_RANGES[3];
+  return BMI_RANGES.find((r) => bmi >= r.min && bmi < r.max) ?? BMI_RANGES[2];
 }
 
 function bmiToPercent(bmi: number) {

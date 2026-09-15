@@ -23,7 +23,7 @@ def calculate_risk_sync(data: SurveyInput) -> dict:
     else:
         bmi = 0
         
-    obesity_bin = 1 if bmi >= 30 else 0
+    obesity_bin = 1 if bmi >= 25 else 0
 
     # 2. Lifestyle parsing
     smoker_bin = 0 if data.smoking_status == SmokingStatusEnum.NONE.value else 1

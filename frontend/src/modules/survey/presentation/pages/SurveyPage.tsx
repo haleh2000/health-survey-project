@@ -8,6 +8,8 @@ import {
   useState,
 } from "react";
 
+import { useLocation } from "react-router-dom";
+
 import {
   AnimatePresence,
   motion,
@@ -53,6 +55,9 @@ export function SurveyPage() {
 
   const wizard =
     useSurveyWizard();
+
+  const location = useLocation();
+  const selectedRecordFromNav = (location.state as { selectedRecord?: AssessmentRecord } | null)?.selectedRecord ?? null;
 
   // ---------------------------------------------------------------------------
   // Step animation direction
@@ -168,6 +173,24 @@ export function SurveyPage() {
     wizard.assessment,
     wizard.answers,
   ]);
+
+  // ---------------------------------------------------------------------------
+  // Viewing a historical record from WelcomePage
+  // ---------------------------------------------------------------------------
+
+  if (selectedRecordFromNav) {
+    const hist = loadAssessmentHistoryByNationalId(selectedRecordFromNav.nationalId);
+
+    return (
+      <main className="mx-auto max-w-6xl px-5 py-10">
+        <HealthDashboard
+          record={selectedRecordFromNav}
+          history={hist}
+          nationalId={selectedRecordFromNav.nationalId}
+        />
+      </main>
+    );
+  }
 
   // ---------------------------------------------------------------------------
   // Completed state
