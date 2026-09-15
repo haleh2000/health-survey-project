@@ -214,7 +214,7 @@ function BmiRangeRow({
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, delay }}
       className={`flex items-center justify-between rounded-xl border px-3 py-2 transition-colors ${
-        isActive ? "border-transparent shadow-card mt-10" : "border-line bg-surface/60"
+        isActive ? "border-transparent shadow-card" : "border-line bg-surface/60"
       }`}
       style={isActive ? { backgroundColor: `${range.hex}1a` } : undefined}
     >
@@ -233,15 +233,14 @@ function BmiRangeRow({
 
 export function BmiRangeLegend({ bmi }: Props) {
   const active = bmi === null ? null : bmiCategory(bmi);
-  const rest = BMI_RANGES.filter((range) => range.label !== active?.label);
 
   return (
     <ul className="flex w-full flex-col gap-2">
-      {rest.map((range, index) => (
+      {BMI_RANGES.map((range, index) => (
         <BmiRangeRow
           key={range.label}
           range={range}
-          isActive={false}
+          isActive={active != null && range.label === active.label}
           delay={0.3 + index * 0.08}
         />
       ))}

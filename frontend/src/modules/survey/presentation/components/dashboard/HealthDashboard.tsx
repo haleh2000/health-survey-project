@@ -704,18 +704,20 @@ export function HealthDashboard({
             <BmiGauge
               bmi={activeAssessment?.bmi ?? null}
             />
-
-            <BmiRangeLegend
-              bmi={activeAssessment?.bmi ?? null}
-            />
           </div>
 
-          <div>
-            <h4 className="mb-1 text-xs font-black text-day-primary">
-              مقایسه با محدوده نرمال
-            </h4>
+          <div className="flex flex-col gap-4">
+            <div>
+              <h4 className="mb-1 text-xs font-black text-day-primary">
+                مقایسه با محدوده نرمال
+              </h4>
 
-            <BmiComparisonChart
+              <BmiComparisonChart
+                bmi={activeAssessment?.bmi ?? null}
+              />
+            </div>
+
+            <BmiRangeLegend
               bmi={activeAssessment?.bmi ?? null}
             />
           </div>

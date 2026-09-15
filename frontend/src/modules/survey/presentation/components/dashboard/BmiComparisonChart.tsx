@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Check } from "lucide-react";
 
 import { toPersianDigits } from "@core/text/digits";
 
-import { BMI_RANGES, BmiActiveRangeRow, bmiCategory } from "./BmiGauge";
+import { BMI_RANGES, bmiCategory } from "./BmiGauge";
 
 interface Props {
   bmi: number | null;
@@ -174,8 +174,6 @@ export function BmiComparisonChart({ bmi }: Props) {
           )}
         </div> */}
       </div>
-
-      <BmiActiveRangeRow bmi={bmi} />
     </div>
   );
 }
