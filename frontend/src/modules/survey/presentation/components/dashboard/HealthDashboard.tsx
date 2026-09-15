@@ -445,7 +445,7 @@ export function HealthDashboard({
           <div>
             <h2 className="text-lg font-black text-ink sm:text-xl">
               {activeAssessment
-                ? `سلام، ${activeAssessment.fullName} 👋`
+                ? `سلام، ${activeAssessment.fullName}`
                 : "خلاصه وضعیت سلامت شما"}
             </h2>
 
