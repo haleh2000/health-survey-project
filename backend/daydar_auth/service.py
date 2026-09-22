@@ -47,28 +47,35 @@ async def finalize_login(db: Session, token_payload: dict) -> AuthSessionOut:
         ) from exc
 
     user_id = str(claims.get("ID") or "")
-    claim_mobile = claims.get("mobile") or ""
-    claim_first_name = claims.get("firstName") or ""
-    claim_last_name = claims.get("lastName") or ""
+    national_id = _digits_only(claims.get("nationalID") or "")
+    first_name = claims.get("firstName") or ""
+    last_name = claims.get("lastName") or ""
+    mobile = claims.get("mobile") or ""
 
     if not user_id:
         raise DaydarError(
             "شناسه کاربر از سرویس دایدار دریافت نشد.", status_code=502
         )
 
-    profile_payload = await daydar_client.fetch_profile(user_id, daydar_access_token)
-    profile_user = profile_payload.get("user") or {}
+    # Recent Daydar tokens already carry the national ID and name; only fall
+    # back to the profile endpoint when an older/partner token omits them.
+    if not national_id:
+        profile_payload = await daydar_client.fetch_profile(
+            user_id, daydar_access_token
+        )
+        profile_user = profile_payload.get("user") or {}
 
-    national_id = _digits_only(profile_user.get("nationalID") or "")
+        national_id = _digits_only(profile_user.get("nationalID") or "")
+        first_name = profile_user.get("firstName") or first_name
+        last_name = profile_user.get("lastName") or last_name
+        mobile = profile_user.get("mobile") or mobile
+
     if not national_id:
         raise DaydarError(
             "کد ملی کاربر در سامانه دایدار ثبت نشده است.", status_code=422
         )
 
-    first_name = profile_user.get("firstName") or claim_first_name
-    last_name = profile_user.get("lastName") or claim_last_name
     full_name = " ".join(part for part in [first_name, last_name] if part).strip()
-    mobile = profile_user.get("mobile") or claim_mobile
 
     person = db.query(Person).filter(Person.national_id == national_id).first()
 

@@ -10,6 +10,7 @@ export interface TextFieldProps {
   invalid?: boolean;
   describedBy?: string;
   id: string;
+  readOnly?: boolean;
 }
 
 export function TextField({
@@ -19,6 +20,7 @@ export function TextField({
   invalid,
   describedBy,
   id,
+  readOnly,
 }: TextFieldProps) {
   const isNationalId = question.format === "national-id";
 
@@ -34,7 +36,13 @@ export function TextField({
       value={isNationalId ? toPersianDigits(value) : value}
       invalid={invalid ?? false}
       aria-describedby={describedBy}
-      className={isNationalId ? "text-left tracking-[0.25em]" : undefined}
+      readOnly={readOnly}
+      className={[
+        isNationalId ? "text-left tracking-[0.25em]" : "",
+        readOnly ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "",
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined}
       onChange={(event) => {
         const raw = event.target.value;
         // A national id is digits only, and Persian ones are normalised so the

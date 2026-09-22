@@ -377,6 +377,9 @@ export function SurveyPage() {
                                   value,
                                 )
                               }
+                              readOnly={wizard.readOnlyIds.has(
+                                question.id,
+                              )}
                             />
                           </motion.div>
                         ),

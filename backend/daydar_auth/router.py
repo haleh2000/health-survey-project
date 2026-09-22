@@ -41,6 +41,21 @@ def _raise_from_daydar(exc: DaydarError) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.message)
 
 
+def _unwrap(payload: dict) -> dict:
+    """Daydar nests the actual fields under `data` on this API version."""
+    data = payload.get("data")
+    return data if isinstance(data, dict) else payload
+
+
+def _session_id_of(payload: dict) -> str:
+    return (
+        payload.get("session")
+        or payload.get("sessionID")
+        or payload.get("sessionId")
+        or ""
+    )
+
+
 @router.post("/didar/mobile", response_model=MobileLoginResponse)
 async def start_mobile_login(payload: MobileLoginRequest):
     try:
@@ -56,11 +71,13 @@ async def start_mobile_login(payload: MobileLoginRequest):
             )
         _raise_from_daydar(exc)
 
+    data = _unwrap(result)
+
     return MobileLoginResponse(
-        session_id=result.get("sessionID") or result.get("sessionId") or "",
-        captcha_required=bool(result.get("captcha")),
-        captcha=result.get("captcha"),
-        registered=result.get("registered"),
+        session_id=_session_id_of(data),
+        captcha_required=bool(data.get("captcha")),
+        captcha=data.get("captcha"),
+        registered=data.get("registered"),
     )
 
 
@@ -71,9 +88,11 @@ async def send_otp(payload: SessionIdRequest):
     except DaydarError as exc:
         _raise_from_daydar(exc)
 
+    data = _unwrap(result)
+
     return OtpSendResponse(
-        session_id=result.get("sessionID") or result.get("sessionId") or payload.session_id,
-        expires_in=result.get("exp") or result.get("expiresIn"),
+        session_id=_session_id_of(data) or payload.session_id,
+        expires_in=data.get("exp") or data.get("expiresIn") or data.get("expireSeconds"),
     )
 
 

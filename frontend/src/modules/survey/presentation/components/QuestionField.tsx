@@ -23,6 +23,7 @@ export interface QuestionFieldProps {
   onSetValue: (value: string) => void;
   onToggleValue: (question: ChoiceQuestion, value: string) => void;
   onAnswered?: () => void;
+  readOnly?: boolean;
 }
 
 export function QuestionField({
@@ -33,6 +34,7 @@ export function QuestionField({
   error,
   onSetValue,
   onToggleValue,
+  readOnly,
 }: QuestionFieldProps) {
   const controlId = `q-${question.id}`;
   const errorId = error ? `${controlId}-error` : undefined;
@@ -50,6 +52,7 @@ export function QuestionField({
             onChange={onSetValue}
             invalid={invalid}
             describedBy={errorId}
+            readOnly={readOnly}
           />
         );
 

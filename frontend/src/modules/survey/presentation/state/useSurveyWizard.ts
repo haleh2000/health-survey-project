@@ -76,18 +76,40 @@ const scrollToTop = (): void => {
  */
 export function useSurveyWizard(): SurveyWizard {
   const { definition, validateStep, submitSurvey, progress } = useSurveyDependencies();
+  const { user } = useAuth();
 
   const STORAGE_KEY = "health-survey-progress";
+
+  // Name and national id come from the Didar session, not from what the user
+  // types, so any saved draft is overridden with the authenticated identity.
+  const applySessionIdentity = useCallback(
+    (base: SurveyAnswers): SurveyAnswers => {
+      if (!user) return base;
+      return {
+        ...base,
+        ...(user.full_name ? { full_name: user.full_name } : {}),
+        ...(user.national_id ? { national_id: user.national_id } : {}),
+      };
+    },
+    [user],
+  );
 
   const [answers, setAnswers] = useState<SurveyAnswers>(() => {
   const saved = localStorage.getItem(STORAGE_KEY);
 
-  if (!saved) return {};
+  if (!saved) return applySessionIdentity({});
 
   const data = JSON.parse(saved);
 
-  return data.answers ?? {};
+  return applySessionIdentity(data.answers ?? {});
 });
+
+  const readOnlyIds = useMemo<ReadonlySet<QuestionId>>(() => {
+    const ids = new Set<QuestionId>();
+    if (user?.full_name) ids.add("full_name" as QuestionId);
+    if (user?.national_id) ids.add("national_id" as QuestionId);
+    return ids;
+  }, [user]);
 
 const [stepIndex, setStepIndex] = useState<number>(() => {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -322,6 +344,7 @@ useEffect(() => {
     assessment,
     answeredCount: answered,
     totalCount: total,
+    readOnlyIds,
 
     valueOf: (id) => readText(answers, id),
     selectionOf: (id) => readList(answers, id),

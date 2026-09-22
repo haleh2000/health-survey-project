@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 
 import { Alert } from '@ds/components/Alert'
-import { Button } from '@ds/components/ui/Button'
+import { Button } from '@ds/components/Button'
 import { Card } from '@ds/components/Card'
 import { TextInput } from '@ds/components/TextInput'
 import { JalaliCalendarField } from '@survey/presentation/components/fields/JalaliCalendarField'
