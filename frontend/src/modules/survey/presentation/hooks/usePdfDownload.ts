@@ -50,7 +50,22 @@ export function usePdfDownload(ref: RefObject<HTMLElement | null>, logoSrc?: str
         remaining -= pageHeight;
       }
 
-      pdf.save(filename);
+const today = new Date();
+
+const dateStr = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+})
+  .format(today)
+  .replace(/\//g, "-");
+
+const finalFilename =
+  filename.replace(/\.pdf$/i, "") + `-${dateStr}.pdf`;
+
+// بعدش
+pdf.save(finalFilename);
+
     } catch (err) {
       console.error('PDF generation failed:', err);
     } finally {

@@ -1,0 +1,123 @@
+[33m7135e51[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m stories changed
+[33m18ad84a[m fix image
+[33m1449218[m refactor
+[33m5b03bf3[m Support sub-path deployment (form.dayins.ir/health-analysis)
+[33mef255a2[m Fix Docker build after merge: missing backend deps, PyPI mirror arg, vite build
+[33mf58cf10[m Merge origin/main (rewritten history); take remote version of all conflicts
+[33m6d253c3[m new structure
+[33m0807f3c[m title of historymodal changed
+[33m70e5c79[m alert removed
+[33m1459464[m front & back updated
+[33m2773143[m remove local sqlite database
+[33m3d15ea5[m history modal fixed & dockerization done
+[33m2b2b1c5[m dockerize application with MariaDB
+[33mae21575[m historyy
+[33mbb97e59[m db configed
+[33m990b068[m female body removed
+[33m132aeb1[m final redesign
+[33m35f5043[m Merge remote-tracking branch 'origin/main'
+[33m1e50429[m Merge remote-tracking branch 'origin/main'
+[33m0607a04[m refactor body
+[33mc76ad3e[m refactor body
+[33m93a863e[m Merge branch 'main' of https://github.com/haleh2000/health-survey-project
+[33m86d251f[m Merge branch 'main' of https://github.com/haleh2000/health-survey-project
+[33m6f7d7e9[m body fixed
+[33mc041df8[m body fixed
+[33m99b1506[m body changed
+[33m737b2d8[m body changed
+[33m2da921a[m refactor body
+[33m1c1316f[m refactor body
+[33m986a122[m body chnged
+[33m57c953f[m body chnged
+[33m2ce1f79[m refactor
+[33mb09e358[m refactor
+[33me163582[m Merge branch 'main' of https://github.com/haleh2000/health-survey-project
+[33m746967e[m Merge branch 'main' of https://github.com/haleh2000/health-survey-project
+[33m49db5f0[m refactor
+[33med999e8[m refactor
+[33mec1c0f8[m body changed
+[33m8237b26[m body changed
+[33m7de15af[m refactor body
+[33mc0c84ca[m refactor body
+[33m8ee0495[m redesign bmi and welcomepage
+[33m33169b9[m redesign bmi and welcomepage
+[33ma6e1c2c[m stories synced
+[33mc2f84f0[m stories synced
+[33me4905d0[m refactor story
+[33m039afb4[m refactor story
+[33mde940e1[m stories content changed
+[33m92be0df[m stories content changed
+[33m2832c77[m redesign body and story
+[33mc8985cb[m redesign body and story
+[33mb6621e3[m fix organ→card connectors and balance the two card columns
+[33m3f8fb9f[m fix organ→card connectors and balance the two card columns
+[33m77ee725[m Merge branch 'main' of https://github.com/haleh2000/health-survey-project
+[33m0c92dd7[m Merge branch 'main' of https://github.com/haleh2000/health-survey-project
+[33m07e8214[m redesign body and story
+[33mafac194[m redesign body and story
+[33mfdc1b05[m arrow changed
+[33m19c2ef3[m arrow changed
+[33m32a0923[m Anatomy changed
+[33m8cd70be[m Anatomy changed
+[33m4d9f24e[m organConnectors changed
+[33m9d8d787[m organConnectors changed
+[33m77f3941[m status text changed
+[33m7f4c742[m status text changed
+[33m0f4a44d[m merge origin/main: keep organ→card connectors with swapped body/cards columns
+[33m175f3ed[m merge origin/main: keep organ→card connectors with swapped body/cards columns
+[33mdd98d3c[m refactor story
+[33ma62c1af[m refactor story
+[33m0cf0bb6[m body & card replaced
+[33m40793a5[m body & card replaced
+[33mfd6a43b[m refactor
+[33m73e48b9[m refactor
+[33ma948c17[m refactor body
+[33mfc56a5b[m refactor body
+[33mb255fe1[m refactor human
+[33m0db920e[m add section3
+[33m7c1c3ce[m refactor human
+[33mec6ac23[m add section3
+[33m6e73af7[m add 2D model human
+[33m294eda1[m add 2D model human
+[33mf26f190[m add drdd to welcomePage
+[33m128d748[m add drdd to welcomePage
+[33m1fdeec5[m fixed
+[33m7af021d[m fixed
+[33mdffc0a3[m section1 completed
+[33m5549095[m section1 completed
+[33m88e0e59[m bugs fixed
+[33m65b99b4[m bugs fixed
+[33m5a42628[m calender fixed
+[33mb208777[m calender fixed
+[33m36c2584[m redesign
+[33m9a2f0f8[m redesign
+[33me94aeef[m redesign welcomePage & refactor api call
+[33m7add0db[m redesign welcomePage & refactor api call
+[33m867dbc4[m  redesign Result Card UI and add GroupAdvice system
+[33m74c2532[m  redesign Result Card UI and add GroupAdvice system
+[33m0ec2794[m pdf export fixed
+[33m97600c2[m[33m ([m[1;32mtemp-test[m[33m)[m pdf export fixed
+[33m12f4640[m bugs fixed
+[33mba7ed27[m bugs fixed
+[33m3aacc3e[m fix: responsive layout and PDF download button functionality
+[33mf7206a1[m fix: responsive layout and PDF download button functionality
+[33m85ad916[m redesign
+[33m3e96106[m redesign
+[33m2eeff2c[m redesign
+[33m5930f93[m redesign
+[33m91c2fa2[m new design
+[33mf13663e[m new design
+[33mb47809d[m add WelcomePage
+[33mbd2ccf5[m add WelcomePage
+[33mfc77eef[m WeeklyCategoryGuide became flexible — `emoji`, `items`, and `description` fields made optional with conditional rendering.
+[33m9481e2e[m WeeklyCategoryGuide became flexible — `emoji`, `items`, and `description` fields made optional with conditional rendering.
+[33m4e2862a[m add Group4Advice and partial Group2Advice components
+[33m6e48154[m add Group4Advice and partial Group2Advice components
+[33m4a4b857[m fix(advice): refactor Group1 advice components, fix hydration error, and unify weekly tracker logic
+[33m3612c40[m fix(advice): refactor Group1 advice components, fix hydration error, and unify weekly tracker logic
+[33m4fdda76[m feat: add nutrition advice section UI
+[33mf165dc3[m feat: add nutrition advice section UI
+[33m22f32f4[m feat: survey results and fixes
+[33me8d5f90[m feat: survey results and fixes
+[33ma4bf64e[m Initial commit
+[33m4fc9667[m Initial commit

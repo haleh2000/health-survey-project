@@ -1,7 +1,7 @@
 // src/modules/survey/presentation/components/dashboard/HealthDashboard.tsx
 
 import { motion } from "framer-motion";
-import { CalendarCheck, History, ShieldPlus, ArrowRight } from "lucide-react";
+import { CalendarCheck, ShieldPlus, ArrowRight } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -21,7 +21,7 @@ import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
 import { BmiComparisonChart } from "./BmiComparisonChart";
 import { DashboardActions } from "./DashboardActions";
 import { RecommendationTiles } from "./RecommendationTiles";
-import { AssessmentHistoryModal } from "./AssessmentHistoryModal";
+import { ViewHistoryButton } from "./ViewHistoryButton";
 import { AnatomyFigure } from "../../../../health-dashboard/components/AnatomyFigure";
 import {
   OrganConnectors,
@@ -108,9 +108,6 @@ export function HealthDashboard({
   nationalId,
 }: Props) {
   const historyCount = history.length;
-
-  // کنترل مودال ارزیابی‌ها
-  const [historyOpen, setHistoryOpen] = useState(false);
 
   // ارزیابی تاریخی انتخاب‌شده (null یعنی آخرین ارزیابی نمایش داده می‌شود)
   const [selectedHistoricalRecord, setSelectedHistoricalRecord] = useState<AssessmentRecord | null>(null);
@@ -445,7 +442,7 @@ export function HealthDashboard({
           <div>
             <h2 className="text-lg font-black text-ink sm:text-xl">
               {activeAssessment
-                ? `سلام، ${activeAssessment.fullName} 👋`
+                ? `سلام، ${activeAssessment.fullName}`
                 : "خلاصه وضعیت سلامت شما"}
             </h2>
 
@@ -459,18 +456,11 @@ export function HealthDashboard({
 
         {/* سوابق ارزیابی */}
         <div className="flex flex-wrap items-center gap-2">
-          <motion.button
-            type="button"
-            onClick={() =>
-              setHistoryOpen(true)
-            }
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.98 }}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-day-primary/10 px-3 py-1.5 text-xs font-bold text-day-primary transition hover:bg-day-primary/15"
-          >
-            <History className="h-3.5 w-3.5" />
-            مشاهده سوابق ارزیابی‌های من
-          </motion.button>
+          <ViewHistoryButton
+            history={history}
+            nationalId={nationalId}
+            onSelectRecord={setSelectedHistoricalRecord}
+          />
 
           {record && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-muted px-3 py-1.5 text-xs font-semibold text-ink-muted">
@@ -483,17 +473,6 @@ export function HealthDashboard({
           )}
         </div>
       </motion.section>
-
-      {/* مودال ارزیابی‌ها */}
-      <AssessmentHistoryModal
-        open={historyOpen}
-        onClose={() =>
-          setHistoryOpen(false)
-        }
-        onSelectRecord={setSelectedHistoricalRecord}
-        history={history}
-        nationalId={nationalId}
-      />
 
       {/* ── بخش اصلی: سوابق + نقشه بدن + کارت‌های دو طرف ── */}
       <section className="rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6">
@@ -725,18 +704,20 @@ export function HealthDashboard({
             <BmiGauge
               bmi={activeAssessment?.bmi ?? null}
             />
-
-            <BmiRangeLegend
-              bmi={activeAssessment?.bmi ?? null}
-            />
           </div>
 
-          <div>
-            <h4 className="mb-1 text-xs font-black text-day-primary">
-              مقایسه با محدوده نرمال
-            </h4>
+          <div className="flex flex-col gap-4">
+            <div>
+              <h4 className="mb-1 text-xs font-black text-day-primary">
+                مقایسه با محدوده نرمال
+              </h4>
 
-            <BmiComparisonChart
+              <BmiComparisonChart
+                bmi={activeAssessment?.bmi ?? null}
+              />
+            </div>
+
+            <BmiRangeLegend
               bmi={activeAssessment?.bmi ?? null}
             />
           </div>

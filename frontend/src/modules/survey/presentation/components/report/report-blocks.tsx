@@ -85,7 +85,7 @@ export function SectionTitle({ title, hint }: { readonly title: string; readonly
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 8, paddingTop: 4 }}>
       <span style={{ width: 4, height: 16, borderRadius: 2, background: C.brand, display: "inline-block" }} />
-      <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: C.ink }}>{title}</h2>
+      <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: C.ink, whiteSpace: "nowrap" }}>{title}</h2>
       {hint && <span style={{ fontSize: 10.5, color: C.inkSubtle }}>{hint}</span>}
     </div>
   );

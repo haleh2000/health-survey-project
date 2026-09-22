@@ -3,24 +3,24 @@
  *
  * The backend computes BMI internally for scoring but does not return it, so
  * this mirrors the same formula in order to show the user what their answers
- * imply. Category cut-offs follow the WHO classification, and obesity begins
- * at 30 — the exact threshold `backend/processing.py` uses for `obesity_bin`.
+ * imply. Category cut-offs follow WHO classification with three levels:
+ *   - Underweight: < 18.5
+ *   - Normal:      18.5 – 24.9
+ *   - Overweight:  ≥ 25  (merged overweight + obese)
  */
 
 export const BmiCategory = {
   Underweight: "underweight",
   Normal: "normal",
   Overweight: "overweight",
-  Obese: "obese",
 } as const;
 
 export type BmiCategory = (typeof BmiCategory)[keyof typeof BmiCategory];
 
 export const BMI_CATEGORY_LABELS: Record<BmiCategory, string> = {
   underweight: "کمبود وزن",
-  normal: "وزن مناسب",
-  overweight: "اضافه وزن",
-  obese: "چاقی",
+  normal: "نرمال",
+  overweight: "اضافه وزن / چاق",
 };
 
 export class BodyMetrics {
@@ -45,8 +45,7 @@ export class BodyMetrics {
   get category(): BmiCategory {
     if (this.bmi < 18.5) return BmiCategory.Underweight;
     if (this.bmi < 25) return BmiCategory.Normal;
-    if (this.bmi < 30) return BmiCategory.Overweight;
-    return BmiCategory.Obese;
+    return BmiCategory.Overweight;
   }
 
   get categoryLabel(): string {

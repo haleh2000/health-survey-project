@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Check } from "lucide-react";
 
 import { toPersianDigits } from "@core/text/digits";
 
-import { BMI_RANGES, BmiActiveRangeRow, bmiCategory } from "./BmiGauge";
+import { BMI_RANGES, bmiCategory } from "./BmiGauge";
 
 interface Props {
   bmi: number | null;
@@ -14,9 +14,9 @@ interface Props {
 const AXIS_MIN = 15;
 const AXIS_MAX = 40;
 const HEALTHY_MIN = 18.5;
-const HEALTHY_MAX = 24.9;
+const HEALTHY_MAX = 25;
 
-const AXIS_TICKS = [18.5, 25, 30];
+const AXIS_TICKS = [18.5, 25];
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -174,8 +174,6 @@ export function BmiComparisonChart({ bmi }: Props) {
           )}
         </div> */}
       </div>
-
-      <BmiActiveRangeRow bmi={bmi} />
     </div>
   );
 }

@@ -62,7 +62,11 @@ const focusFirstError = (errors: FieldErrors): void => {
 };
 
 const scrollToTop = (): void => {
-  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0 });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
 };
 
 /**

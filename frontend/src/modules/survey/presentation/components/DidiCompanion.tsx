@@ -12,11 +12,11 @@ interface DidiCompanionProps {
 const getDidiMessage = (step: number, total: number): string => {
   const progress = (step / total) * 100;
 
-  if (step === 1) return "سلام! 👋 بیا با هم شروع کنیم";
-  if (progress < 30) return "داری عالی پیش میری! 💪";
-  if (progress < 60) return "نصف راه رو رد کردیم 🎯";
-  if (progress < 90) return "تقریباً رسیدیم! 🚀";
-  if (step === total) return "تبریک! کارت تمومه 🎉";
+  if (step === 1) return "سلام!  بیا با هم شروع کنیم";
+  if (progress < 30) return "داری عالی پیش میری! ";
+  if (progress < 60) return "نصف راه رو رد کردیم ";
+  if (progress < 90) return "تقریباً رسیدیم! ";
+  if (step === total) return "تبریک! کارت تمومه ";
 
   return "خوب داری کار میکنی! 😊";
 };

@@ -1,11 +1,14 @@
 // WelcomePage.tsx
 import { motion } from 'framer-motion';
-import { useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import time from '@ds/assets/time.png';
 import safe from '@ds/assets/safe.png';
 import daydarReport from '@ds/assets/daydar-report.png';
 import drdd from '@ds/assets/drdd.png';
+import { loadAssessmentHistory } from '@survey/infrastructure/storage/assessment-history.storage';
+import { ViewHistoryButton } from '@survey/presentation/components/dashboard/ViewHistoryButton';
+import type { AssessmentRecord } from '@survey/infrastructure/storage/assessment-history.storage';
 
 const CARD_ACCENT = {
   color: 'from-[#0099A8]/20 to-teal-500/20',
@@ -15,6 +18,16 @@ const CARD_ACCENT = {
 export default function WelcomePage() {
   const navigate = useNavigate();
   const heroRef = useRef(null);
+
+  const history = useMemo(() => loadAssessmentHistory(), []);
+  const nationalId = history[0]?.nationalId ?? "";
+
+  const handleSelectRecord = useCallback(
+    (record: AssessmentRecord) => {
+      navigate('/survey', { state: { selectedRecord: record } });
+    },
+    [navigate],
+  );
 
   const features = [
     { icon: time, title: 'رایگان و سریع', delay: 0.2, ...CARD_ACCENT },
@@ -114,6 +127,21 @@ export default function WelcomePage() {
               />
             </motion.button>
           </motion.div>
+
+          {history.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.1 }}
+              className="mt-4 flex justify-center"
+            >
+              <ViewHistoryButton
+                history={history}
+                nationalId={nationalId}
+                onSelectRecord={handleSelectRecord}
+              />
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Features — compact horizontal rows on mobile, centered columns on desktop */}

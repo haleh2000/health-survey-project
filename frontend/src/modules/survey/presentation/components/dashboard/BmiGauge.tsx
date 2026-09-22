@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const HEALTHY_MIN = 18.5;
-export const HEALTHY_MAX = 24.9;
+export const HEALTHY_MAX = 25;
 
 
 const EN_DASH = "\u2013";
@@ -24,16 +24,18 @@ const between = (from: number, to: number) => `${fa(from)} ${EN_DASH} ${fa(to)}`
 
 
 export const BMI_RANGES = [
-  { label: "کمبود وزن", range: below(18.5), min: 0, max: 18.5, hex: "#38bdf8" },
-  { label: "نرمال", range: between(HEALTHY_MIN, HEALTHY_MAX), min: 18.5, max: 25, hex: "#10b981" },
-  { label: "اضافه وزن", range: between(25, 29.9), min: 25, max: 30, hex: "#f59e0b" },
-  { label: "چاقی", range: atLeast(30), min: 30, max: 99, hex: "#ef4444" },
+  { label: "کمبود وزن",  range: below(18.5), min: 0,    max: 18.5, hex: "#38bdf8" },
+  { label: "نرمال",      range: between(18.5, 24.9), min: 18.5, max: 25,   hex: "#10b981" },
+  { label: "اضافه وزن", range: between(25, 29.9),   min: 25,   max: 30,   hex: "#f59e0b" },
+  { label: "چاق",        range: atLeast(30),          min: 30,   max: 99,   hex: "#ef4444" },
 ] as const;
+
 
 export type BmiRange = (typeof BMI_RANGES)[number];
 
-export const bmiCategory = (bmi: number) =>
+export const bmiCategory = (bmi: number): BmiRange =>
   BMI_RANGES.find((r) => bmi >= r.min && bmi < r.max) ?? BMI_RANGES[3];
+
 
 const fillLevel = (bmi: number) => Math.min(Math.max((bmi - 15) / 20, 0.1), 0.9) * 0.8 + 0.1;
 
@@ -212,7 +214,7 @@ function BmiRangeRow({
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, delay }}
       className={`flex items-center justify-between rounded-xl border px-3 py-2 transition-colors ${
-        isActive ? "border-transparent shadow-card mt-10" : "border-line bg-surface/60"
+        isActive ? "border-transparent shadow-card" : "border-line bg-surface/60"
       }`}
       style={isActive ? { backgroundColor: `${range.hex}1a` } : undefined}
     >
@@ -231,15 +233,14 @@ function BmiRangeRow({
 
 export function BmiRangeLegend({ bmi }: Props) {
   const active = bmi === null ? null : bmiCategory(bmi);
-  const rest = BMI_RANGES.filter((range) => range.label !== active?.label);
 
   return (
     <ul className="flex w-full flex-col gap-2">
-      {rest.map((range, index) => (
+      {BMI_RANGES.map((range, index) => (
         <BmiRangeRow
           key={range.label}
           range={range}
-          isActive={false}
+          isActive={active != null && range.label === active.label}
           delay={0.3 + index * 0.08}
         />
       ))}
