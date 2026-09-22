@@ -14,6 +14,8 @@ from processing import calculate_risk_sync
 from database import init_db, get_db, check_connection
 from db_models import Person, SurveySubmission
 from fastapi_swagger import patch_fastapi
+from daydar_auth.deps import get_current_person
+from daydar_auth.router import router as daydar_auth_router
 
 
 logging.basicConfig(
@@ -62,6 +64,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(daydar_auth_router)
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
@@ -103,6 +107,7 @@ async def generic_exception_handler(
 async def get_risk_score(
     data: SurveyInput,
     db: Session = Depends(get_db),
+    current_person: Person = Depends(get_current_person),
 ):
     try:
         # ---------------------------------------------------------
@@ -113,7 +118,10 @@ async def get_risk_score(
             data,
         )
 
-        national_id = data.national_id
+        # The identity comes from the authenticated Daydar session, never
+        # from client-supplied data, so a submission can never be recorded
+        # under someone else's national code.
+        national_id = current_person.national_id
 
         gender = (
             data.gender.value
@@ -290,11 +298,19 @@ async def get_risk_score(
         )
 
 
+def _ensure_owner(national_id: str, current_person: Person) -> None:
+    if current_person.national_id != national_id:
+        raise HTTPException(status_code=403, detail="دسترسی مجاز نیست.")
+
+
 @app.get("/persons/{national_id}")
 async def get_person(
     national_id: str,
     db: Session = Depends(get_db),
+    current_person: Person = Depends(get_current_person),
 ):
+    _ensure_owner(national_id, current_person)
+
     person = (
         db.query(Person)
         .filter(Person.national_id == national_id)
@@ -321,7 +337,10 @@ async def get_person(
 async def get_person_submissions(
     national_id: str,
     db: Session = Depends(get_db),
+    current_person: Person = Depends(get_current_person),
 ):
+    _ensure_owner(national_id, current_person)
+
     person = (
         db.query(Person)
         .filter(Person.national_id == national_id)
@@ -366,7 +385,10 @@ async def get_person_submissions(
 async def get_submissions(
     national_id: str,
     db: Session = Depends(get_db),
+    current_person: Person = Depends(get_current_person),
 ):
+    _ensure_owner(national_id, current_person)
+
     person = (
         db.query(Person)
         .filter(Person.national_id == national_id)
@@ -405,7 +427,10 @@ async def get_submission_detail(
     national_id: str,
     submission_id: int,
     db: Session = Depends(get_db),
+    current_person: Person = Depends(get_current_person),
 ):
+    _ensure_owner(national_id, current_person)
+
     person = (
         db.query(Person)
         .filter(Person.national_id == national_id)

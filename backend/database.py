@@ -37,7 +37,7 @@ def get_db():
 
 
 def init_db():
-    from db_models import Person, SurveySubmission
+    from db_models import Person, SurveySubmission, RefreshToken  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 

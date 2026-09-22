@@ -5,3 +5,5 @@ PyMySQL==1.2.0
 python-dotenv==1.2.3
 jdatetime==6.0.1
 fastapi-swagger==0.4.55
+httpx==0.28.1
+PyJWT==2.10.1

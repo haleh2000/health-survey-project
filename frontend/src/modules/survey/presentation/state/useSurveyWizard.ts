@@ -19,6 +19,7 @@ import { BACKEND_VALUE } from "@survey/infrastructure/contract/backend-contract"
 import { saveAssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
+import { useAuth } from "../../../../auth/useAuth";
 
 // const STORAGE_KEY = "health-survey-progress";
 
@@ -37,6 +38,7 @@ export interface SurveyWizard {
   readonly assessment: RiskAssessment | null;
   readonly answeredCount: number;
   readonly totalCount: number;
+  readonly readOnlyIds: ReadonlySet<QuestionId>;
 
   valueOf: (id: QuestionId) => string;
   selectionOf: (id: QuestionId) => readonly string[];

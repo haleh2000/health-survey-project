@@ -37,6 +37,9 @@ services:
     environment:
       DATABASE_URL: mysql+pymysql://health_app:${DB_APP_PASSWORD}@db:3306/health_survey
       CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:47391,http://127.0.0.1:47391}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      DIDAR_BASE_URL: ${DIDAR_BASE_URL:-}
+      DIDAR_API_KEY: ${DIDAR_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

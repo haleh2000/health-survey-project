@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import (
+    Boolean,
     Column,
     Integer,
     String,
@@ -20,6 +21,7 @@ class Person(Base):
     # SSO fields
     national_id = Column(String(10), primary_key=True)
     full_name = Column(String(255), nullable=True)
+    mobile = Column(String(20), nullable=True)
     gender = Column(String(20), nullable=True)
     birth_date = Column(String(20), nullable=True)
 
@@ -42,8 +44,39 @@ class Person(Base):
         cascade="all, delete-orphan",
     )
 
+    refresh_tokens = relationship(
+        "RefreshToken",
+        back_populates="person",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self):
         return f"<Person(national_id={self.national_id}, name={self.full_name})>"
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    person_national_id = Column(
+        String(10),
+        ForeignKey("persons.national_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    token_hash = Column(String(64), nullable=False, unique=True, index=True)
+    revoked = Column(Boolean, nullable=False, default=False)
+
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    expires_at = Column(DateTime, nullable=False)
+
+    person = relationship("Person", back_populates="refresh_tokens")
 
 
 class SurveySubmission(Base):

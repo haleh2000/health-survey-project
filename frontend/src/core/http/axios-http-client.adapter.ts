@@ -1,4 +1,4 @@
-import axios, { AxiosError, type AxiosInstance } from "axios";
+import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 
 import {
   networkError,
@@ -10,6 +10,10 @@ import {
 } from "@core/errors/app-error";
 import type { HttpClient } from "@core/http/http-client.port";
 import { err, ok, type Result } from "@core/result/result";
+import { clearSession, loadSession, persistSession } from "../../auth/storage";
+import { refreshAccessToken } from "../../services/authService";
+
+type RetryableConfig = InternalAxiosRequestConfig & { __isAuthRetry?: boolean };
 
 /** The error envelope both FastAPI handlers in `backend/main.py` produce. */
 interface BackendErrorBody {
@@ -73,6 +77,52 @@ export class AxiosHttpClient implements HttpClient {
       timeout: timeoutMs,
       headers: { "Content-Type": "application/json" },
     });
+
+    // Every survey/history request must carry the Didar session's access
+    // token; read it fresh per request rather than snapshotting it once.
+    this.instance.interceptors.request.use((config) => {
+      const token = loadSession()?.tokens.accessToken;
+      if (token) config.headers.set("Authorization", `Bearer ${token}`);
+      return config;
+    });
+
+    // A single retry after refreshing the access token; if that also fails
+    // the session is gone, so the local session is cleared and the app
+    // shell (listening for this event) falls back to the login screen.
+    this.instance.interceptors.response.use(
+      (response) => response,
+      async (error: unknown) => {
+        if (!(error instanceof AxiosError) || error.response?.status !== 401) {
+          return Promise.reject(error);
+        }
+
+        const config = error.config as RetryableConfig | undefined;
+        if (!config || config.__isAuthRetry) return Promise.reject(error);
+
+        const session = loadSession();
+        if (!session) return Promise.reject(error);
+
+        try {
+          const refreshed = await refreshAccessToken(session.tokens.refreshToken);
+          persistSession({
+            ...session,
+            tokens: {
+              ...session.tokens,
+              accessToken: refreshed.access_token,
+              accessTokenExpiresAt: refreshed.access_token_expires_at,
+            },
+          });
+
+          config.__isAuthRetry = true;
+          config.headers.set("Authorization", `Bearer ${refreshed.access_token}`);
+          return this.instance.request(config);
+        } catch {
+          clearSession();
+          window.dispatchEvent(new Event("auth:session-cleared"));
+          return Promise.reject(error);
+        }
+      },
+    );
   }
 
   async get<TResponse>(

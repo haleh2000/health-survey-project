@@ -6,149 +6,113 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react'
+
 import {
-  ACCESS_TOKEN_REFRESH_BUFFER_SECONDS,
-  isAccessTokenRefreshNeeded,
-  isRefreshTokenExpired,
-  login as loginRequest,
-  refreshAccessToken,
-  updateProfile as updateProfileRequest,
+  logout as logoutRequest,
+  refreshAccessToken as refreshRequest,
+  toSession,
+  type AuthSessionResponse,
 } from '../services/authService'
 import { clearSession, loadSession, persistSession } from './storage'
-import type { AuthSession, LoginPayload, UpdateProfilePayload } from './types'
+import type { AuthSession } from './types'
+
+const ACCESS_TOKEN_REFRESH_BUFFER_MS = 60_000
 
 type AuthContextValue = {
   session: AuthSession | null
   user: AuthSession['user'] | null
   isAuthenticated: boolean
-  isLoading: boolean
-  login: (payload: LoginPayload) => Promise<void>
-  updateProfile: (payload: UpdateProfilePayload) => Promise<AuthSession>
+  completeLogin: (response: AuthSessionResponse) => void
   logout: () => void
+  getAccessToken: () => string | null
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<AuthSession | null>(() => loadSession())
-  const [isLoading, setIsLoading] = useState(false)
 
-  const login = useCallback(async (payload: LoginPayload) => {
-    setIsLoading(true)
+  const completeLogin = useCallback((response: AuthSessionResponse) => {
+    const nextSession = toSession(response)
+    persistSession(nextSession)
+    setSession(nextSession)
+  }, [])
 
-    try {
-      const nextSession = await loginRequest(payload)
-      persistSession(nextSession)
-      setSession(nextSession)
-    } finally {
-      setIsLoading(false)
+  const logout = useCallback(() => {
+    const current = loadSession()
+    clearSession()
+    setSession(null)
+
+    if (current?.tokens.refreshToken) {
+      void logoutRequest(current.tokens.refreshToken).catch(() => undefined)
     }
   }, [])
 
-  const updateProfile = useCallback(
-    async (payload: UpdateProfilePayload) => {
-      if (!session) {
-        throw new Error('No active session')
-      }
-
-      setIsLoading(true)
-
-      try {
-        const nextSession = await updateProfileRequest(session, payload)
-        persistSession(nextSession)
-        setSession(nextSession)
-        return nextSession
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [session],
-  )
-
-  const logout = useCallback(() => {
-    clearSession()
-    setSession(null)
-  }, [])
-
+  // Refreshes the access token ahead of expiry; a failed refresh means the
+  // refresh token itself is gone, so the only correct move is to sign out.
   const refreshSession = useCallback(async () => {
-    setIsLoading(true)
+    const current = loadSession()
+
+    if (!current || Date.now() >= current.tokens.refreshTokenExpiresAt) {
+      clearSession()
+      setSession(null)
+      return
+    }
 
     try {
-      setSession((currentSession) => {
-        if (!currentSession || isRefreshTokenExpired(currentSession)) {
-          clearSession()
-          return null
-        }
-
-        return currentSession
-      })
-
-      const currentSession = loadSession()
-
-      if (!currentSession || isRefreshTokenExpired(currentSession)) {
-        clearSession()
-        setSession(null)
-        return
+      const response = await refreshRequest(current.tokens.refreshToken)
+      const nextSession: AuthSession = {
+        ...current,
+        tokens: {
+          ...current.tokens,
+          accessToken: response.access_token,
+          accessTokenExpiresAt: response.access_token_expires_at,
+        },
       }
-
-      const nextSession = await refreshAccessToken(currentSession)
       persistSession(nextSession)
       setSession(nextSession)
     } catch {
       clearSession()
       setSession(null)
-    } finally {
-      setIsLoading(false)
     }
   }, [])
 
+  // The Axios client clears the session and fires this when a 401 survives
+  // a refresh attempt; sync the in-memory session so the app falls back to
+  // the login screen without a manual reload.
   useEffect(() => {
-    if (!session) {
-      return undefined
-    }
+    const handleSessionCleared = () => setSession(null)
+    window.addEventListener('auth:session-cleared', handleSessionCleared)
+    return () => window.removeEventListener('auth:session-cleared', handleSessionCleared)
+  }, [])
 
-    if (isRefreshTokenExpired(session)) {
-      window.setTimeout(() => void refreshSession(), 0)
-      return undefined
-    }
+  useEffect(() => {
+    if (!session) return undefined
 
-    if (isAccessTokenRefreshNeeded(session)) {
+    if (Date.now() >= session.tokens.refreshTokenExpiresAt) {
       window.setTimeout(() => void refreshSession(), 0)
       return undefined
     }
 
     const refreshDelay = Math.max(
-      session.tokens.accessTokenExpiresAt -
-        ACCESS_TOKEN_REFRESH_BUFFER_SECONDS * 1000 -
-        Date.now(),
+      session.tokens.accessTokenExpiresAt - ACCESS_TOKEN_REFRESH_BUFFER_MS - Date.now(),
       0,
     )
-    const refreshTimer = window.setTimeout(() => {
-      void refreshSession()
-    }, refreshDelay)
+    const refreshTimer = window.setTimeout(() => void refreshSession(), refreshDelay)
 
-    const logoutDelay = Math.max(session.tokens.refreshTokenExpiresAt - Date.now(), 0)
-    const logoutTimer = window.setTimeout(() => {
-      void refreshSession()
-    }, logoutDelay)
-
-    return () => {
-      window.clearTimeout(refreshTimer)
-      window.clearTimeout(logoutTimer)
-    }
-  }, [logout, refreshSession, session])
+    return () => window.clearTimeout(refreshTimer)
+  }, [session, refreshSession])
 
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
       user: session?.user ?? null,
       isAuthenticated: Boolean(session?.tokens.accessToken),
-      isLoading,
-      login,
-      updateProfile,
+      completeLogin,
       logout,
+      getAccessToken: () => loadSession()?.tokens.accessToken ?? null,
     }),
-    [isLoading, login, logout, session, updateProfile],
+    [session, completeLogin, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

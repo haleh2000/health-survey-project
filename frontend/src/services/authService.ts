@@ -1,220 +1,170 @@
-import { apiRequest } from './api'
-import { normalizeRoleId } from '../auth/role'
-import type {
-  AuthSession,
-  LoginPayload,
-  UpdateProfilePayload,
-} from '../auth/types'
+import { ENV } from '@core/config/env'
 
-export const ACCESS_TOKEN_LIFETIME_MINUTES = 15
-export const REFRESH_TOKEN_LIFETIME_DAYS = 7
-export const ACCESS_TOKEN_REFRESH_BUFFER_SECONDS = 60
+import type { AuthSession } from '../auth/types'
 
-type LoginApiResponse = {
-  accessToken?: string
-  access_token?: string
-  refreshToken?: string
-  refresh_token?: string
-  token?: string
-  jwt?: string
-  data?: LoginApiResponse
-  user?: {
-    id?: string | number
-    username?: string
-    displayName?: string
-    name?: string
-    fullName?: string
-    email?: string
-    avatar?: string | null
-    role?: number
-    [key: string]: unknown
+export class DidarAuthError extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'DidarAuthError'
+    this.status = status
   }
-  id?: string | number
-  username?: string
-  displayName?: string
-  name?: string
-  fullName?: string
-  email?: string
-  avatar?: string | null
-  role?: number
 }
 
-type RefreshApiResponse = Pick<
-  LoginApiResponse,
-  | 'accessToken'
-  | 'access_token'
-  | 'refreshToken'
-  | 'refresh_token'
-  | 'token'
-  | 'jwt'
-  | 'data'
->
+type ErrorBody = { detail?: string }
 
-type ProfileApiResponse = LoginApiResponse
-
-export async function login(payload: LoginPayload): Promise<AuthSession> {
-  const response = await apiRequest<LoginApiResponse>('/auth/login', {
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${ENV.apiUrl}${path}`, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
 
-  const loginData = response.data ?? response
-  const userData = loginData.user ?? loginData
-  const accessToken =
-    loginData.accessToken ?? loginData.access_token ?? loginData.token ?? loginData.jwt
-  const refreshToken = loginData.refreshToken ?? loginData.refresh_token
-
-  if (!accessToken || !refreshToken) {
-    throw new Error('پاسخ ورود معتبر نیست و توکن دریافت نشد.')
+  if (response.status === 204) {
+    return undefined as T
   }
 
-  const username =
-    userData.username?.trim() ||
-    loginData.username?.trim() ||
-    payload.username.trim()
-  const displayName =
-    userData.displayName ??
-    userData.fullName ??
-    userData.name ??
-    loginData.displayName ??
-    loginData.fullName ??
-    loginData.name ??
-    username
-  const email = userData.email ?? loginData.email
-  const avatar = userData.avatar ?? loginData.avatar
-  const role = normalizeRoleId(userData.role) ?? 1
+  const isJson = response.headers.get('content-type')?.includes('application/json')
+  const data = isJson ? ((await response.json()) as unknown) : null
 
-  return {
-    user: {
-      ...userData,
-      id: userData.id ?? loginData.id,
-      username,
-      displayName,
-      email,
-      avatar,
-      role,
-    },
-    tokens: {
-      accessToken,
-      refreshToken,
-      accessTokenExpiresAt: createAccessTokenExpiresAt(),
-      refreshTokenExpiresAt: createRefreshTokenExpiresAt(),
-    },
+  if (!response.ok) {
+    const message =
+      data && typeof data === 'object' && typeof (data as ErrorBody).detail === 'string'
+        ? (data as ErrorBody).detail!
+        : 'درخواست به سرور با خطا مواجه شد.'
+
+    throw new DidarAuthError(message, response.status)
   }
+
+  return data as T
 }
 
-export async function refreshAccessToken(
-  session: AuthSession,
-): Promise<AuthSession> {
-  const response = await apiRequest<RefreshApiResponse>('/auth/refresh', {
-    method: 'POST',
-    token: session.tokens.refreshToken,
-  })
-  const refreshData = response.data ?? response
-  const accessToken =
-    refreshData.accessToken ??
-    refreshData.access_token ??
-    refreshData.token ??
-    refreshData.jwt
-  const nextRefreshToken = refreshData.refreshToken ?? refreshData.refresh_token
-  const refreshToken = nextRefreshToken ?? session.tokens.refreshToken
-
-  if (!accessToken) {
-    throw new Error('پاسخ تمدید نشست معتبر نیست و توکن دریافت نشد.')
-  }
-
-  return {
-    ...session,
-    tokens: {
-      accessToken,
-      refreshToken,
-      accessTokenExpiresAt: createAccessTokenExpiresAt(),
-      refreshTokenExpiresAt: nextRefreshToken
-        ? createRefreshTokenExpiresAt()
-        : session.tokens.refreshTokenExpiresAt,
-    },
-  }
-}
-
-export async function updateProfile(
-  session: AuthSession,
-  payload: UpdateProfilePayload,
-): Promise<AuthSession> {
-  const response = await apiRequest<ProfileApiResponse>('/auth/me', {
-    method: 'PATCH',
-    token: session.tokens.accessToken,
-    body: JSON.stringify(payload),
+async function get<T>(path: string, accessToken: string): Promise<T> {
+  const response = await fetch(`${ENV.apiUrl}${path}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
 
-  const profileData = response.data ?? response
-  const userData = profileData.user ?? profileData
-  const accessToken =
-    profileData.accessToken ??
-    profileData.access_token ??
-    profileData.token ??
-    profileData.jwt
-  const nextRefreshToken =
-    profileData.refreshToken ?? profileData.refresh_token
-  const refreshToken = nextRefreshToken ?? session.tokens.refreshToken
+  const isJson = response.headers.get('content-type')?.includes('application/json')
+  const data = isJson ? ((await response.json()) as unknown) : null
 
-  if (!accessToken) {
-    throw new Error('پاسخ بروزرسانی پروفایل معتبر نیست و توکن دریافت نشد.')
+  if (!response.ok) {
+    const message =
+      data && typeof data === 'object' && typeof (data as ErrorBody).detail === 'string'
+        ? (data as ErrorBody).detail!
+        : 'درخواست به سرور با خطا مواجه شد.'
+
+    throw new DidarAuthError(message, response.status)
   }
 
-  const username =
-    userData.username?.trim() ||
-    profileData.username?.trim() ||
-    session.user.username
-  const displayName =
-    userData.displayName ??
-    userData.fullName ??
-    userData.name ??
-    profileData.displayName ??
-    profileData.fullName ??
-    profileData.name ??
-    username
-  const email = userData.email ?? profileData.email ?? session.user.email
-  const avatar = userData.avatar ?? profileData.avatar ?? session.user.avatar
-  const role = normalizeRoleId(userData.role) ?? session.user.role ?? 1
+  return data as T
+}
 
+export type MobileStepResponse = {
+  session_id: string
+  captcha_required: boolean
+  captcha: string | null
+  registered: boolean | null
+}
+
+export type OtpSendResponse = {
+  session_id: string
+  expires_in?: number
+}
+
+export type RegisterIdentityResponse = {
+  session_id: string
+  first_name: string
+  last_name: string
+  father_name?: string
+  national_id: string
+  mobile?: string
+}
+
+export type AuthMe = {
+  national_id: string
+  full_name: string | null
+  mobile: string | null
+}
+
+export type AuthSessionResponse = {
+  access_token: string
+  access_token_expires_at: number
+  refresh_token: string
+  refresh_token_expires_at: number
+  user: AuthMe
+}
+
+export type RefreshResponse = {
+  access_token: string
+  access_token_expires_at: number
+}
+
+export function toSession(response: AuthSessionResponse): AuthSession {
   return {
-    user: {
-      ...session.user,
-      ...userData,
-      id: userData.id ?? profileData.id ?? session.user.id,
-      username,
-      displayName,
-      email,
-      avatar,
-      role,
-    },
+    user: response.user,
     tokens: {
-      accessToken,
-      refreshToken,
-      accessTokenExpiresAt: createAccessTokenExpiresAt(),
-      refreshTokenExpiresAt: nextRefreshToken
-        ? createRefreshTokenExpiresAt()
-        : session.tokens.refreshTokenExpiresAt,
+      accessToken: response.access_token,
+      accessTokenExpiresAt: response.access_token_expires_at,
+      refreshToken: response.refresh_token,
+      refreshTokenExpiresAt: response.refresh_token_expires_at,
     },
   }
 }
 
-export function isAccessTokenRefreshNeeded(session: AuthSession) {
-  return (
-    Date.now() >=
-    session.tokens.accessTokenExpiresAt -
-      ACCESS_TOKEN_REFRESH_BUFFER_SECONDS * 1000
-  )
+/** Resolves the captcha into a usable `<img>` source, if one was returned. */
+export function captchaImageSrc(captcha: string): string {
+  return captcha.startsWith('data:') ? captcha : `data:image/png;base64,${captcha}`
 }
 
-export function isRefreshTokenExpired(session: AuthSession) {
-  return Date.now() >= session.tokens.refreshTokenExpiresAt
+export function requestMobileStep(payload: {
+  mobile: string
+  session_id?: string
+  captcha?: string
+}): Promise<MobileStepResponse> {
+  return post('/auth/didar/mobile', payload)
 }
 
-function createAccessTokenExpiresAt() {
-  return Date.now() + ACCESS_TOKEN_LIFETIME_MINUTES * 60 * 1000
+export function sendOtp(session_id: string): Promise<OtpSendResponse> {
+  return post('/auth/didar/otp/send', { session_id })
 }
 
-function createRefreshTokenExpiresAt() {
-  return Date.now() + REFRESH_TOKEN_LIFETIME_DAYS * 24 * 60 * 60 * 1000
+export function verifyOtp(session_id: string, code: string): Promise<AuthSessionResponse> {
+  return post('/auth/didar/otp/verify', { session_id, code })
+}
+
+export function loginWithPassword(
+  session_id: string,
+  password: string,
+): Promise<AuthSessionResponse> {
+  return post('/auth/didar/password', { session_id, password })
+}
+
+export function registerIdentity(
+  session_id: string,
+  national_id: string,
+  birth_date: string,
+): Promise<RegisterIdentityResponse> {
+  return post('/auth/didar/register/identity', { session_id, national_id, birth_date })
+}
+
+export function completeRegistration(
+  session_id: string,
+  password: string,
+  password_confirm: string,
+): Promise<AuthSessionResponse> {
+  return post('/auth/didar/register', { session_id, password, password_confirm })
+}
+
+export function refreshAccessToken(refresh_token: string): Promise<RefreshResponse> {
+  return post('/auth/refresh', { refresh_token })
+}
+
+export function logout(refresh_token: string): Promise<void> {
+  return post('/auth/logout', { refresh_token })
+}
+
+export function fetchMe(accessToken: string): Promise<AuthMe> {
+  return get('/auth/me', accessToken)
 }
