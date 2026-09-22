@@ -63,7 +63,7 @@ class DaydarClient:
     def _require_configured(self) -> None:
         if not daydar_settings.enabled:
             raise DaydarError(
-                "سرویس احراز هویت دایدار پیکربندی نشده است.", status_code=503
+                "سرویس احراز هویت دیدار پیکربندی نشده است.", status_code=503
             )
 
     async def _post_auth(self, path: str, body: dict[str, Any]) -> dict[str, Any]:

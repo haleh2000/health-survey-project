@@ -50,7 +50,7 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-control font-medium cursor-pointer bg-white text-gray-500",
+        "inline-flex items-center justify-center gap-2 rounded-control font-medium cursor-pointer bg-day-primary text-gray-500",
         "transition-colors duration-150 select-none",
         "disabled:pointer-events-none disabled:opacity-45",
         VARIANTS[variant],
