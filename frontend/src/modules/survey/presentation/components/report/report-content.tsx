@@ -298,7 +298,7 @@ export function buildReportBlocks(
     ),
   });
 
-  // ── پیشنهادهای روزانه (همهٔ استوری‌ها) ─────────────────────────────────────
+  // ── پیشنهادهای سلامت (همهٔ استوری‌ها) ─────────────────────────────────────
   const groups = storyGroupsFor(assessment?.tier ?? null);
 
   blocks.push({
@@ -306,7 +306,7 @@ export function buildReportBlocks(
     keepWithNext: true,
     node: (
       <SectionTitle
-        title="پیشنهادهای روزانه"
+        title="پیشنهادهای سلامت"
         hint="متنِ کاملِ همهٔ استوری‌های متناسب با وضعیت شما"
       />
     ),

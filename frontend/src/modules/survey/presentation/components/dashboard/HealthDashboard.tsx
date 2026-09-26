@@ -457,6 +457,7 @@ export function HealthDashboard({
         {/* سوابق ارزیابی */}
         <div className="flex flex-wrap items-center gap-2">
           <ViewHistoryButton
+            label="سوابق ارزیابی‌های من"
             history={history}
             nationalId={nationalId}
             onSelectRecord={setSelectedHistoricalRecord}
@@ -728,7 +729,7 @@ export function HealthDashboard({
       <section className="rounded-3xl border border-white/50 bg-surface/70 p-5 shadow-card backdrop-blur-xl sm:p-6">
         <div className="mb-3 flex items-center gap-2">
           <span className="text-md font-black text-day-primary">
-            پیشنهادهای روزانه
+            پیشنهادهای سلامت
           </span>
         </div>
 

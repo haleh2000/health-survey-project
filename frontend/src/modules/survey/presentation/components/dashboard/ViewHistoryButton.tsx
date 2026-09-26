@@ -12,12 +12,14 @@ interface Props {
   readonly history: readonly AssessmentRecord[];
   readonly nationalId: string;
   readonly onSelectRecord?: (record: AssessmentRecord | null) => void;
+  readonly label?: string;
 }
 
 export function ViewHistoryButton({
   history,
   nationalId,
   onSelectRecord,
+  label = "پروفایل سلامت من",
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -31,7 +33,7 @@ export function ViewHistoryButton({
         className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-day-primary/10 px-3 py-1.5 text-sm font-bold text-day-primary transition hover:bg-day-primary/15"
       >
         <History className="h-3.5 w-3.5" />
-        پروفایل سلامت من
+        {label}
       </motion.button>
 
       <AssessmentHistoryModal
