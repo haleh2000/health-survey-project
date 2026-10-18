@@ -244,9 +244,9 @@ export function LoginForm() {
       >
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <img src={daydarLogo} alt="دایدار" className="h-14 w-auto object-contain" />
-          <h1 className="text-xl font-black text-gray-900">ورود به ارزیابی ریسک سلامت</h1>
+          <h1 className="text-xl font-black text-gray-900">ورود به ارزیابی هوشمند سلامت</h1>
           <p className="text-sm text-gray-500">
-            با شماره موبایل خود از طریق دایدار وارد شوید.
+            با شماره موبایل خود از طریق دی دار وارد شوید.
           </p>
         </div>
 
