@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,10 +9,13 @@ from database import get_db
 from db_models import Person, RefreshToken
 
 from .client import DaydarError, daydar_client
+from .config import daydar_settings
 from .deps import get_current_person
 from .schemas import (
+    AuthModeResponse,
     AuthSessionOut,
     AuthUserOut,
+    LocalLoginRequest,
     LogoutRequest,
     MobileLoginRequest,
     MobileLoginResponse,
@@ -29,7 +33,7 @@ from .security import (
     create_access_token,
     hash_refresh_token,
 )
-from .service import finalize_login
+from .service import finalize_login, issue_session
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +58,66 @@ def _session_id_of(payload: dict) -> str:
         or payload.get("sessionId")
         or ""
     )
+
+
+@router.get("/mode", response_model=AuthModeResponse)
+async def auth_mode() -> AuthModeResponse:
+    """Tells the UI which login flow to render.
+
+    `local` means the password-less login below is active (Didar is
+    not configured), so the client must not call the `/didar/*`
+    routes — they answer 503 until Didar is configured.
+    """
+
+    mode = "local" if daydar_settings.local_login_enabled else "didar"
+    return AuthModeResponse(mode=mode)
+
+
+@router.post("/local", response_model=AuthSessionOut)
+async def local_login(payload: LocalLoginRequest, db: Session = Depends(get_db)):
+    """Password-less login, available only when Didar is not configured.
+
+    The mobile number identifies the person: it is matched against an
+    existing `Person`, otherwise one is created. `national_id` is the
+    primary key, so it is derived from the mobile number instead of
+    being made up per login.
+    """
+
+    if not daydar_settings.local_login_enabled:
+        raise HTTPException(
+            status_code=403,
+            detail="ورود محلی فعال نیست.",
+        )
+
+    mobile = "".join(ch for ch in payload.mobile if ch.isdigit())
+
+    if not re.fullmatch(r"09\d{9}", mobile):
+        raise HTTPException(
+            status_code=422,
+            detail="شماره موبایل معتبر نیست.",
+        )
+
+    person = db.query(Person).filter(Person.mobile == mobile).first()
+
+    if not person:
+        national_id = mobile[1:]
+
+        person = (
+            db.query(Person)
+            .filter(Person.national_id == national_id)
+            .first()
+        )
+
+        if person:
+            person.mobile = mobile
+        else:
+            person = Person(national_id=national_id, mobile=mobile)
+            db.add(person)
+            db.flush()
+
+    logger.info("Local login for mobile=%s", mobile)
+
+    return issue_session(db, person)
 
 
 @router.post("/didar/mobile", response_model=MobileLoginResponse)

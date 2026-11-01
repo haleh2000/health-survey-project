@@ -89,6 +89,12 @@ async def finalize_login(db: Session, token_payload: dict) -> AuthSessionOut:
         db.add(person)
         db.flush()
 
+    return issue_session(db, person)
+
+
+def issue_session(db: Session, person: Person) -> AuthSessionOut:
+    """Mint our local session: JWT access token + DB-backed refresh token."""
+
     local_access_token, access_expires_at = create_access_token(
         person.national_id, person.full_name or ""
     )

@@ -5,6 +5,10 @@ def _get(name: str, default: str = "") -> str:
     return os.getenv(name, default)
 
 
+def _flag(name: str, default: str = "") -> bool:
+    return _get(name, default).strip().lower() in {"1", "true", "yes", "on"}
+
+
 class DaydarSettings:
     base_url: str = _get("DIDAR_BASE_URL")
     api_key: str = _get("DIDAR_API_KEY")
@@ -24,6 +28,22 @@ class DaydarSettings:
     @property
     def enabled(self) -> bool:
         return bool(self.base_url and self.api_key)
+
+    @property
+    def local_login_enabled(self) -> bool:
+        """Password-less local login, used only for development.
+
+        Never active while the Didar SSO is configured, so it cannot
+        shadow the real identity provider, and only when it is
+        explicitly opted into with ALLOW_LOCAL_LOGIN: a deployment
+        that simply forgot the Didar keys keeps failing loudly on the
+        SSO routes instead of silently accepting logins.
+        """
+
+        return ALLOW_LOCAL_LOGIN and not self.enabled
+
+
+ALLOW_LOCAL_LOGIN = _flag("ALLOW_LOCAL_LOGIN")
 
 
 daydar_settings = DaydarSettings()
