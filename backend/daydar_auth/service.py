@@ -28,6 +28,27 @@ def _digits_only(value: str) -> str:
     return "".join(ch for ch in (value or "") if ch.isdigit())
 
 
+def is_valid_national_id(value: str) -> bool:
+    """Iranian national code: 10 digits, not a repdigit, valid check digit."""
+    if len(value) != 10 or not value.isdigit() or len(set(value)) == 1:
+        return False
+    total = sum(int(value[i]) * (10 - i) for i in range(9))
+    remainder = total % 11
+    check = int(value[9])
+    return check == remainder if remainder < 2 else check == 11 - remainder
+
+
+def _clean_national_id(value: str, mobile: str) -> str:
+    """Returns the national id only if it is a real one, never the mobile."""
+    digits = _digits_only(value)
+    if not is_valid_national_id(digits):
+        return ""
+    mobile_digits = _digits_only(mobile)
+    if mobile_digits and mobile_digits[-10:] == digits:
+        return ""
+    return digits
+
+
 def decode_daydar_claims(access_token: str) -> dict:
     # Daydar's signing key is not available to us; we only read the claims of
     # a token we just received directly from Daydar over TLS, we do not trust
@@ -47,10 +68,12 @@ async def finalize_login(db: Session, token_payload: dict) -> AuthSessionOut:
         ) from exc
 
     user_id = str(claims.get("ID") or "")
-    national_id = _digits_only(claims.get("nationalID") or "")
     first_name = claims.get("firstName") or ""
     last_name = claims.get("lastName") or ""
     mobile = claims.get("mobile") or ""
+    # A `nationalID` claim that is not a valid national code (e.g. the mobile)
+    # is discarded, so the profile lookup below can supply the real one.
+    national_id = _clean_national_id(claims.get("nationalID") or "", mobile)
 
     if not user_id:
         raise DaydarError(
@@ -65,10 +88,10 @@ async def finalize_login(db: Session, token_payload: dict) -> AuthSessionOut:
         )
         profile_user = profile_payload.get("user") or {}
 
-        national_id = _digits_only(profile_user.get("nationalID") or "")
         first_name = profile_user.get("firstName") or first_name
         last_name = profile_user.get("lastName") or last_name
         mobile = profile_user.get("mobile") or mobile
+        national_id = _clean_national_id(profile_user.get("nationalID") or "", mobile)
 
     if not national_id:
         raise DaydarError(

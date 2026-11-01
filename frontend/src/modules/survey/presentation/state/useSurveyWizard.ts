@@ -6,6 +6,7 @@ import type { AppError } from "@core/errors/app-error";
 import type { ChoiceQuestion, Question, QuestionId } from "@survey/domain/entities/question.entity";
 import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.entity";
 import { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
+import { NationalId } from "@survey/domain/value-objects/national-id.vo";
 import {
   readList,
   readText,
@@ -86,16 +87,29 @@ export function useSurveyWizard(): SurveyWizard {
 
   // Name and national id come from the Didar session, not from what the user
   // types, so any saved draft is overridden with the authenticated identity.
+  // Only a valid national code is ever placed in the field: a mobile number
+  // (or anything else) from the session or an old draft is dropped.
+  const sessionNationalId = user?.national_id && NationalId.isValid(user.national_id)
+    ? user.national_id
+    : "";
+
   const applySessionIdentity = useCallback(
     (base: SurveyAnswers): SurveyAnswers => {
-      if (!user) return base;
+      const { national_id: draftNationalId, ...rest } = base as Record<string, unknown>;
+      const cleaned = {
+        ...rest,
+        ...(typeof draftNationalId === "string" && NationalId.isValid(draftNationalId)
+          ? { national_id: draftNationalId }
+          : {}),
+      } as SurveyAnswers;
+      if (!user) return cleaned;
       return {
-        ...base,
+        ...cleaned,
         ...(user.full_name ? { full_name: user.full_name } : {}),
-        ...(user.national_id ? { national_id: user.national_id } : {}),
+        ...(sessionNationalId ? { national_id: sessionNationalId } : {}),
       };
     },
-    [user],
+    [user, sessionNationalId],
   );
 
   const [answers, setAnswers] = useState<SurveyAnswers>(() => {
@@ -111,9 +125,9 @@ export function useSurveyWizard(): SurveyWizard {
   const readOnlyIds = useMemo<ReadonlySet<QuestionId>>(() => {
     const ids = new Set<QuestionId>();
     if (user?.full_name) ids.add("full_name" as QuestionId);
-    if (user?.national_id) ids.add("national_id" as QuestionId);
+    if (sessionNationalId) ids.add("national_id" as QuestionId);
     return ids;
-  }, [user]);
+  }, [user, sessionNationalId]);
 
 const [stepIndex, setStepIndex] = useState<number>(() => {
   const saved = localStorage.getItem(STORAGE_KEY);
