@@ -78,5 +78,14 @@ class RefreshResponse(BaseModel):
     access_token_expires_at: int
 
 
+class LocalLoginRequest(BaseModel):
+    mobile: str
+
+
+class AuthModeResponse(BaseModel):
+    # "local" = password-less development login, "didar" = the real SSO.
+    mode: str
+
+
 class LogoutRequest(BaseModel):
     refresh_token: str

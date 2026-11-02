@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 
 import { Alert } from '@ds/components/Alert'
@@ -13,7 +13,9 @@ import {
   DidarAuthError,
   captchaImageSrc,
   completeRegistration,
+  fetchAuthMode,
   loginWithPassword,
+  loginWithLocalMobile,
   registerIdentity,
   requestMobileStep,
   sendOtp,
@@ -40,6 +42,7 @@ export function LoginForm() {
   const [step, setStep] = useState<Step>('mobile')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [authMode, setAuthMode] = useState<'local' | 'didar' | null>(null)
 
   const [mobile, setMobile] = useState('')
   const [sessionId, setSessionId] = useState('')
@@ -57,8 +60,39 @@ export function LoginForm() {
   const [newPassword, setNewPassword] = useState('')
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('')
 
+  // Resolved before the first submit so the right flow is used even when
+  // the user types faster than this request.
+  useEffect(() => {
+    let cancelled = false
+
+    void fetchAuthMode()
+      .then((response) => {
+        if (!cancelled) setAuthMode(response.mode === 'local' ? 'local' : 'didar')
+      })
+      .catch(() => {
+        if (!cancelled) setAuthMode('didar')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   function resolveMessage(caughtError: unknown, fallback: string): string {
     return caughtError instanceof DidarAuthError ? caughtError.message : fallback
+  }
+
+  async function resolveMode(): Promise<'local' | 'didar'> {
+    if (authMode) return authMode
+
+    try {
+      const response = await fetchAuthMode()
+      const mode = response.mode === 'local' ? 'local' : 'didar'
+      setAuthMode(mode)
+      return mode
+    } catch {
+      return 'didar'
+    }
   }
 
   async function submitMobile(event: FormEvent) {
@@ -73,6 +107,11 @@ export function LoginForm() {
 
     setBusy(true)
     try {
+      if ((await resolveMode()) === 'local') {
+        completeLogin(await loginWithLocalMobile(cleanMobile))
+        return
+      }
+
       const response = await requestMobileStep({ mobile: cleanMobile })
       setSessionId(response.session_id)
 
@@ -244,9 +283,11 @@ export function LoginForm() {
       >
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <img src={daydarLogo} alt="دایدار" className="h-14 w-auto object-contain" />
-          <h1 className="text-xl font-black text-gray-900">ورود به ارزیابی ریسک سلامت</h1>
+          <h1 className="text-xl font-black text-gray-900">ورود به ارزیابی هوشمند سلامت</h1>
           <p className="text-sm text-gray-500">
-            با شماره موبایل خود از طریق دایدار وارد شوید.
+            {authMode === 'local'
+              ? 'ورود محلی: شماره موبایل کافی است.'
+              : 'با شماره موبایل خود از طریق دی دار وارد شوید.'}
           </p>
         </div>
 
@@ -278,7 +319,7 @@ export function LoginForm() {
                 />
               </div>
               <Button type="submit" variant="primary" className="w-full" loading={busy}>
-                ادامه
+                {authMode === 'local' ? 'ورود' : 'ادامه'}
               </Button>
             </form>
           )}

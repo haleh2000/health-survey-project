@@ -40,10 +40,10 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return data as T
 }
 
-async function get<T>(path: string, accessToken: string): Promise<T> {
+async function get<T>(path: string, accessToken?: string): Promise<T> {
   const response = await fetch(`${ENV.apiUrl}${path}`, {
     method: 'GET',
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
   })
 
   const isJson = response.headers.get('content-type')?.includes('application/json')
@@ -167,4 +167,18 @@ export function logout(refresh_token: string): Promise<void> {
 
 export function fetchMe(accessToken: string): Promise<AuthMe> {
   return get('/auth/me', accessToken)
+}
+
+export type AuthMode = { mode: 'local' | 'didar' }
+
+/**
+ * Which login flow the backend currently serves: `local` (Didar is not
+ * configured, password-less mobile login) or `didar` (the real SSO).
+ */
+export function fetchAuthMode(): Promise<AuthMode> {
+  return get('/auth/mode')
+}
+
+export function loginWithLocalMobile(mobile: string): Promise<AuthSessionResponse> {
+  return post('/auth/local', { mobile })
 }
