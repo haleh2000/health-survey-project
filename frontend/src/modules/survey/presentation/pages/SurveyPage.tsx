@@ -39,8 +39,12 @@ import type {
 
 import {
   loadAssessmentHistoryByNationalId,
+  loadLastResult,
+  normalizeNationalId,
+  resolveLatestAssessmentForUser,
   type AssessmentRecord,
 } from "@survey/infrastructure/storage/assessment-history.storage";
+import { useAuth } from "../../../../auth/useAuth";
 
 const stepSpring = {
   type: "spring",
@@ -60,9 +64,13 @@ export function SurveyPage() {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const navState = (location.state as SurveyLocationState | null) ?? null;
   const selectedRecordFromNav = navState?.selectedRecord ?? null;
   const startingNewAssessment = navState?.mode === "new";
+  const lookupNationalId = user?.national_id
+    ? normalizeNationalId(user.national_id)
+    : "";
 
   const wizard = useSurveyWizard({
     preferResult: !startingNewAssessment,
@@ -106,7 +114,7 @@ export function SurveyPage() {
   ]);
 
   // Back from a new assessment returns to the saved result.
-  // The questionnaire is cleared only by «ارزیابی جدید».
+  // The questionnaire is cleared only by «ارزیابی مجدد».
   useLayoutEffect(() => {
     if (startingNewAssessment) {
       openingNewAssessment.current = false;
@@ -166,51 +174,24 @@ export function SurveyPage() {
   // Assessment history
   // ---------------------------------------------------------------------------
 
-  const [
-    history,
-    setHistory,
-  ] = useState<
-    AssessmentRecord[]
-  >([]);
+  const completedNationalId =
+    readText(wizard.answers, "national_id" as QuestionId).trim() ||
+    lookupNationalId;
 
-  useEffect(() => {
-    // فقط وقتی ارزیابی با موفقیت تمام شده history را بخوان.
-    if (
-      wizard.stage !==
-        "completed" ||
-      !wizard.assessment
-    ) {
-      return;
-    }
+  const history =
+    wizard.stage === "completed"
+      ? completedNationalId
+        ? loadAssessmentHistoryByNationalId(completedNationalId)
+        : (() => {
+            const last = loadLastResult();
+            return last ? [last] : [];
+          })()
+      : [];
 
-    // کد ملی همان کاربری که همین الان فرم را Submit کرده.
-    const nationalId =
-      readText(
-        wizard.answers,
-        "national_id" as QuestionId,
-      ).trim();
-
-    // اگر کد ملی وجود نداشت،
-    // هیچ سابقه‌ای نمایش داده نشود.
-    if (!nationalId) {
-      setHistory([]);
-      return;
-    }
-
-    // فقط سوابق همین کد ملی.
-    const userHistory =
-      loadAssessmentHistoryByNationalId(
-        nationalId,
-      );
-
-    setHistory(
-      userHistory,
-    );
-  }, [
-    wizard.stage,
-    wizard.assessment,
-    wizard.answers,
-  ]);
+  const latestRecord =
+    history[0] ??
+    resolveLatestAssessmentForUser(completedNationalId) ??
+    null;
 
   // ---------------------------------------------------------------------------
   // Viewing a historical record from WelcomePage
@@ -239,15 +220,8 @@ export function SurveyPage() {
       "completed" &&
     wizard.assessment
   ) {
-    const latestRecord =
-      history[0] ??
-      null;
-
     const nationalId =
-      readText(
-        wizard.answers,
-        "national_id" as QuestionId,
-      ).trim();
+      completedNationalId || latestRecord?.nationalId || "";
 
     return (
       <main className="mx-auto max-w-6xl px-5 py-10">
@@ -256,7 +230,11 @@ export function SurveyPage() {
             latestRecord
           }
           history={
-            history
+            history.length > 0
+              ? history
+              : latestRecord
+                ? [latestRecord]
+                : []
           }
           nationalId={nationalId}
         />
@@ -273,7 +251,7 @@ export function SurveyPage() {
                      shadow-[0_14px_30px_rgba(17,164,184,0.22)] transition hover:-translate-y-0.5
                      disabled:pointer-events-none disabled:opacity-60"
         >
-          ارزیابی جدید
+          ارزیابی مجدد
         </button>
       </main>
     );

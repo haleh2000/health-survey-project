@@ -18,7 +18,8 @@ import { setAnswer, toggleAnswer } from "@survey/domain/services/answer-update.s
 import { visibleQuestionsOf } from "@survey/domain/services/question-visibility.service";
 import { BACKEND_VALUE } from "@survey/infrastructure/contract/backend-contract";
 import {
-  loadAssessmentHistoryByNationalId,
+  normalizeNationalId,
+  resolveLatestAssessmentForUser,
   saveAssessmentRecord,
 } from "@survey/infrastructure/storage/assessment-history.storage";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
@@ -27,7 +28,7 @@ import { useAuth } from "../../../../auth/useAuth";
 
 /**
  * Unfinished answers only. A calculated result is not restored as a filled
- * form: opening the survey shows that result until «ارزیابی جدید» starts
+ * form: opening the survey shows that result until «ارزیابی مجدد» starts
  * a blank questionnaire. Older saves have no revision and are dropped once.
  */
 const STORAGE_KEY = "health-survey-progress";
@@ -153,11 +154,13 @@ type WizardBoot = {
 };
 
 const bootWizard = (preferResult: boolean, nationalId: string): WizardBoot => {
-  if (preferResult && nationalId) {
-    const record = loadAssessmentHistoryByNationalId(nationalId)[0];
+  if (preferResult) {
+    const record = resolveLatestAssessmentForUser(nationalId);
     if (record) {
       return {
-        answers: { national_id: record.nationalId } as SurveyAnswers,
+        answers: {
+          ...(record.nationalId ? { national_id: record.nationalId } : {}),
+        } as SurveyAnswers,
         stepIndex: 0,
         stage: "completed",
         assessment: record.assessment,
@@ -185,11 +188,15 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
 
   // Name and national id come from the Didar session, not from what the user
   // types, so any saved draft is overridden with the authenticated identity.
-  // Only a valid national code is ever placed in the field: a mobile number
-  // (or anything else) from the session or an old draft is dropped.
-  const sessionNationalId = user?.national_id && NationalId.isValid(user.national_id)
-    ? user.national_id
+  // Lookup uses the raw session value; only a valid national code is written
+  // into the form field (a mobile number or anything else is dropped there).
+  const lookupNationalId = user?.national_id
+    ? normalizeNationalId(user.national_id)
     : "";
+  const sessionNationalId =
+    lookupNationalId && NationalId.isValid(lookupNationalId)
+      ? lookupNationalId
+      : "";
 
   const applySessionIdentity = useCallback(
     (base: SurveyAnswers): SurveyAnswers => {
@@ -210,7 +217,7 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
     [user, sessionNationalId],
   );
 
-  const [boot] = useState(() => bootWizard(preferResult, sessionNationalId));
+  const [boot] = useState(() => bootWizard(preferResult, lookupNationalId));
 
   const [answers, setAnswers] = useState<SurveyAnswers>(() => applySessionIdentity(boot.answers));
 
@@ -319,10 +326,11 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
               : null;
 
 
-            const nationalId = readText(
-              finalAnswers,
-              "national_id" as QuestionId,
-            ).trim();
+            const nationalId =
+              lookupNationalId ||
+              normalizeNationalId(
+                readText(finalAnswers, "national_id" as QuestionId),
+              );
 
             saveAssessmentRecord(
               result.value,
@@ -369,7 +377,7 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
       setErrors(result.error.fieldErrors);
       jumpToFirstError(result.error.fieldErrors);
     },
-    [submitSurvey, jumpToFirstError],
+    [submitSurvey, jumpToFirstError, lookupNationalId],
   );
 
   /** Auto-scroll / auto-advance after the user answers a question. */
@@ -439,12 +447,17 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
   }, [applySessionIdentity]);
 
   const restoreLatestResult = useCallback(() => {
-    if (!sessionNationalId) return false;
-    const record = loadAssessmentHistoryByNationalId(sessionNationalId)[0];
+    const record = resolveLatestAssessmentForUser(lookupNationalId);
     if (!record) return false;
 
     clearDraft();
-    setAnswers(applySessionIdentity({ national_id: record.nationalId } as SurveyAnswers));
+    setAnswers(
+      applySessionIdentity(
+        (record.nationalId
+          ? { national_id: record.nationalId }
+          : {}) as SurveyAnswers,
+      ),
+    );
     setErrors({});
     setStepIndex(0);
     setRemoteError(null);
@@ -452,14 +465,11 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
     setStage("completed");
     scrollToTop();
     return true;
-  }, [applySessionIdentity, sessionNationalId]);
+  }, [applySessionIdentity, lookupNationalId]);
 
   const hasSavedResult = useMemo(
-    () =>
-      sessionNationalId
-        ? loadAssessmentHistoryByNationalId(sessionNationalId).length > 0
-        : false,
-    [sessionNationalId, stage],
+    () => resolveLatestAssessmentForUser(lookupNationalId) !== null,
+    [lookupNationalId, stage],
   );
 
   return {

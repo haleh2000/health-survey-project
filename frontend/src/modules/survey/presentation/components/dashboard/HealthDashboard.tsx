@@ -15,7 +15,7 @@ import { JALALI_MONTH_NAMES, parseJalaliIso } from "@core/date/jalali";
 import { toPersianDigits } from "@core/text/digits";
 import { ORGAN_ASSETS } from "@ds/illustrations/anatomy/organ-assets";
 import type { BodyProfile } from "@ds/illustrations/anatomy/body-shape";
-import type { AssessmentRecord } from "@survey/infrastructure/storage/activeAssessment-history.storage";
+import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 
 import { BmiGauge, BmiRangeLegend } from "./BmiGauge";
 import { BmiComparisonChart } from "./BmiComparisonChart";
