@@ -17,12 +17,75 @@ import type { FieldErrors } from "@survey/domain/services/answer-validation.serv
 import { setAnswer, toggleAnswer } from "@survey/domain/services/answer-update.service";
 import { visibleQuestionsOf } from "@survey/domain/services/question-visibility.service";
 import { BACKEND_VALUE } from "@survey/infrastructure/contract/backend-contract";
-import { saveAssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
+import {
+  loadAssessmentHistoryByNationalId,
+  saveAssessmentRecord,
+} from "@survey/infrastructure/storage/assessment-history.storage";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 import { useAuth } from "../../../../auth/useAuth";
 
-// const STORAGE_KEY = "health-survey-progress";
+/**
+ * Unfinished answers only. A calculated result is not restored as a filled
+ * form: opening the survey shows that result until «ارزیابی جدید» starts
+ * a blank questionnaire. Older saves have no revision and are dropped once.
+ */
+const STORAGE_KEY = "health-survey-progress";
+const DRAFT_REVISION = 2;
+
+type StoredDraft = {
+  revision: number;
+  status: "draft";
+  answers: SurveyAnswers;
+  stepIndex: number;
+};
+
+const readDraft = (): { answers: SurveyAnswers; stepIndex: number } | null => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+
+    const data = JSON.parse(saved) as Partial<StoredDraft>;
+    const stepIndex = data.stepIndex;
+    const savedAnswers = data.answers;
+    if (
+      data.revision !== DRAFT_REVISION ||
+      data.status !== "draft" ||
+      typeof stepIndex !== "number" ||
+      !Number.isInteger(stepIndex) ||
+      stepIndex < 0 ||
+      !savedAnswers ||
+      typeof savedAnswers !== "object" ||
+      Array.isArray(savedAnswers)
+    ) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+
+    return { answers: savedAnswers, stepIndex };
+  } catch {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore a store that can no longer be cleared.
+    }
+    return null;
+  }
+};
+
+const writeDraft = (answers: SurveyAnswers, stepIndex: number): void => {
+  const draft: StoredDraft = {
+    revision: DRAFT_REVISION,
+    status: "draft",
+    answers,
+    stepIndex,
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+};
+
+const clearDraft = (): void => {
+  localStorage.removeItem(STORAGE_KEY);
+};
 
 export type WizardStage = "filling" | "submitting" | "completed";
 
@@ -48,6 +111,9 @@ export interface SurveyWizard {
   goNext: () => void;
   goBack: () => void;
   restart: () => void;
+  /** Returns to the latest saved result and drops the in-progress form. */
+  restoreLatestResult: () => boolean;
+  readonly hasSavedResult: boolean;
 }
 
 /** Brings the first invalid answer into view instead of leaving the user hunting. */
@@ -79,11 +145,43 @@ const scrollToTop = (): void => {
  * services through the use cases, so the same behaviour is testable without
  * rendering a component.
  */
-export function useSurveyWizard(): SurveyWizard {
+type WizardBoot = {
+  answers: SurveyAnswers;
+  stepIndex: number;
+  stage: WizardStage;
+  assessment: RiskAssessment | null;
+};
+
+const bootWizard = (preferResult: boolean, nationalId: string): WizardBoot => {
+  if (preferResult && nationalId) {
+    const record = loadAssessmentHistoryByNationalId(nationalId)[0];
+    if (record) {
+      return {
+        answers: { national_id: record.nationalId } as SurveyAnswers,
+        stepIndex: 0,
+        stage: "completed",
+        assessment: record.assessment,
+      };
+    }
+  }
+
+  const draft = readDraft();
+  if (!draft) {
+    return { answers: {}, stepIndex: 0, stage: "filling", assessment: null };
+  }
+
+  return {
+    answers: draft.answers,
+    stepIndex: draft.stepIndex,
+    stage: "filling",
+    assessment: null,
+  };
+};
+
+export function useSurveyWizard(options?: { readonly preferResult?: boolean }): SurveyWizard {
+  const preferResult = options?.preferResult ?? true;
   const { definition, validateStep, submitSurvey, progress } = useSurveyDependencies();
   const { user } = useAuth();
-
-  const STORAGE_KEY = "health-survey-progress";
 
   // Name and national id come from the Didar session, not from what the user
   // types, so any saved draft is overridden with the authenticated identity.
@@ -112,15 +210,9 @@ export function useSurveyWizard(): SurveyWizard {
     [user, sessionNationalId],
   );
 
-  const [answers, setAnswers] = useState<SurveyAnswers>(() => {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const [boot] = useState(() => bootWizard(preferResult, sessionNationalId));
 
-  if (!saved) return applySessionIdentity({});
-
-  const data = JSON.parse(saved);
-
-  return applySessionIdentity(data.answers ?? {});
-});
+  const [answers, setAnswers] = useState<SurveyAnswers>(() => applySessionIdentity(boot.answers));
 
   const readOnlyIds = useMemo<ReadonlySet<QuestionId>>(() => {
     const ids = new Set<QuestionId>();
@@ -129,30 +221,26 @@ export function useSurveyWizard(): SurveyWizard {
     return ids;
   }, [user, sessionNationalId]);
 
-const [stepIndex, setStepIndex] = useState<number>(() => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-
-  if (!saved) return 0;
-
-  const data = JSON.parse(saved);
-
-  return data.stepIndex ?? 0;
-});
+  const [stepIndex, setStepIndex] = useState<number>(boot.stepIndex);
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [stage, setStage] = useState<WizardStage>("filling");
+  const [stage, setStage] = useState<WizardStage>(boot.stage);
   const [remoteError, setRemoteError] = useState<AppError | null>(null);
-  const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
+  const [assessment, setAssessment] = useState<RiskAssessment | null>(boot.assessment);
   const lastAnsweredQuestionRef = useRef<QuestionId | null>(null);
 
-useEffect(() => {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      answers,
-      stepIndex,
-    })
-  );
-}, [answers, stepIndex]);
+  useEffect(() => {
+    // A finished assessment must not be restored as a filled form.
+    if (stage === "completed") {
+      clearDraft();
+      return;
+    }
+
+    try {
+      writeDraft(answers, stepIndex);
+    } catch {
+      // A full or blocked store must not stop the questionnaire itself.
+    }
+  }, [answers, stepIndex, stage]);
 
   const step = definition.stepAt(stepIndex) ?? definition.steps[0];
   if (!step) throw new Error("The survey definition contains no steps.");
@@ -253,6 +341,7 @@ useEffect(() => {
               nationalId,
             );
 
+        clearDraft();
         setAssessment(result.value);
         setStage("completed");
         scrollToTop();
@@ -339,15 +428,39 @@ useEffect(() => {
   }, []);
 
   const restart = useCallback(() => {
-    setAnswers({});
+    clearDraft();
+    setAnswers(applySessionIdentity({}));
     setErrors({});
     setStepIndex(0);
     setAssessment(null);
     setRemoteError(null);
     setStage("filling");
-    localStorage.removeItem(STORAGE_KEY);
     scrollToTop();
-  }, []);
+  }, [applySessionIdentity]);
+
+  const restoreLatestResult = useCallback(() => {
+    if (!sessionNationalId) return false;
+    const record = loadAssessmentHistoryByNationalId(sessionNationalId)[0];
+    if (!record) return false;
+
+    clearDraft();
+    setAnswers(applySessionIdentity({ national_id: record.nationalId } as SurveyAnswers));
+    setErrors({});
+    setStepIndex(0);
+    setRemoteError(null);
+    setAssessment(record.assessment);
+    setStage("completed");
+    scrollToTop();
+    return true;
+  }, [applySessionIdentity, sessionNationalId]);
+
+  const hasSavedResult = useMemo(
+    () =>
+      sessionNationalId
+        ? loadAssessmentHistoryByNationalId(sessionNationalId).length > 0
+        : false,
+    [sessionNationalId, stage],
+  );
 
   return {
     stage,
@@ -371,5 +484,7 @@ useEffect(() => {
     goNext,
     goBack,
     restart,
+    restoreLatestResult,
+    hasSavedResult,
   };
 }

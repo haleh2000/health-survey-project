@@ -34,7 +34,7 @@ function AuthGate() {
     </SurveyDependenciesProvider>
   );
 }
-
+  
 export function App() {
   return (
     <AuthProvider>

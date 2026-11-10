@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   AnimatePresence,
@@ -48,16 +48,29 @@ const stepSpring = {
   damping: 32,
 } as const;
 
+type SurveyLocationState = {
+  selectedRecord?: AssessmentRecord;
+  mode?: "new" | "result";
+};
+
 export function SurveyPage() {
   const {
     definition,
   } = useSurveyDependencies();
 
-  const wizard =
-    useSurveyWizard();
-
   const location = useLocation();
-  const selectedRecordFromNav = (location.state as { selectedRecord?: AssessmentRecord } | null)?.selectedRecord ?? null;
+  const navigate = useNavigate();
+  const navState = (location.state as SurveyLocationState | null) ?? null;
+  const selectedRecordFromNav = navState?.selectedRecord ?? null;
+  const startingNewAssessment = navState?.mode === "new";
+
+  const wizard = useSurveyWizard({
+    preferResult: !startingNewAssessment,
+  });
+
+  // Set before restart(), so a render that still has the result URL
+  // does not immediately put the result back on screen.
+  const openingNewAssessment = useRef(false);
 
   // ---------------------------------------------------------------------------
   // Step animation direction
@@ -91,6 +104,31 @@ export function SurveyPage() {
   }, [
     wizard.stepIndex,
   ]);
+
+  // Back from a new assessment returns to the saved result.
+  // The questionnaire is cleared only by «ارزیابی جدید».
+  useLayoutEffect(() => {
+    if (startingNewAssessment) {
+      openingNewAssessment.current = false;
+      return;
+    }
+    if (openingNewAssessment.current || selectedRecordFromNav) return;
+    if (wizard.stage === "completed") return;
+    wizard.restoreLatestResult();
+  }, [
+    location.key,
+    selectedRecordFromNav,
+    startingNewAssessment,
+    wizard.stage,
+    wizard.restoreLatestResult,
+  ]);
+
+  useEffect(() => {
+    if (selectedRecordFromNav) return;
+    if (wizard.stage !== "completed") return;
+    if (navState?.mode === "result") return;
+    navigate("/survey", { replace: true, state: { mode: "result" } });
+  }, [wizard.stage, navState?.mode, selectedRecordFromNav, navigate]);
 
   // ---------------------------------------------------------------------------
   // Question handlers
@@ -225,15 +263,17 @@ export function SurveyPage() {
 
         <button
           type="button"
-          onClick={
-            wizard.restart
-          }
+          onClick={() => {
+            openingNewAssessment.current = true;
+            wizard.restart();
+            navigate("/survey", { state: { mode: "new" } });
+          }}
           className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl
                      bg-gradient-to-r from-[#0fadb6] to-[#0a8a92] px-6 text-sm font-black text-white
                      shadow-[0_14px_30px_rgba(17,164,184,0.22)] transition hover:-translate-y-0.5
                      disabled:pointer-events-none disabled:opacity-60"
         >
-          ارزیابی مجدد
+          ارزیابی جدید
         </button>
       </main>
     );
@@ -428,8 +468,8 @@ export function SurveyPage() {
 
               <StepNav
                 isFirstStep={
-                  wizard.stepIndex ===
-                  0
+                  wizard.stepIndex === 0 &&
+                  !wizard.hasSavedResult
                 }
                 isLastStep={
                   wizard.isLastStep
@@ -437,9 +477,13 @@ export function SurveyPage() {
                 submitting={
                   submitting
                 }
-                onBack={
-                  wizard.goBack
-                }
+                onBack={() => {
+                  if (wizard.stepIndex === 0 && wizard.hasSavedResult) {
+                    navigate(-1);
+                    return;
+                  }
+                  wizard.goBack();
+                }}
                 onNext={
                   wizard.goNext
                 }
