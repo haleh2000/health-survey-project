@@ -1,6 +1,6 @@
 import type { HttpClient } from "@core/http/http-client.port";
 import { err, ok, type Result } from "@core/result/result";
-import type { AppError } from "@core/errors/app-error";
+import { serverError, type AppError } from "@core/errors/app-error";
 import type { RiskTier, AssessmentFlags } from "@survey/domain/entities/risk-assessment.entity";
 import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
 import type { HistoryRepository } from "@survey/domain/ports/history.repository";
@@ -58,6 +58,55 @@ interface SubmissionDetailDto extends SubmissionDto {
   flags: AssessmentFlags;
 }
 
+const EMPTY_FLAGS: AssessmentFlags = {
+  heavy_smoker: false,
+  hookah_ecig: false,
+  occupational_hazard: false,
+  air_pollution: false,
+  hpylori_active: false,
+  salty_food: false,
+  hot_drink: false,
+  smoked_food: false,
+  heavy_alcohol: false,
+  obesity: false,
+  processed_meat_high: false,
+  low_fiber: false,
+  junk_food: false,
+  low_physical_activity: false,
+  diabetes: false,
+  hypertension: false,
+  heart_disease: false,
+  chronic_pancreatitis: false,
+  psychosocial: false,
+  infectious_disease: false,
+  brain_stroke_history: false,
+  heart_attack_history: false,
+  family_lung_cancer: false,
+  family_gastric_cancer: false,
+  family_colon_cancer: false,
+  family_pancreas_cancer: false,
+  family_liver_cancer: false,
+  family_stroke: false,
+  family_cardiac: false,
+};
+
+const tierFromScore = (score: number): RiskTier => {
+  if (score <= 5) return "low";
+  if (score <= 10) return "moderate";
+  if (score <= 16) return "elevated";
+  return "critical";
+};
+
+const tierFromLabel = (label: string, score: number): RiskTier => {
+  if (Number.isFinite(score)) return tierFromScore(score);
+  const text = label.trim();
+  if (text.includes("گروه ۱") || text.includes("گروه 1")) return "critical";
+  if (text.includes("گروه ۲") || text.includes("گروه 2")) return "elevated";
+  if (text.includes("گروه ۳") || text.includes("گروه 3")) return "moderate";
+  if (text.includes("گروه ۴") || text.includes("گروه 4")) return "low";
+  return "low";
+};
+
 function dtoToRecord(dto: SubmissionDto, nationalId: string): AssessmentRecord {
   const jalali = gregorianToJalali(dto.created_at);
   return {
@@ -67,7 +116,7 @@ function dtoToRecord(dto: SubmissionDto, nationalId: string): AssessmentRecord {
       ageYears: dto.age,
       score: dto.risk_score,
       levelLabel: dto.risk_level,
-      tier: "low" as RiskTier,
+      tier: tierFromLabel(dto.risk_level, dto.risk_score),
       organRisks: {
         lung: 0,
         gastric: 0,
@@ -79,37 +128,7 @@ function dtoToRecord(dto: SubmissionDto, nationalId: string): AssessmentRecord {
         liver: 0,
       },
       bmi: dto.bmi,
-      flags: {
-        heavy_smoker: false,
-        hookah_ecig: false,
-        occupational_hazard: false,
-        air_pollution: false,
-        hpylori_active: false,
-        salty_food: false,
-        hot_drink: false,
-        smoked_food: false,
-        heavy_alcohol: false,
-        obesity: false,
-        processed_meat_high: false,
-        low_fiber: false,
-        junk_food: false,
-        low_physical_activity: false,
-        diabetes: false,
-        hypertension: false,
-        heart_disease: false,
-        chronic_pancreatitis: false,
-        psychosocial: false,
-        infectious_disease: false,
-        brain_stroke_history: false,
-        heart_attack_history: false,
-        family_lung_cancer: false,
-        family_gastric_cancer: false,
-        family_colon_cancer: false,
-        family_pancreas_cancer: false,
-        family_liver_cancer: false,
-        family_stroke: false,
-        family_cardiac: false,
-      },
+      flags: EMPTY_FLAGS,
     },
     nationalId,
     submissionId: dto.id,
@@ -121,15 +140,6 @@ function dtoToRecord(dto: SubmissionDto, nationalId: string): AssessmentRecord {
 }
 
 function detailDtoToRecord(dto: SubmissionDetailDto): AssessmentRecord {
-  const tier: RiskTier =
-    dto.risk_score >= 70
-      ? "critical"
-      : dto.risk_score >= 40
-      ? "elevated"
-      : dto.risk_score >= 20
-      ? "moderate"
-      : "low";
-
   const jalali = gregorianToJalali(dto.created_at);
 
   return {
@@ -139,7 +149,7 @@ function detailDtoToRecord(dto: SubmissionDetailDto): AssessmentRecord {
       ageYears: dto.age,
       score: dto.risk_score,
       levelLabel: dto.risk_level,
-      tier,
+      tier: tierFromLabel(dto.risk_level, dto.risk_score),
       organRisks: {
         lung: dto.lung_risk,
         gastric: dto.gastric_risk,
@@ -154,6 +164,7 @@ function detailDtoToRecord(dto: SubmissionDetailDto): AssessmentRecord {
       flags: dto.flags,
     },
     nationalId: dto.person_national_id,
+    submissionId: dto.id,
     completedOnJalali: formatJalaliIso(jalali),
     completedAt: new Date(dto.created_at).getTime(),
     heightCm: dto.height,
@@ -171,21 +182,31 @@ export class HttpHistoryRepository implements HistoryRepository {
   async fetchByNationalId(
     nationalId: string,
   ): Promise<Result<readonly AssessmentRecord[], AppError>> {
+    const encodedId = encodeURIComponent(nationalId.trim());
     const response = await this.http.get<SubmissionDto[]>(
-      `${ENDPOINT_PREFIX}/${nationalId}`,
+      `${ENDPOINT_PREFIX}/${encodedId}`,
     );
 
     if (!response.ok) return err(response.error);
 
-    return ok(response.value.map((dto) => dtoToRecord(dto, nationalId)));
+    if (!Array.isArray(response.value)) {
+      return err(
+        serverError(500, "پاسخ سوابق ارزیابی معتبر نیست."),
+      );
+    }
+
+    return ok(
+      response.value.map((dto) => dtoToRecord(dto, nationalId.trim())),
+    );
   }
 
   async fetchBySubmissionId(
     nationalId: string,
     submissionId: number,
   ): Promise<Result<AssessmentRecord, AppError>> {
+    const encodedId = encodeURIComponent(nationalId.trim());
     const response = await this.http.get<SubmissionDetailDto>(
-      `${ENDPOINT_PREFIX}/${nationalId}/${submissionId}`,
+      `${ENDPOINT_PREFIX}/${encodedId}/${submissionId}`,
     );
 
     if (!response.ok) return err(response.error);

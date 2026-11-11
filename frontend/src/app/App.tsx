@@ -1,23 +1,11 @@
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { getSurveyDependencies } from "@app/di/container";
 import { SurveyDependenciesProvider } from "@app/providers/SurveyDependenciesProvider";
-import { resolveLatestAssessmentForUser } from "@survey/infrastructure/storage/assessment-history.storage";
 import { SurveyPage } from "@survey/presentation/pages/SurveyPage";
 import WelcomePage from '@survey/presentation/pages/WelcomePage';
 import { AuthProvider } from "../auth/AuthContext";
 import { LoginForm } from "../auth/LoginForm";
 import { useAuth } from "../auth/useAuth";
-
-function HomeRoute() {
-  const { user } = useAuth();
-  const hasResult = resolveLatestAssessmentForUser(user?.national_id) !== null;
-
-  if (hasResult) {
-    return <Navigate to="/survey" replace state={{ mode: "result" }} />;
-  }
-
-  return <WelcomePage />;
-}
 
 function AuthGate() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -39,7 +27,7 @@ function AuthGate() {
           </button>
         </div>
         <Routes>
-          <Route path="/" element={<HomeRoute />} />
+          <Route path="/" element={<WelcomePage />} />
           <Route path="/survey" element={<SurveyPage />} />
         </Routes>
       </BrowserRouter>

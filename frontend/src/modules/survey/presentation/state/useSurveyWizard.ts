@@ -8,6 +8,7 @@ import type { RiskAssessment } from "@survey/domain/entities/risk-assessment.ent
 import { BodyMetrics } from "@survey/domain/value-objects/body-metrics.vo";
 import { NationalId } from "@survey/domain/value-objects/national-id.vo";
 import {
+  isAnswered,
   readList,
   readText,
   type SurveyAnswers,
@@ -19,7 +20,6 @@ import { visibleQuestionsOf } from "@survey/domain/services/question-visibility.
 import { BACKEND_VALUE } from "@survey/infrastructure/contract/backend-contract";
 import {
   normalizeNationalId,
-  resolveLatestAssessmentForUser,
   saveAssessmentRecord,
 } from "@survey/infrastructure/storage/assessment-history.storage";
 import { questionAnchorId } from "@survey/presentation/components/question-anchor";
@@ -27,9 +27,9 @@ import { useSurveyDependencies } from "@survey/presentation/state/survey-depende
 import { useAuth } from "../../../../auth/useAuth";
 
 /**
- * Unfinished answers only. A calculated result is not restored as a filled
- * form: opening the survey shows that result until «ارزیابی مجدد» starts
- * a blank questionnaire. Older saves have no revision and are dropped once.
+ * Unfinished answers only. After a successful calculation the draft is
+ * removed, so the next visit starts from Welcome with a blank form.
+ * Older saves have no revision and are dropped once.
  */
 const STORAGE_KEY = "health-survey-progress";
 const DRAFT_REVISION = 2;
@@ -74,6 +74,20 @@ const readDraft = (): { answers: SurveyAnswers; stepIndex: number } | null => {
   }
 };
 
+const IDENTITY_QUESTION_IDS = new Set(["full_name", "national_id"]);
+
+/** Progress beyond the prefilled session name / national id. */
+const draftHasProgress = (answers: SurveyAnswers, stepIndex: number): boolean => {
+  if (stepIndex > 0) return true;
+
+  for (const [id, value] of Object.entries(answers)) {
+    if (IDENTITY_QUESTION_IDS.has(id)) continue;
+    if (isAnswered(value)) return true;
+  }
+
+  return false;
+};
+
 const writeDraft = (answers: SurveyAnswers, stepIndex: number): void => {
   const draft: StoredDraft = {
     revision: DRAFT_REVISION,
@@ -86,6 +100,15 @@ const writeDraft = (answers: SurveyAnswers, stepIndex: number): void => {
 
 const clearDraft = (): void => {
   localStorage.removeItem(STORAGE_KEY);
+};
+
+/** True when the user left an unfinished questionnaire in this browser. */
+export const hasSurveyDraft = (): boolean => {
+  const draft = readDraft();
+  if (!draft) return false;
+  if (draftHasProgress(draft.answers, draft.stepIndex)) return true;
+  clearDraft();
+  return false;
 };
 
 export type WizardStage = "filling" | "submitting" | "completed";
@@ -112,9 +135,6 @@ export interface SurveyWizard {
   goNext: () => void;
   goBack: () => void;
   restart: () => void;
-  /** Returns to the latest saved result and drops the in-progress form. */
-  restoreLatestResult: () => boolean;
-  readonly hasSavedResult: boolean;
 }
 
 /** Brings the first invalid answer into view instead of leaving the user hunting. */
@@ -146,43 +166,7 @@ const scrollToTop = (): void => {
  * services through the use cases, so the same behaviour is testable without
  * rendering a component.
  */
-type WizardBoot = {
-  answers: SurveyAnswers;
-  stepIndex: number;
-  stage: WizardStage;
-  assessment: RiskAssessment | null;
-};
-
-const bootWizard = (preferResult: boolean, nationalId: string): WizardBoot => {
-  if (preferResult) {
-    const record = resolveLatestAssessmentForUser(nationalId);
-    if (record) {
-      return {
-        answers: {
-          ...(record.nationalId ? { national_id: record.nationalId } : {}),
-        } as SurveyAnswers,
-        stepIndex: 0,
-        stage: "completed",
-        assessment: record.assessment,
-      };
-    }
-  }
-
-  const draft = readDraft();
-  if (!draft) {
-    return { answers: {}, stepIndex: 0, stage: "filling", assessment: null };
-  }
-
-  return {
-    answers: draft.answers,
-    stepIndex: draft.stepIndex,
-    stage: "filling",
-    assessment: null,
-  };
-};
-
-export function useSurveyWizard(options?: { readonly preferResult?: boolean }): SurveyWizard {
-  const preferResult = options?.preferResult ?? true;
+export function useSurveyWizard(): SurveyWizard {
   const { definition, validateStep, submitSurvey, progress } = useSurveyDependencies();
   const { user } = useAuth();
 
@@ -217,9 +201,10 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
     [user, sessionNationalId],
   );
 
-  const [boot] = useState(() => bootWizard(preferResult, lookupNationalId));
-
-  const [answers, setAnswers] = useState<SurveyAnswers>(() => applySessionIdentity(boot.answers));
+  const [answers, setAnswers] = useState<SurveyAnswers>(() => {
+    const draft = readDraft();
+    return applySessionIdentity(draft?.answers ?? {});
+  });
 
   const readOnlyIds = useMemo<ReadonlySet<QuestionId>>(() => {
     const ids = new Set<QuestionId>();
@@ -228,16 +213,23 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
     return ids;
   }, [user, sessionNationalId]);
 
-  const [stepIndex, setStepIndex] = useState<number>(boot.stepIndex);
+  const [stepIndex, setStepIndex] = useState<number>(() => readDraft()?.stepIndex ?? 0);
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [stage, setStage] = useState<WizardStage>(boot.stage);
+  const [stage, setStage] = useState<WizardStage>("filling");
   const [remoteError, setRemoteError] = useState<AppError | null>(null);
-  const [assessment, setAssessment] = useState<RiskAssessment | null>(boot.assessment);
+  const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
   const lastAnsweredQuestionRef = useRef<QuestionId | null>(null);
 
   useEffect(() => {
     // A finished assessment must not be restored as a filled form.
     if (stage === "completed") {
+      clearDraft();
+      return;
+    }
+
+    // Do not persist an empty opening of the form — browser Back to Welcome
+    // would otherwise bounce straight back into /survey.
+    if (!draftHasProgress(answers, stepIndex)) {
       clearDraft();
       return;
     }
@@ -446,32 +438,6 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
     scrollToTop();
   }, [applySessionIdentity]);
 
-  const restoreLatestResult = useCallback(() => {
-    const record = resolveLatestAssessmentForUser(lookupNationalId);
-    if (!record) return false;
-
-    clearDraft();
-    setAnswers(
-      applySessionIdentity(
-        (record.nationalId
-          ? { national_id: record.nationalId }
-          : {}) as SurveyAnswers,
-      ),
-    );
-    setErrors({});
-    setStepIndex(0);
-    setRemoteError(null);
-    setAssessment(record.assessment);
-    setStage("completed");
-    scrollToTop();
-    return true;
-  }, [applySessionIdentity, lookupNationalId]);
-
-  const hasSavedResult = useMemo(
-    () => resolveLatestAssessmentForUser(lookupNationalId) !== null,
-    [lookupNationalId, stage],
-  );
-
   return {
     stage,
     step,
@@ -494,7 +460,5 @@ export function useSurveyWizard(options?: { readonly preferResult?: boolean }): 
     goNext,
     goBack,
     restart,
-    restoreLatestResult,
-    hasSavedResult,
   };
 }

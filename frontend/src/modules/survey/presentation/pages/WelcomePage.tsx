@@ -1,17 +1,16 @@
 // WelcomePage.tsx
 import { motion } from 'framer-motion';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import time from '@ds/assets/time.png';
 import safe from '@ds/assets/safe.png';
 import daydarReport from '@ds/assets/daydar-report.png';
 import drdd from '@ds/assets/drdd.png';
-import {
-  loadAssessmentHistory,
-  resolveLatestAssessmentForUser,
-} from '@survey/infrastructure/storage/assessment-history.storage';
+import { normalizeNationalId } from '@survey/infrastructure/storage/assessment-history.storage';
 import { ViewHistoryButton } from '@survey/presentation/components/dashboard/ViewHistoryButton';
 import type { AssessmentRecord } from '@survey/infrastructure/storage/assessment-history.storage';
+import { useAssessmentHistory } from '@survey/presentation/hooks/useAssessmentHistory';
+import { hasSurveyDraft } from '@survey/presentation/state/useSurveyWizard';
 import { useAuth } from '../../../../auth/useAuth';
 
 const CARD_ACCENT = {
@@ -24,24 +23,20 @@ export default function WelcomePage() {
   const { user } = useAuth();
   const heroRef = useRef(null);
 
-  const history = useMemo(() => loadAssessmentHistory(), []);
-  const nationalId = history[0]?.nationalId ?? "";
-  const savedResult = resolveLatestAssessmentForUser(user?.national_id);
+  const nationalId = user?.national_id
+    ? normalizeNationalId(user.national_id)
+    : "";
+  const { history } = useAssessmentHistory(nationalId);
+  const canOpenHistory = Boolean(nationalId);
+  const resumeDraft = hasSurveyDraft();
 
   const handleSelectRecord = useCallback(
-    (record: AssessmentRecord) => {
+    (record: AssessmentRecord | null) => {
+      if (!record) return;
       navigate('/survey', { state: { selectedRecord: record } });
     },
     [navigate],
   );
-
-  const openSurvey = useCallback(() => {
-    if (savedResult) {
-      navigate('/survey', { replace: true, state: { mode: 'result' } });
-      return;
-    }
-    navigate('/survey');
-  }, [navigate, savedResult]);
 
   const features = [
     { icon: time, title: 'رایگان و سریع', delay: 0.2, ...CARD_ACCENT },
@@ -114,7 +109,7 @@ export default function WelcomePage() {
             transition={{ delay: 0.9, type: 'spring', stiffness: 200 }}
           >
             <motion.button
-              onClick={openSurvey}
+              onClick={() => navigate('/survey')}
               whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(0, 153, 168, 0.3)' }}
               whileTap={{ scale: 0.95 }}
               className="group cursor-pointer relative w-full sm:w-auto sm:min-w-[280px] md:min-w-[340px] px-12 py-3 sm:px-16 sm:py-4 md:px-20 md:py-5 bg-gradient-to-l from-[#0099A8] to-teal-600 text-white rounded-xl sm:rounded-2xl text-lg sm:text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
@@ -126,7 +121,7 @@ export default function WelcomePage() {
                 transition={{ duration: 0.3 }}
               />
               <span className="relative flex items-center justify-center gap-2 sm:gap-3">
-                شروع ارزیابی
+                {resumeDraft ? 'ادامه ارزیابی' : 'شروع ارزیابی'}
                 <motion.span
                   animate={{ x: [0, 5, 0] }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
@@ -142,7 +137,7 @@ export default function WelcomePage() {
             </motion.button>
           </motion.div>
 
-          {history.length > 0 && (
+          {canOpenHistory && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

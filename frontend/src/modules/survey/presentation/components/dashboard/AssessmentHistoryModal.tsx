@@ -13,7 +13,10 @@ import {
 
 import { toPersianDigits } from "@core/text/digits";
 
-import type { AssessmentRecord } from "@survey/infrastructure/storage/assessment-history.storage";
+import {
+  mergeAssessmentHistories,
+  type AssessmentRecord,
+} from "@survey/infrastructure/storage/assessment-history.storage";
 
 import { useSurveyDependencies } from "@survey/presentation/state/survey-dependencies.context";
 
@@ -97,34 +100,42 @@ export function AssessmentHistoryModal({
       const normalizedNationalId =
         nationalId.trim();
 
-      if (
-        !open ||
-        !normalizedNationalId
-      ) {
+      if (!normalizedNationalId) {
+        setRecords(initialHistory);
         return;
       }
 
       setLoading(true);
       setError(false);
 
-      const result =
-        await historyRepository.fetchByNationalId(
-          normalizedNationalId,
-        );
+      try {
+        const result =
+          await historyRepository.fetchByNationalId(
+            normalizedNationalId,
+          );
 
-      if (result.ok) {
-        setRecords(result.value);
-      } else {
-        setRecords([]);
+        if (result.ok) {
+          setRecords(
+            result.value.length > 0
+              ? mergeAssessmentHistories(result.value, initialHistory)
+              : initialHistory,
+          );
+          setError(false);
+        } else {
+          setRecords(initialHistory);
+          setError(true);
+        }
+      } catch {
+        setRecords(initialHistory);
         setError(true);
       }
 
       setLoading(false);
     },
     [
-      open,
       nationalId,
       historyRepository,
+      initialHistory,
     ],
   );
 
@@ -223,17 +234,8 @@ export function AssessmentHistoryModal({
     };
   }, [open, onClose]);
 
-  /**
-   * نکته اصلی:
-   *
-   * اگر کاربر فقط یک ارزیابی داشته باشد،
-   * یعنی همین اولین ارزیابی اوست.
-   *
-   * در این حالت تاریخچه را نشان نمی‌دهیم
-   * و فقط UI مخصوص اولین ارزیابی نمایش داده می‌شود.
-   */
-  const isFirstAssessment =
-    records.length <= 1;
+  /** Empty history only — a single saved assessment must still be openable. */
+  const isEmptyHistory = records.length === 0;
 
   return createPortal(
     <AnimatePresence>
@@ -325,6 +327,19 @@ export function AssessmentHistoryModal({
                 p-5
               "
             >
+              {error && !isEmptyHistory && (
+                <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-6 text-amber-900">
+                  اتصال به سرور برقرار نشد؛ فقط سوابق ذخیره‌شده روی همین دستگاه نمایش داده می‌شود.
+                  <button
+                    type="button"
+                    onClick={() => void fetchHistory()}
+                    className="mr-2 cursor-pointer font-bold text-day-primary underline"
+                  >
+                    تلاش دوباره
+                  </button>
+                </div>
+              )}
+
               {/* Loading */}
               {loading ? (
                 <div className="flex items-center justify-center py-12">
@@ -339,7 +354,7 @@ export function AssessmentHistoryModal({
                     "
                   />
                 </div>
-              ) : error ? (
+              ) : error && isEmptyHistory ? (
                 /* Error */
                 <div className="flex flex-col items-center gap-3 py-10 text-center">
                   <p className="text-sm font-black text-ink">
@@ -350,11 +365,18 @@ export function AssessmentHistoryModal({
                     لطفاً اتصال به سرور را بررسی
                     کنید و دوباره تلاش کنید.
                   </p>
+
+                  <button
+                    type="button"
+                    onClick={() => void fetchHistory()}
+                    className="mt-1 cursor-pointer rounded-xl bg-day-primary/10 px-4 py-2 text-xs font-bold text-day-primary transition hover:bg-day-primary/15"
+                  >
+                    تلاش دوباره
+                  </button>
                 </div>
-              ) : isFirstAssessment ? (
+              ) : isEmptyHistory ? (
                 /* =====================================================
-                   FIRST ASSESSMENT
-                   اگر تعداد رکوردها 0 یا 1 باشد
+                   EMPTY HISTORY
                    ===================================================== */
                 <div
                   className="

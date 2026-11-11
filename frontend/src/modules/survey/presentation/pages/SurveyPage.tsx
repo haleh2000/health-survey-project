@@ -40,10 +40,11 @@ import type {
 import {
   loadAssessmentHistoryByNationalId,
   loadLastResult,
+  mergeAssessmentHistories,
   normalizeNationalId,
-  resolveLatestAssessmentForUser,
   type AssessmentRecord,
 } from "@survey/infrastructure/storage/assessment-history.storage";
+import { useAssessmentHistory } from "@survey/presentation/hooks/useAssessmentHistory";
 import { useAuth } from "../../../../auth/useAuth";
 
 const stepSpring = {
@@ -54,7 +55,6 @@ const stepSpring = {
 
 type SurveyLocationState = {
   selectedRecord?: AssessmentRecord;
-  mode?: "new" | "result";
 };
 
 export function SurveyPage() {
@@ -67,18 +67,17 @@ export function SurveyPage() {
   const { user } = useAuth();
   const navState = (location.state as SurveyLocationState | null) ?? null;
   const selectedRecordFromNav = navState?.selectedRecord ?? null;
-  const startingNewAssessment = navState?.mode === "new";
-  const lookupNationalId = user?.national_id
+
+  const wizard = useSurveyWizard();
+  const sessionNationalId = user?.national_id
     ? normalizeNationalId(user.national_id)
     : "";
-
-  const wizard = useSurveyWizard({
-    preferResult: !startingNewAssessment,
-  });
-
-  // Set before restart(), so a render that still has the result URL
-  // does not immediately put the result back on screen.
-  const openingNewAssessment = useRef(false);
+  const historyNationalId =
+    readText(wizard.answers, "national_id" as QuestionId).trim() ||
+    selectedRecordFromNav?.nationalId ||
+    sessionNationalId;
+  const { history: remoteHistory, refresh: refreshHistory } =
+    useAssessmentHistory(historyNationalId);
 
   // ---------------------------------------------------------------------------
   // Step animation direction
@@ -113,31 +112,6 @@ export function SurveyPage() {
     wizard.stepIndex,
   ]);
 
-  // Back from a new assessment returns to the saved result.
-  // The questionnaire is cleared only by «ارزیابی مجدد».
-  useLayoutEffect(() => {
-    if (startingNewAssessment) {
-      openingNewAssessment.current = false;
-      return;
-    }
-    if (openingNewAssessment.current || selectedRecordFromNav) return;
-    if (wizard.stage === "completed") return;
-    wizard.restoreLatestResult();
-  }, [
-    location.key,
-    selectedRecordFromNav,
-    startingNewAssessment,
-    wizard.stage,
-    wizard.restoreLatestResult,
-  ]);
-
-  useEffect(() => {
-    if (selectedRecordFromNav) return;
-    if (wizard.stage !== "completed") return;
-    if (navState?.mode === "result") return;
-    navigate("/survey", { replace: true, state: { mode: "result" } });
-  }, [wizard.stage, navState?.mode, selectedRecordFromNav, navigate]);
-
   // ---------------------------------------------------------------------------
   // Question handlers
   // ---------------------------------------------------------------------------
@@ -170,41 +144,31 @@ export function SurveyPage() {
       [wizard],
     );
 
-  // ---------------------------------------------------------------------------
-  // Assessment history
-  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (wizard.stage !== "completed" || !wizard.assessment) return;
+    void refreshHistory();
+  }, [wizard.stage, wizard.assessment, refreshHistory]);
 
-  const completedNationalId =
-    readText(wizard.answers, "national_id" as QuestionId).trim() ||
-    lookupNationalId;
-
-  const history =
-    wizard.stage === "completed"
-      ? completedNationalId
-        ? loadAssessmentHistoryByNationalId(completedNationalId)
-        : (() => {
-            const last = loadLastResult();
-            return last ? [last] : [];
-          })()
-      : [];
-
-  const latestRecord =
-    history[0] ??
-    resolveLatestAssessmentForUser(completedNationalId) ??
-    null;
+  const localHistory = historyNationalId
+    ? loadAssessmentHistoryByNationalId(historyNationalId)
+    : [];
+  const lastResult = loadLastResult();
+  const history = mergeAssessmentHistories(
+    remoteHistory,
+    localHistory,
+    lastResult ? [lastResult] : [],
+  );
 
   // ---------------------------------------------------------------------------
   // Viewing a historical record from WelcomePage
   // ---------------------------------------------------------------------------
 
   if (selectedRecordFromNav) {
-    const hist = loadAssessmentHistoryByNationalId(selectedRecordFromNav.nationalId);
-
     return (
       <main className="mx-auto max-w-6xl px-5 py-10">
         <HealthDashboard
           record={selectedRecordFromNav}
-          history={hist}
+          history={history}
           nationalId={selectedRecordFromNav.nationalId}
         />
       </main>
@@ -220,15 +184,14 @@ export function SurveyPage() {
       "completed" &&
     wizard.assessment
   ) {
+    const latestRecord = history[0] ?? loadLastResult();
     const nationalId =
-      completedNationalId || latestRecord?.nationalId || "";
+      historyNationalId || latestRecord?.nationalId || "";
 
     return (
       <main className="mx-auto max-w-6xl px-5 py-10">
         <HealthDashboard
-          record={
-            latestRecord
-          }
+          record={latestRecord}
           history={
             history.length > 0
               ? history
@@ -242,9 +205,8 @@ export function SurveyPage() {
         <button
           type="button"
           onClick={() => {
-            openingNewAssessment.current = true;
             wizard.restart();
-            navigate("/survey", { state: { mode: "new" } });
+            navigate("/", { replace: true });
           }}
           className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl
                      bg-gradient-to-r from-[#0fadb6] to-[#0a8a92] px-6 text-sm font-black text-white
@@ -445,10 +407,7 @@ export function SurveyPage() {
               )}
 
               <StepNav
-                isFirstStep={
-                  wizard.stepIndex === 0 &&
-                  !wizard.hasSavedResult
-                }
+                isFirstStep={false}
                 isLastStep={
                   wizard.isLastStep
                 }
@@ -456,8 +415,8 @@ export function SurveyPage() {
                   submitting
                 }
                 onBack={() => {
-                  if (wizard.stepIndex === 0 && wizard.hasSavedResult) {
-                    navigate(-1);
+                  if (wizard.stepIndex === 0) {
+                    navigate("/");
                     return;
                   }
                   wizard.goBack();

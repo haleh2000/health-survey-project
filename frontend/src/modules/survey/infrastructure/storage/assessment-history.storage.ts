@@ -68,8 +68,6 @@ export interface RecordedBodyMetrics {
 const STORAGE_KEY = "health-assessment-history";
 const LAST_RESULT_KEY = "health-survey-last-result";
 
-const MAX_RECORDS = 12;
-
 export const normalizeNationalId = (value: string): string =>
   toAsciiDigits(value).trim();
 
@@ -214,9 +212,7 @@ export function saveAssessmentRecord(
   };
 
   try {
-    const history = [record, ...loadAssessmentHistory()]
-      .sort((a, b) => b.completedAt - a.completedAt)
-      .slice(0, MAX_RECORDS);
+    const history = mergeAssessmentHistories([record], loadAssessmentHistory());
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
     rememberLastResult(record);
@@ -225,6 +221,39 @@ export function saveAssessmentRecord(
   }
 
   return record;
+}
+
+/**
+ * Combines local and remote histories without dropping older dates.
+ * Prefers the richer record when the same submission appears twice.
+ */
+export function mergeAssessmentHistories(
+  ...lists: readonly (readonly AssessmentRecord[])[]
+): AssessmentRecord[] {
+  const byKey = new Map<string, AssessmentRecord>();
+
+  const richness = (record: AssessmentRecord): number => {
+    const organs = Object.values(record.assessment.organRisks);
+    const organSum = organs.reduce((sum, value) => sum + Math.abs(value), 0);
+    return (record.submissionId != null ? 1_000 : 0) + organSum;
+  };
+
+  const keyOf = (record: AssessmentRecord): string => {
+    if (record.submissionId != null) return `id:${record.submissionId}`;
+    return `t:${record.completedAt}:${normalizeNationalId(record.nationalId)}`;
+  };
+
+  for (const list of lists) {
+    for (const record of list) {
+      const key = keyOf(record);
+      const existing = byKey.get(key);
+      if (!existing || richness(record) >= richness(existing)) {
+        byKey.set(key, record);
+      }
+    }
+  }
+
+  return [...byKey.values()].sort((a, b) => b.completedAt - a.completedAt);
 }
 
 /**
